@@ -85,18 +85,24 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const loadInitialData = async () => {
     setLoading(true);
     try {
+      console.log('Dashboard: Loading initial data...');
+      
       // Get all messages - remove the limit to get actual count
       const allMessages = await getAllMessages('all', 10000);
+      console.log(`Dashboard: Loaded ${allMessages.length} messages`);
       setMessages(allMessages);
 
       // Get property type statistics
       const propertyStats = await getPropertyTypeStats();
+      console.log('Dashboard: Property stats:', propertyStats);
       setStats(propertyStats);
+      
+      const totalCount = propertyStats.reduce((sum, stat) => sum + stat.count, 0);
+      console.log(`Dashboard: Total count from stats: ${totalCount}`);
+      console.log(`Dashboard: Messages length: ${allMessages.length}`);
     } catch (error) {
       console.error('Error loading data:', error);
     }
-    setLoading(false);
-  };
     setLoading(false);
   };
 
@@ -254,16 +260,30 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
               </div>
             </motion.div>
             
-            <motion.button
-              onClick={onLogout}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="group relative overflow-hidden flex items-center px-8 py-4 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <ArrowRightOnRectangleIcon className="h-5 w-5 ml-3 group-hover:rotate-12 transition-transform duration-300" />
-              <span className="relative">تسجيل الخروج</span>
-            </motion.button>
+            <div className="flex items-center gap-4">
+              {/* Language Switcher */}
+              <motion.button
+                onClick={onLanguageSwitch}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative overflow-hidden flex items-center px-6 py-3 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <LanguageIcon className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+                <span className="relative">English</span>
+              </motion.button>
+
+              <motion.button
+                onClick={onLogout}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative overflow-hidden flex items-center px-8 py-4 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <ArrowRightOnRectangleIcon className="h-5 w-5 ml-3 group-hover:rotate-12 transition-transform duration-300" />
+                <span className="relative">تسجيل الخروج</span>
+              </motion.button>
+            </div>
           </div>
         </div>
       </motion.header>

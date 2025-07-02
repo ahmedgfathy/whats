@@ -9,10 +9,11 @@ import {
   MapPinIcon,
   UserIcon,
   LockClosedIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  LanguageIcon
 } from '@heroicons/react/24/outline';
 
-const Login = ({ onLogin }) => {
+const Login = ({ onLogin, onLanguageSwitch }) => {
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
@@ -83,6 +84,20 @@ const Login = ({ onLogin }) => {
         <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      </div>
+
+      {/* Language Switcher */}
+      <div className="absolute top-6 right-6 z-20">
+        <motion.button
+          onClick={onLanguageSwitch}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="group relative overflow-hidden flex items-center px-4 py-2 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-xl border border-white/20 transition-all duration-300 shadow-lg"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <LanguageIcon className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+          <span className="relative">English</span>
+        </motion.button>
       </div>
 
       {/* Floating Icons */}

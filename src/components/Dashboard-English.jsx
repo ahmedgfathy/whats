@@ -98,8 +98,6 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
     }
     setLoading(false);
   };
-    setLoading(false);
-  };
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
