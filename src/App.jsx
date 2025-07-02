@@ -1,17 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
+import LoginEnglish from './components/Login-English';
 import Dashboard from './components/Dashboard';
+import DashboardEnglish from './components/Dashboard-English';
 import './App.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [language, setLanguage] = useState('arabic'); // 'arabic' or 'english'
 
   useEffect(() => {
     // Check if user is already logged in
     const authStatus = localStorage.getItem('isAuthenticated');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
+    }
+    
+    // Check saved language preference
+    const savedLanguage = localStorage.getItem('language');
+    if (savedLanguage) {
+      setLanguage(savedLanguage);
     }
   }, []);
 
@@ -25,6 +34,12 @@ function App() {
     localStorage.removeItem('isAuthenticated');
   };
 
+  const handleLanguageSwitch = () => {
+    const newLanguage = language === 'arabic' ? 'english' : 'arabic';
+    setLanguage(newLanguage);
+    localStorage.setItem('language', newLanguage);
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
       <Router>
@@ -33,7 +48,10 @@ function App() {
             path="/login" 
             element={
               !isAuthenticated ? 
-                <Login onLogin={handleLogin} /> : 
+                (language === 'arabic' ? 
+                  <Login onLogin={handleLogin} onLanguageSwitch={handleLanguageSwitch} /> : 
+                  <LoginEnglish onLogin={handleLogin} onLanguageSwitch={handleLanguageSwitch} />
+                ) : 
                 <Navigate to="/dashboard" replace />
             } 
           />
@@ -41,7 +59,10 @@ function App() {
             path="/dashboard" 
             element={
               isAuthenticated ? 
-                <Dashboard onLogout={handleLogout} /> : 
+                (language === 'arabic' ? 
+                  <Dashboard onLogout={handleLogout} onLanguageSwitch={handleLanguageSwitch} /> : 
+                  <DashboardEnglish onLogout={handleLogout} onLanguageSwitch={handleLanguageSwitch} />
+                ) : 
                 <Navigate to="/login" replace />
             } 
           />

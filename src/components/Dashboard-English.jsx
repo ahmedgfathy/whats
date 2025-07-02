@@ -18,12 +18,11 @@ import {
   SparklesIcon,
   CpuChipIcon,
   ChartBarIcon,
-  LanguageIcon,
-  GlobeAltIcon
+  LanguageIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/mockDatabase';
 
-const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
+const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   const [messages, setMessages] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -49,7 +48,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
   const tabs = [
     { 
       id: 'units', 
-      label: 'Properties Table', 
+      label: 'Complete Properties Table', 
       icon: BuildingOffice2Icon, 
       gradient: 'from-purple-500 to-blue-500',
       description: 'All properties in detail'
@@ -59,7 +58,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
       label: 'Recent Results', 
       icon: ChartBarIcon, 
       gradient: 'from-blue-500 to-indigo-500',
-      description: 'Latest properties added'
+      description: 'Latest added properties'
     },
     { 
       id: 'import', 
@@ -108,21 +107,16 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
     setLoading(false);
   };
 
-  const handleStatClick = async (propertyType) => {
-    setSelectedFilter(propertyType);
+  const handleStatClick = async (filterType) => {
+    setSelectedFilter(filterType);
     setCurrentPage(1);
     setLoading(true);
     
     try {
-      if (propertyType === 'all') {
-        const allMessages = await getAllMessages('all', 1000);
-        setMessages(allMessages);
-      } else {
-        const filteredMessages = await getAllMessages(propertyType, 1000);
-        setMessages(filteredMessages);
-      }
+      const filteredMessages = await getAllMessages(filterType === 'all' ? null : filterType, 1000);
+      setMessages(filteredMessages);
     } catch (error) {
-      console.error('Error filtering:', error);
+      console.error('Error filtering messages:', error);
     }
     setLoading(false);
   };
@@ -132,17 +126,15 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection('desc');
     }
   };
 
   const renderSortIcon = (field) => {
-    if (sortField !== field) {
-      return <ChevronUpIcon className="h-3 w-3 opacity-50" />;
-    }
+    if (sortField !== field) return null;
     return sortDirection === 'asc' ? 
-      <ChevronUpIcon className="h-3 w-3" /> : 
-      <ChevronDownIcon className="h-3 w-3" />;
+      <ChevronUpIcon className="h-4 w-4" /> : 
+      <ChevronDownIcon className="h-4 w-4" />;
   };
 
   const showUnitDetails = (unit) => {
@@ -155,8 +147,9 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
     setSelectedUnit(null);
   };
 
-  // Filter and sort logic
-  const filteredMessages = selectedFilter === 'all' ? messages : messages.filter(message => {
+  // Filter and sort messages
+  const filteredMessages = messages.filter(message => {
+    if (selectedFilter === 'all') return true;
     return message.property_type === selectedFilter;
   });
 
@@ -216,13 +209,13 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" dir="ltr">
+      {/* Header with Language Switcher */}
       <motion.header 
-        className="relative backdrop-blur-xl bg-white/10 shadow-2xl border-b border-white/20"
+        className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
-        transition={{ duration: 0.6, type: "spring" }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-24">
@@ -244,22 +237,22 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                 <div className="flex items-center space-x-2 mt-1">
                   <SparklesIcon className="h-4 w-4 text-purple-400" />
                   <CpuChipIcon className="h-4 w-4 text-purple-400 animate-pulse" />
-                  <p className="text-sm text-gray-300">AI-powered advanced search technology</p>
+                  <p className="text-sm text-gray-300">AI-powered Advanced Search Technology</p>
                 </div>
               </div>
             </motion.div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-4">
               {/* Language Switcher */}
               <motion.button
-                onClick={() => onLanguageChange('ar')}
+                onClick={onLanguageSwitch}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="group relative overflow-hidden flex items-center px-6 py-3 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <GlobeAltIcon className="h-5 w-5 mr-3 group-hover:rotate-12 transition-transform duration-300" />
-                <span className="relative">عربي</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <LanguageIcon className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+                <span className="relative">العربية</span>
               </motion.button>
 
               <motion.button
@@ -308,12 +301,12 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                         layoutId="activeTab"
                         className={`absolute inset-0 bg-gradient-to-r ${tab.gradient} rounded-2xl`}
                         initial={false}
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
                       />
                     )}
                     <div className="relative z-10 flex flex-col items-center space-y-2">
                       <IconComponent className="h-6 w-6" />
-                      <span className="text-xs font-bold">{tab.label}</span>
+                      <span className="text-xs font-medium">{tab.label}</span>
                       <span className="text-xs opacity-70">{tab.description}</span>
                     </div>
                   </motion.button>
@@ -342,8 +335,8 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                 Welcome
               </div>
             </div>
-            <h2 className="text-xl font-bold mb-2">Welcome</h2>
-            <p className="text-blue-100 text-sm leading-relaxed">To the smart real estate platform for WhatsApp chat analysis</p>
+            <h2 className="text-xl font-bold mb-2">Welcome!</h2>
+            <p className="text-blue-100 text-sm leading-relaxed">To the Smart Real Estate Platform for WhatsApp Chat Analysis</p>
           </motion.div>
 
           {/* Search Card */}
@@ -365,7 +358,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search apartment, villa, land..."
+                placeholder="Search apartments, villas, land..."
                 className="flex-1 px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/30 placeholder-slate-300 text-sm"
               />
               <motion.button 
@@ -438,7 +431,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
               <span className="text-3xl font-bold">{stats.find(s => s.property_type === 'apartment')?.count || 0}</span>
             </div>
             <h3 className="text-lg font-bold mb-2">Apartments</h3>
-            <p className="text-sm opacity-80 leading-relaxed">Residential apartments for sale and rent</p>
+            <p className="text-sm opacity-80 leading-relaxed">Residential apartments for sale & rent</p>
           </motion.button>
 
           {/* Villas Card */}
@@ -555,7 +548,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                 </h3>
                 <p className="text-gray-400 flex items-center gap-2">
                   <BuildingOffice2Icon className="h-5 w-5" />
-                  {sortedMessages.length} properties • page {currentPage} of {totalPages}
+                  {sortedMessages.length} property • page {currentPage} of {totalPages}
                 </p>
               </div>
               <div className="flex items-center gap-4">
@@ -791,7 +784,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                 <ArrowUpTrayIcon className="h-10 w-10 text-white" />
               </motion.div>
               <h3 className="text-3xl font-bold mb-2">Import WhatsApp Chats</h3>
-              <p className="text-gray-400">Upload chat files to analyze them and add them to the smart database</p>
+              <p className="text-gray-400">Upload chat files to analyze and add them to the smart database</p>
             </div>
             
             <div className="max-w-2xl mx-auto">
@@ -814,7 +807,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                   className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-semibold shadow-lg"
                 >
                   <ArrowUpTrayIcon className="h-5 w-5 mr-2 inline" />
-                  Select File
+                  Choose File
                 </motion.button>
               </motion.div>
               
@@ -837,7 +830,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                     Technical Info
                   </h5>
                   <ul className="text-gray-300 text-sm space-y-1">
-                    <li>• Max size: 10 MB</li>
+                    <li>• Maximum size: 10MB</li>
                     <li>• Automatic Arabic text processing</li>
                     <li>• Smart information extraction</li>
                   </ul>
@@ -954,7 +947,7 @@ const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
                 </svg>
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
               <div className="space-y-6">
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                   <strong className="text-blue-700 block mb-2">Sender:</strong> 
