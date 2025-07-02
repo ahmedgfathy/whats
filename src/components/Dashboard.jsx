@@ -70,10 +70,20 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
     }
   ];
 
+  // Debug: Monitor messages state changes
+  useEffect(() => {
+    console.log('Dashboard: Messages state updated:', messages.length);
+  }, [messages]);
+
   // Load initial data
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  // Debug: Monitor messages state changes
+  useEffect(() => {
+    console.log('Dashboard: Messages state updated to length:', messages.length);
+  }, [messages]);
 
   // Debug: Monitor stats changes
   useEffect(() => {
@@ -597,12 +607,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
               <div className="text-center py-16">
                 <motion.div 
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto mb-4"
-                ></motion.div>
-                <p className="text-gray-400 text-lg">جاري تحميل البيانات...</p>
-              </div>
-            ) : (
+                  transition={{ duration: 1, repeat: Infinity, ease:
               <>
                 <div className="overflow-x-auto rounded-xl border border-gray-600 shadow-lg">
                   <table className="w-full text-right bg-gray-900" dir="rtl">
