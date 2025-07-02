@@ -247,7 +247,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-24">
             <motion.div 
-              className="flex items-center space-x-6" 
+              className="flex items-center space-x-8" 
               dir="rtl"
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
@@ -258,11 +258,11 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                   <BuildingOffice2Icon className="h-10 w-10 text-white" />
                 </div>
               </div>
-              <div>
+              <div className="ml-6">
                 <h1 className="text-3xl font-bold gradient-text">
                   منصة العقارات الذكية
                 </h1>
-                <div className="flex items-center space-x-2 mt-1">
+                <div className="flex items-center space-x-2 mt-2">
                   <SparklesIcon className="h-4 w-4 text-purple-400" />
                   <CpuChipIcon className="h-4 w-4 text-purple-400 animate-pulse" />
                   <p className="text-sm text-gray-300">تقنية الذكاء الاصطناعي للبحث المتقدم</p>
@@ -270,7 +270,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
               </div>
             </motion.div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-8 mr-16">
               {/* Language Switcher */}
               <motion.button
                 onClick={onLanguageSwitch}
@@ -607,7 +607,12 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
               <div className="text-center py-16">
                 <motion.div 
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease:
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="inline-block w-8 h-8 border-2 border-white border-t-transparent rounded-full"
+                />
+                <p className="mt-4 text-gray-300">جاري تحميل البيانات...</p>
+              </div>
+            ) : (
               <>
                 <div className="overflow-x-auto rounded-xl border border-gray-600 shadow-lg">
                   <table className="w-full text-right bg-gray-900" dir="rtl">
