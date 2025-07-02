@@ -183,6 +183,7 @@ export const resetDatabase = () => {
 
 // Function to get current database size
 export const getDatabaseSize = () => {
+  console.log(`Database currently contains ${messages.length} messages`);
   return messages.length;
 };
 
@@ -256,11 +257,15 @@ export const getPropertyTypeStats = async () => {
   await delay(200);
   
   const stats = {};
+  console.log(`Getting stats for ${messages.length} total messages`);
+  
   messages.forEach(msg => {
     if (msg.property_type) {
       stats[msg.property_type] = (stats[msg.property_type] || 0) + 1;
     }
   });
+  
+  console.log('Property type breakdown:', stats);
   
   return Object.entries(stats).map(([type, count]) => ({
     property_type: type,
@@ -316,6 +321,15 @@ export const importChatMessages = async (parsedMessages) => {
             messageData.location || 'موقع غير محدد'
           )
         };
+        
+        // Debug: Log some imported messages to see their property types
+        if (importedCount < 5) {
+          console.log(`Sample imported message ${importedCount + 1}:`, {
+            sender: newMessage.sender,
+            property_type: newMessage.property_type,
+            message: newMessage.message.substring(0, 50) + '...'
+          });
+        }
         
         messages.unshift(newMessage);
         importedCount++;

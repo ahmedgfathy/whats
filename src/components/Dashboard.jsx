@@ -75,6 +75,13 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
     loadInitialData();
   }, []);
 
+  // Debug: Monitor stats changes
+  useEffect(() => {
+    console.log('Dashboard: Stats state updated:', stats);
+    const total = stats.reduce((sum, stat) => sum + stat.count, 0);
+    console.log('Dashboard: Total from current stats state:', total);
+  }, [stats]);
+
   const loadInitialData = async () => {
     setLoading(true);
     try {
@@ -88,6 +95,8 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
     } catch (error) {
       console.error('Error loading data:', error);
     }
+    setLoading(false);
+  };
     setLoading(false);
   };
 
@@ -389,7 +398,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
               <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
                 <BuildingOffice2Icon className="h-6 w-6" />
               </div>
-              <span className="text-3xl font-bold">{stats.reduce((sum, stat) => sum + stat.count, 0)}</span>
+              <span className="text-3xl font-bold">{messages.length}</span>
             </div>
             <h3 className="text-lg font-bold mb-2">جميع العقارات</h3>
             <p className="text-sm opacity-80 leading-relaxed mb-3">اضغط لعرض كافة العقارات</p>
@@ -842,7 +851,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
         <div className="mt-8 bg-green-800/20 border border-green-600 rounded-xl p-6">
           <h4 className="text-green-400 font-semibold mb-2">🎉 قاعدة البيانات متصلة بنجاح!</h4>
           <div className="text-green-300 space-y-1">
-            <p>✅ تم تحميل {stats.reduce((sum, stat) => sum + stat.count, 0)} عقار من قاعدة البيانات</p>
+            <p>✅ تم تحميل {messages.length} عقار من قاعدة البيانات</p>
             <p>✅ النظام يعمل بكامل طاقته مع البحث والتصنيف والترتيب</p>
             <p>✅ يمكنك الآن النقر على الإحصائيات للتصفية وترتيب الجدول</p>
             <p>✅ جدول تفاعلي مع ترقيم الصفحات وإمكانيات فرز متقدمة</p>

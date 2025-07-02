@@ -78,16 +78,26 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   const loadInitialData = async () => {
     setLoading(true);
     try {
+      console.log('English Dashboard: Loading initial data...');
+      
       // Get all messages - remove the limit to get actual count
       const allMessages = await getAllMessages('all', 10000);
+      console.log(`English Dashboard: Loaded ${allMessages.length} messages`);
       setMessages(allMessages);
 
       // Get property type statistics
       const propertyStats = await getPropertyTypeStats();
+      console.log('English Dashboard: Property stats:', propertyStats);
       setStats(propertyStats);
+      
+      const totalCount = propertyStats.reduce((sum, stat) => sum + stat.count, 0);
+      console.log(`English Dashboard: Total count from stats: ${totalCount}`);
+      console.log(`English Dashboard: Messages length: ${allMessages.length}`);
     } catch (error) {
       console.error('Error loading data:', error);
     }
+    setLoading(false);
+  };
     setLoading(false);
   };
 
@@ -397,7 +407,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
               <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
                 <BuildingOffice2Icon className="h-6 w-6" />
               </div>
-              <span className="text-3xl font-bold">{stats.reduce((sum, stat) => sum + stat.count, 0)}</span>
+              <span className="text-3xl font-bold">{messages.length}</span>
             </div>
             <h3 className="text-lg font-bold mb-2">All Properties</h3>
             <p className="text-sm opacity-80 leading-relaxed mb-3">Click to view all properties</p>
@@ -848,7 +858,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
         <div className="mt-8 bg-green-800/20 border border-green-600 rounded-xl p-6">
           <h4 className="text-green-400 font-semibold mb-2">🎉 Database connected successfully!</h4>
           <div className="text-green-300 space-y-1">
-            <p>✅ Loaded {stats.reduce((sum, stat) => sum + stat.count, 0)} properties from database</p>
+            <p>✅ Loaded {messages.length} properties from database</p>
             <p>✅ System running at full capacity with search, classification and sorting</p>
             <p>✅ You can now click on statistics to filter and sort the table</p>
             <p>✅ Interactive table with pagination and advanced sorting capabilities</p>
