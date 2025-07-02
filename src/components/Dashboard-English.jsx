@@ -17,11 +17,13 @@ import {
   BuildingLibraryIcon,
   SparklesIcon,
   CpuChipIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  LanguageIcon,
+  GlobeAltIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/mockDatabase';
 
-const Dashboard = ({ onLogout }) => {
+const DashboardEnglish = ({ onLogout, onLanguageChange }) => {
   const [messages, setMessages] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -36,35 +38,35 @@ const Dashboard = ({ onLogout }) => {
   const [sortDirection, setSortDirection] = useState('desc');
 
   const propertyFilters = [
-    { id: 'all', label: 'جميع العقارات', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
-    { id: 'apartment', label: 'شقق', icon: HomeModernIcon, color: 'from-blue-500 to-cyan-500' },
-    { id: 'villa', label: 'فيلل', icon: HomeModernIcon, color: 'from-green-500 to-emerald-500' },
-    { id: 'land', label: 'أراضي', icon: MapPinIcon, color: 'from-orange-500 to-red-500' },
-    { id: 'office', label: 'مكاتب', icon: BuildingStorefrontIcon, color: 'from-indigo-500 to-purple-500' },
-    { id: 'warehouse', label: 'مخازن', icon: BuildingLibraryIcon, color: 'from-pink-500 to-rose-500' }
+    { id: 'all', label: 'All Properties', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
+    { id: 'apartment', label: 'Apartments', icon: HomeModernIcon, color: 'from-blue-500 to-cyan-500' },
+    { id: 'villa', label: 'Villas', icon: HomeModernIcon, color: 'from-green-500 to-emerald-500' },
+    { id: 'land', label: 'Land', icon: MapPinIcon, color: 'from-orange-500 to-red-500' },
+    { id: 'office', label: 'Offices', icon: BuildingStorefrontIcon, color: 'from-indigo-500 to-purple-500' },
+    { id: 'warehouse', label: 'Warehouses', icon: BuildingLibraryIcon, color: 'from-pink-500 to-rose-500' }
   ];
 
   const tabs = [
     { 
       id: 'units', 
-      label: 'جدول الوحدات الشامل', 
+      label: 'Properties Table', 
       icon: BuildingOffice2Icon, 
       gradient: 'from-purple-500 to-blue-500',
-      description: 'جميع العقارات بالتفصيل'
+      description: 'All properties in detail'
     },
     { 
       id: 'recent', 
-      label: 'النتائج الحديثة', 
+      label: 'Recent Results', 
       icon: ChartBarIcon, 
       gradient: 'from-blue-500 to-indigo-500',
-      description: 'أحدث العقارات المضافة'
+      description: 'Latest properties added'
     },
     { 
       id: 'import', 
-      label: 'استيراد المحادثات', 
+      label: 'Import Chats', 
       icon: ArrowUpTrayIcon, 
       gradient: 'from-green-500 to-emerald-500',
-      description: 'رفع ملفات WhatsApp'
+      description: 'Upload WhatsApp files'
     }
   ];
 
@@ -97,18 +99,32 @@ const Dashboard = ({ onLogout }) => {
 
     setLoading(true);
     try {
-      const results = await searchMessages(searchTerm, selectedFilter, 1000);
-      setMessages(results);
+      const searchResults = await searchMessages(searchTerm, selectedFilter === 'all' ? null : selectedFilter);
+      setMessages(searchResults);
+      setCurrentPage(1);
     } catch (error) {
       console.error('Error searching:', error);
     }
     setLoading(false);
   };
 
-  const handleStatClick = (propertyType) => {
+  const handleStatClick = async (propertyType) => {
     setSelectedFilter(propertyType);
-    setActiveTab('units');
     setCurrentPage(1);
+    setLoading(true);
+    
+    try {
+      if (propertyType === 'all') {
+        const allMessages = await getAllMessages('all', 1000);
+        setMessages(allMessages);
+      } else {
+        const filteredMessages = await getAllMessages(propertyType, 1000);
+        setMessages(filteredMessages);
+      }
+    } catch (error) {
+      console.error('Error filtering:', error);
+    }
+    setLoading(false);
   };
 
   const handleSort = (field) => {
@@ -118,6 +134,15 @@ const Dashboard = ({ onLogout }) => {
       setSortField(field);
       setSortDirection('asc');
     }
+  };
+
+  const renderSortIcon = (field) => {
+    if (sortField !== field) {
+      return <ChevronUpIcon className="h-3 w-3 opacity-50" />;
+    }
+    return sortDirection === 'asc' ? 
+      <ChevronUpIcon className="h-3 w-3" /> : 
+      <ChevronDownIcon className="h-3 w-3" />;
   };
 
   const showUnitDetails = (unit) => {
@@ -130,9 +155,8 @@ const Dashboard = ({ onLogout }) => {
     setSelectedUnit(null);
   };
 
-  // Filter and sort messages
-  const filteredMessages = messages.filter(message => {
-    if (selectedFilter === 'all') return true;
+  // Filter and sort logic
+  const filteredMessages = selectedFilter === 'all' ? messages : messages.filter(message => {
     return message.property_type === selectedFilter;
   });
 
@@ -160,11 +184,11 @@ const Dashboard = ({ onLogout }) => {
 
   const getPropertyTypeLabel = (type) => {
     const labels = {
-      apartment: 'شقق',
-      villa: 'فيلل',
-      land: 'أراضي',
-      office: 'مكاتب',
-      warehouse: 'مخازن'
+      apartment: 'Apartment',
+      villa: 'Villa',
+      land: 'Land',
+      office: 'Office',
+      warehouse: 'Warehouse'
     };
     return labels[type] || type;
   };
@@ -191,37 +215,19 @@ const Dashboard = ({ onLogout }) => {
     return colors[type] || 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   };
 
-  const renderSortIcon = (field) => {
-    if (sortField !== field) {
-      return <SparklesIcon className="h-4 w-4 text-gray-500" />;
-    }
-    return sortDirection === 'asc' ? 
-      <ChevronUpIcon className="h-4 w-4 text-blue-400" /> : 
-      <ChevronDownIcon className="h-4 w-4 text-blue-400" />;
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-slate-900/40 to-slate-900"></div>
-        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Header */}
       <motion.header 
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative glass border-b border-white/10 shadow-2xl"
+        className="relative backdrop-blur-xl bg-white/10 shadow-2xl border-b border-white/20"
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, type: "spring" }}
       >
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-24">
             <motion.div 
               className="flex items-center space-x-6" 
-              dir="rtl"
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
@@ -233,26 +239,40 @@ const Dashboard = ({ onLogout }) => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold gradient-text">
-                  منصة العقارات الذكية
+                  Smart Real Estate Platform
                 </h1>
                 <div className="flex items-center space-x-2 mt-1">
                   <SparklesIcon className="h-4 w-4 text-purple-400" />
                   <CpuChipIcon className="h-4 w-4 text-purple-400 animate-pulse" />
-                  <p className="text-sm text-gray-300">تقنية الذكاء الاصطناعي للبحث المتقدم</p>
+                  <p className="text-sm text-gray-300">AI-powered advanced search technology</p>
                 </div>
               </div>
             </motion.div>
             
-            <motion.button
-              onClick={onLogout}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="group relative overflow-hidden flex items-center px-8 py-4 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <ArrowRightOnRectangleIcon className="h-5 w-5 ml-3 group-hover:rotate-12 transition-transform duration-300" />
-              <span className="relative">تسجيل الخروج</span>
-            </motion.button>
+            <div className="flex items-center space-x-4">
+              {/* Language Switcher */}
+              <motion.button
+                onClick={() => onLanguageChange('ar')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative overflow-hidden flex items-center px-6 py-3 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <GlobeAltIcon className="h-5 w-5 mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                <span className="relative">عربي</span>
+              </motion.button>
+
+              <motion.button
+                onClick={onLogout}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative overflow-hidden flex items-center px-8 py-4 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <ArrowRightOnRectangleIcon className="h-5 w-5 mr-3 group-hover:rotate-12 transition-transform duration-300" />
+                <span className="relative">Logout</span>
+              </motion.button>
+            </div>
           </div>
         </div>
       </motion.header>
@@ -265,7 +285,7 @@ const Dashboard = ({ onLogout }) => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <nav className="relative" dir="rtl">
+          <nav className="relative">
             <div className="flex justify-center space-x-4 glass p-4 rounded-3xl border border-white/20 shadow-2xl max-w-5xl mx-auto">
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;
@@ -288,15 +308,12 @@ const Dashboard = ({ onLogout }) => {
                         layoutId="activeTab"
                         className={`absolute inset-0 bg-gradient-to-r ${tab.gradient} rounded-2xl`}
                         initial={false}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                       />
                     )}
-                    <div className="relative flex flex-col items-center space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <IconComponent className="h-5 w-5" />
-                        {isActive && <SparklesIcon className="h-4 w-4 animate-pulse" />}
-                      </div>
-                      <span className="text-xs">{tab.label}</span>
+                    <div className="relative z-10 flex flex-col items-center space-y-2">
+                      <IconComponent className="h-6 w-6" />
+                      <span className="text-xs font-bold">{tab.label}</span>
                       <span className="text-xs opacity-70">{tab.description}</span>
                     </div>
                   </motion.button>
@@ -322,11 +339,11 @@ const Dashboard = ({ onLogout }) => {
                 <span className="text-2xl">🏠</span>
               </div>
               <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-medium">
-                مرحباً
+                Welcome
               </div>
             </div>
-            <h2 className="text-xl font-bold mb-2">أهلاً وسهلاً</h2>
-            <p className="text-blue-100 text-sm leading-relaxed">في منصة العقارات الذكية لتحليل محادثات الواتساب</p>
+            <h2 className="text-xl font-bold mb-2">Welcome</h2>
+            <p className="text-blue-100 text-sm leading-relaxed">To the smart real estate platform for WhatsApp chat analysis</p>
           </motion.div>
 
           {/* Search Card */}
@@ -337,7 +354,7 @@ const Dashboard = ({ onLogout }) => {
             className="bg-gradient-to-br from-slate-700 via-slate-800 to-gray-900 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-slate-600/50"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">البحث الذكي</h3>
+              <h3 className="text-lg font-bold text-white">Smart Search</h3>
               <div className="bg-blue-500 p-2 rounded-lg">
                 <MagnifyingGlassIcon className="h-4 w-4 text-white" />
               </div>
@@ -348,9 +365,8 @@ const Dashboard = ({ onLogout }) => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="ابحث عن شقة، فيلا، أرض..."
+                placeholder="Search apartment, villa, land..."
                 className="flex-1 px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/30 placeholder-slate-300 text-sm"
-                dir="rtl"
               />
               <motion.button 
                 whileHover={{ scale: 1.05 }}
@@ -364,7 +380,7 @@ const Dashboard = ({ onLogout }) => {
                 ) : (
                   <MagnifyingGlassIcon className="h-3 w-3" />
                 )}
-                بحث
+                Search
               </motion.button>
             </div>
           </motion.div>
@@ -389,11 +405,11 @@ const Dashboard = ({ onLogout }) => {
               </div>
               <span className="text-3xl font-bold">{stats.reduce((sum, stat) => sum + stat.count, 0)}</span>
             </div>
-            <h3 className="text-lg font-bold mb-2">جميع العقارات</h3>
-            <p className="text-sm opacity-80 leading-relaxed mb-3">اضغط لعرض كافة العقارات</p>
+            <h3 className="text-lg font-bold mb-2">All Properties</h3>
+            <p className="text-sm opacity-80 leading-relaxed mb-3">Click to view all properties</p>
             <div className="flex items-center text-xs opacity-70">
-              <SparklesIcon className="h-3 w-3 ml-1" />
-              <span>قابل للتفاعل</span>
+              <SparklesIcon className="h-3 w-3 mr-1" />
+              <span>Interactive</span>
             </div>
           </motion.button>
         </div>
@@ -421,8 +437,8 @@ const Dashboard = ({ onLogout }) => {
               </div>
               <span className="text-3xl font-bold">{stats.find(s => s.property_type === 'apartment')?.count || 0}</span>
             </div>
-            <h3 className="text-lg font-bold mb-2">الشقق</h3>
-            <p className="text-sm opacity-80 leading-relaxed">شقق سكنية للبيع والإيجار</p>
+            <h3 className="text-lg font-bold mb-2">Apartments</h3>
+            <p className="text-sm opacity-80 leading-relaxed">Residential apartments for sale and rent</p>
           </motion.button>
 
           {/* Villas Card */}
@@ -445,8 +461,8 @@ const Dashboard = ({ onLogout }) => {
               </div>
               <span className="text-3xl font-bold">{stats.find(s => s.property_type === 'villa')?.count || 0}</span>
             </div>
-            <h3 className="text-lg font-bold mb-2">الفيلل</h3>
-            <p className="text-sm opacity-80 leading-relaxed">فيلل مستقلة ودوبلكس</p>
+            <h3 className="text-lg font-bold mb-2">Villas</h3>
+            <p className="text-sm opacity-80 leading-relaxed">Independent villas and duplexes</p>
           </motion.button>
 
           {/* Land Card */}
@@ -469,8 +485,8 @@ const Dashboard = ({ onLogout }) => {
               </div>
               <span className="text-3xl font-bold">{stats.find(s => s.property_type === 'land')?.count || 0}</span>
             </div>
-            <h3 className="text-lg font-bold mb-2">الأراضي</h3>
-            <p className="text-sm opacity-80 leading-relaxed">أراضي سكنية وتجارية</p>
+            <h3 className="text-lg font-bold mb-2">Land</h3>
+            <p className="text-sm opacity-80 leading-relaxed">Residential and commercial land</p>
           </motion.button>
 
           {/* Commercial Properties Card */}
@@ -481,7 +497,7 @@ const Dashboard = ({ onLogout }) => {
             className="bg-gradient-to-br from-slate-700 via-slate-800 to-gray-900 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-slate-600/50"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">العقارات التجارية</h3>
+              <h3 className="text-lg font-bold text-white">Commercial Properties</h3>
               <div className="bg-emerald-500 p-2 rounded-lg">
                 <BuildingStorefrontIcon className="h-4 w-4 text-white" />
               </div>
@@ -499,7 +515,7 @@ const Dashboard = ({ onLogout }) => {
               >
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-                  <span className="font-medium text-sm">المكاتب</span>
+                  <span className="font-medium text-sm">Offices</span>
                 </div>
                 <span className="font-bold text-purple-400">{stats.find(s => s.property_type === 'office')?.count || 0}</span>
               </motion.button>
@@ -515,7 +531,7 @@ const Dashboard = ({ onLogout }) => {
               >
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                  <span className="font-medium text-sm">المخازن</span>
+                  <span className="font-medium text-sm">Warehouses</span>
                 </div>
                 <span className="font-bold text-red-400">{stats.find(s => s.property_type === 'warehouse')?.count || 0}</span>
               </motion.button>
@@ -535,11 +551,11 @@ const Dashboard = ({ onLogout }) => {
               <div>
                 <h3 className="text-3xl font-bold text-white mb-3 flex items-center gap-3">
                   <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                  {selectedFilter === 'all' ? 'جميع العقارات' : `عقارات ${getPropertyTypeLabel(selectedFilter)}`}
+                  {selectedFilter === 'all' ? 'All Properties' : `${getPropertyTypeLabel(selectedFilter)} Properties`}
                 </h3>
                 <p className="text-gray-400 flex items-center gap-2">
                   <BuildingOffice2Icon className="h-5 w-5" />
-                  {sortedMessages.length} عقار • صفحة {currentPage} من {totalPages}
+                  {sortedMessages.length} properties • page {currentPage} of {totalPages}
                 </p>
               </div>
               <div className="flex items-center gap-4">
@@ -550,13 +566,13 @@ const Dashboard = ({ onLogout }) => {
                     onClick={() => {setSelectedFilter('all'); setCurrentPage(1);}}
                     className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-300 shadow-lg font-medium"
                   >
-                    <BuildingOffice2Icon className="h-4 w-4 ml-2 inline" />
-                    إظهار الكل
+                    <BuildingOffice2Icon className="h-4 w-4 mr-2 inline" />
+                    Show All
                   </motion.button>
                 )}
                 <div className="flex items-center gap-2 text-sm text-gray-400 bg-gray-800 px-4 py-2 rounded-lg border border-gray-600">
                   <SparklesIcon className="h-4 w-4" />
-                  <span>مرتب حسب: {sortField === 'timestamp' ? 'التاريخ' : sortField === 'sender' ? 'المرسل' : sortField === 'property_type' ? 'النوع' : sortField}</span>
+                  <span>Sorted by: {sortField === 'timestamp' ? 'Date' : sortField === 'sender' ? 'Sender' : sortField === 'property_type' ? 'Type' : sortField}</span>
                 </div>
               </div>
             </div>
@@ -569,67 +585,67 @@ const Dashboard = ({ onLogout }) => {
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                   className="rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto mb-4"
                 ></motion.div>
-                <p className="text-gray-400 text-lg">جاري تحميل البيانات...</p>
+                <p className="text-gray-400 text-lg">Loading data...</p>
               </div>
             ) : (
               <>
                 <div className="overflow-x-auto rounded-xl border border-gray-600 shadow-lg">
-                  <table className="w-full text-right bg-gray-900" dir="rtl">
+                  <table className="w-full text-left bg-gray-900">
                     <thead className="bg-gradient-to-r from-gray-700 to-gray-800 border-b border-gray-600">
                       <tr>
-                        <th className="py-4 px-6 text-right w-36">
+                        <th className="py-4 px-6 text-left w-36">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('sender')}
                             className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
-                            المرسل
+                            Sender
                             {renderSortIcon('sender')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right w-32">رقم السمسار</th>
-                        <th className="py-4 px-6 text-right w-28">
+                        <th className="py-4 px-6 text-left w-32">Agent Phone</th>
+                        <th className="py-4 px-6 text-left w-28">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('property_type')}
                             className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
-                            نوع العقار
+                            Property Type
                             {renderSortIcon('property_type')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right font-bold text-gray-200 min-w-[280px]">المحتوى</th>
-                        <th className="py-4 px-6 text-right w-32">
+                        <th className="py-4 px-6 text-left font-bold text-gray-200 min-w-[280px]">Content</th>
+                        <th className="py-4 px-6 text-left w-32">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('location')}
                             className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
-                            الموقع
+                            Location
                             {renderSortIcon('location')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right w-36">
+                        <th className="py-4 px-6 text-left w-36">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('price')}
                             className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
-                            السعر
+                            Price
                             {renderSortIcon('price')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right w-32">
+                        <th className="py-4 px-6 text-left w-32">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('timestamp')}
                             className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
-                            التاريخ
+                            Date
                             {renderSortIcon('timestamp')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right font-bold text-gray-200 w-32">التفاصيل</th>
+                        <th className="py-4 px-6 text-left font-bold text-gray-200 w-32">Details</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
@@ -644,7 +660,7 @@ const Dashboard = ({ onLogout }) => {
                           <td className="py-4 px-6 font-semibold text-white w-36">{message.sender}</td>
                           <td className="py-4 px-6 w-32">
                             <span className="text-green-400 font-mono text-sm bg-green-400/10 px-2 py-1 rounded border border-green-400/30">
-                              {message.agent_phone || 'غير متاح'}
+                              {message.agent_phone || 'N/A'}
                             </span>
                           </td>
                           <td className="py-4 px-6 w-28">
@@ -661,7 +677,7 @@ const Dashboard = ({ onLogout }) => {
                           <td className="py-4 px-6 text-gray-300 w-32">
                             <div className="flex items-center gap-1">
                               <MapPinIcon className="h-4 w-4 text-gray-500" />
-                              {message.location || 'غير محدد'}
+                              {message.location || 'Not specified'}
                             </div>
                           </td>
                           <td className="py-4 px-6 w-36">
@@ -670,7 +686,7 @@ const Dashboard = ({ onLogout }) => {
                                 {message.price}
                               </span>
                             ) : (
-                              <span className="text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full text-sm">غير محدد</span>
+                              <span className="text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full text-sm">Not specified</span>
                             )}
                           </td>
                           <td className="py-4 px-6 text-gray-400 text-sm w-32">
@@ -679,15 +695,15 @@ const Dashboard = ({ onLogout }) => {
                               {message.timestamp}
                             </div>
                           </td>
-                          <td className="py-4 px-6 text-right w-32">
+                          <td className="py-4 px-6 text-left w-32">
                             <motion.button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={() => showUnitDetails(message)}
                               className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg font-medium"
                             >
-                              <EyeIcon className="h-4 w-4 ml-1" />
-                              عرض التفاصيل
+                              <EyeIcon className="h-4 w-4 mr-1" />
+                              View Details
                             </motion.button>
                           </td>
                         </motion.tr>
@@ -705,7 +721,7 @@ const Dashboard = ({ onLogout }) => {
                     className="flex items-center justify-between mt-8 bg-gray-750 rounded-lg p-4"
                   >
                     <div className="text-gray-400 text-sm">
-                      عرض <span className="text-purple-400 font-semibold">{indexOfFirstMessage + 1}</span> إلى <span className="text-purple-400 font-semibold">{Math.min(indexOfLastMessage, sortedMessages.length)}</span> من <span className="text-purple-400 font-semibold">{sortedMessages.length}</span> عقار
+                      Showing <span className="text-purple-400 font-semibold">{indexOfFirstMessage + 1}</span> to <span className="text-purple-400 font-semibold">{Math.min(indexOfLastMessage, sortedMessages.length)}</span> of <span className="text-purple-400 font-semibold">{sortedMessages.length}</span> properties
                     </div>
                     <div className="flex items-center gap-3">
                       <motion.button
@@ -715,8 +731,8 @@ const Dashboard = ({ onLogout }) => {
                         disabled={currentPage === 1}
                         className="flex items-center px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg"
                       >
-                        <ChevronRightIcon className="h-4 w-4 ml-1" />
-                        السابق
+                        <ChevronLeftIcon className="h-4 w-4 mr-1" />
+                        Previous
                       </motion.button>
                       
                       <div className="flex items-center gap-2">
@@ -747,8 +763,8 @@ const Dashboard = ({ onLogout }) => {
                         disabled={currentPage === totalPages}
                         className="flex items-center px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg"
                       >
-                        التالي
-                        <ChevronLeftIcon className="h-4 w-4 mr-1" />
+                        Next
+                        <ChevronRightIcon className="h-4 w-4 ml-1" />
                       </motion.button>
                     </div>
                   </motion.div>
@@ -774,8 +790,8 @@ const Dashboard = ({ onLogout }) => {
               >
                 <ArrowUpTrayIcon className="h-10 w-10 text-white" />
               </motion.div>
-              <h3 className="text-3xl font-bold mb-2">استيراد محادثات الواتساب</h3>
-              <p className="text-gray-400">قم برفع ملفات المحادثات لتحليلها وإضافتها إلى قاعدة البيانات</p>
+              <h3 className="text-3xl font-bold mb-2">Import WhatsApp Chats</h3>
+              <p className="text-gray-400">Upload chat files to analyze them and add them to the smart database</p>
             </div>
             
             <div className="max-w-2xl mx-auto">
@@ -790,15 +806,15 @@ const Dashboard = ({ onLogout }) => {
                 >
                   <ArrowUpTrayIcon className="h-16 w-16 text-gray-400 mx-auto" />
                 </motion.div>
-                <h4 className="text-xl font-semibold mb-3 text-white">قم بسحب وإفلات ملف المحادثة هنا</h4>
-                <p className="text-gray-400 mb-6">أو انقر لاختيار الملف من جهازك</p>
+                <h4 className="text-xl font-semibold mb-3 text-white">Drag and drop chat file here</h4>
+                <p className="text-gray-400 mb-6">Or click to select file from your device</p>
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-semibold shadow-lg"
                 >
-                  <ArrowUpTrayIcon className="h-5 w-5 ml-2 inline" />
-                  اختيار ملف
+                  <ArrowUpTrayIcon className="h-5 w-5 mr-2 inline" />
+                  Select File
                 </motion.button>
               </motion.div>
               
@@ -806,24 +822,24 @@ const Dashboard = ({ onLogout }) => {
                 <div className="bg-gray-700 rounded-lg p-4">
                   <h5 className="font-semibold text-white mb-2 flex items-center gap-2">
                     <SparklesIcon className="h-5 w-5 text-green-400" />
-                    الصيغ المدعومة
+                    Supported Formats
                   </h5>
                   <ul className="text-gray-300 text-sm space-y-1">
-                    <li>• ملفات النصوص (.txt)</li>
-                    <li>• ملفات CSV (.csv)</li>
-                    <li>• تصدير WhatsApp مباشر</li>
+                    <li>• Text files (.txt)</li>
+                    <li>• CSV files (.csv)</li>
+                    <li>• Direct WhatsApp export</li>
                   </ul>
                 </div>
                 
                 <div className="bg-gray-700 rounded-lg p-4">
                   <h5 className="font-semibold text-white mb-2 flex items-center gap-2">
                     <CpuChipIcon className="h-5 w-5 text-blue-400" />
-                    معلومات تقنية
+                    Technical Info
                   </h5>
                   <ul className="text-gray-300 text-sm space-y-1">
-                    <li>• الحد الأقصى: 10 ميجابايت</li>
-                    <li>• معالجة تلقائية للنصوص العربية</li>
-                    <li>• استخراج ذكي للمعلومات</li>
+                    <li>• Max size: 10 MB</li>
+                    <li>• Automatic Arabic text processing</li>
+                    <li>• Smart information extraction</li>
                   </ul>
                 </div>
               </div>
@@ -841,9 +857,9 @@ const Dashboard = ({ onLogout }) => {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold flex items-center gap-3">
                 <ChartBarIcon className="h-8 w-8 text-blue-400" />
-                آخر العقارات المضافة
+                Latest Added Properties
               </h3>
-              <span className="text-gray-400">أحدث 9 عقارات</span>
+              <span className="text-gray-400">Latest 9 properties</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {messages.slice(0, 9).map((message, index) => (
@@ -868,19 +884,19 @@ const Dashboard = ({ onLogout }) => {
                     </div>
                   </div>
                   
-                  <h4 className="font-semibold text-white mb-3 flex items-center gap-2" dir="rtl">
+                  <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
                     <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                     {message.sender}
                   </h4>
                   
-                  <p className="text-gray-300 text-sm line-clamp-3 mb-4 leading-relaxed" dir="rtl">
+                  <p className="text-gray-300 text-sm line-clamp-3 mb-4 leading-relaxed">
                     {message.message}
                   </p>
                   
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1 text-gray-400">
                       <MapPinIcon className="h-4 w-4" />
-                      {message.location || 'غير محدد'}
+                      {message.location || 'Not specified'}
                     </div>
                     {message.price && (
                       <span className="text-green-400 font-semibold bg-green-400/10 px-2 py-1 rounded">
@@ -895,7 +911,7 @@ const Dashboard = ({ onLogout }) => {
                     onClick={() => showUnitDetails(message)}
                     className="w-full mt-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm font-medium"
                   >
-                    عرض التفاصيل الكاملة
+                    View Full Details
                   </motion.button>
                 </motion.div>
               ))}
@@ -903,16 +919,14 @@ const Dashboard = ({ onLogout }) => {
           </motion.div>
         )}
 
-        {/* Statistics are now integrated above as clickable filters */}
-
         {/* Success Message */}
         <div className="mt-8 bg-green-800/20 border border-green-600 rounded-xl p-6">
-          <h4 className="text-green-400 font-semibold mb-2">🎉 قاعدة البيانات متصلة بنجاح!</h4>
+          <h4 className="text-green-400 font-semibold mb-2">🎉 Database connected successfully!</h4>
           <div className="text-green-300 space-y-1">
-            <p>✅ تم تحميل {stats.reduce((sum, stat) => sum + stat.count, 0)} عقار من قاعدة البيانات</p>
-            <p>✅ النظام يعمل بكامل طاقته مع البحث والتصنيف والترتيب</p>
-            <p>✅ يمكنك الآن النقر على الإحصائيات للتصفية وترتيب الجدول</p>
-            <p>✅ جدول تفاعلي مع ترقيم الصفحات وإمكانيات فرز متقدمة</p>
+            <p>✅ Loaded {stats.reduce((sum, stat) => sum + stat.count, 0)} properties from database</p>
+            <p>✅ System running at full capacity with search, classification and sorting</p>
+            <p>✅ You can now click on statistics to filter and sort the table</p>
+            <p>✅ Interactive table with pagination and advanced sorting capabilities</p>
           </div>
         </div>
       </div>
@@ -929,7 +943,7 @@ const Dashboard = ({ onLogout }) => {
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
               <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
                 <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                تفاصيل العقار
+                Property Details
               </h3>
               <button
                 onClick={closeModal}
@@ -940,14 +954,14 @@ const Dashboard = ({ onLogout }) => {
                 </svg>
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-right" dir="rtl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
                 <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <strong className="text-blue-700 block mb-2">المرسل:</strong> 
+                  <strong className="text-blue-700 block mb-2">Sender:</strong> 
                   <span className="text-gray-800 font-medium">{selectedUnit.sender}</span>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <strong className="text-purple-700 block mb-2">نوع العقار:</strong> 
+                  <strong className="text-purple-700 block mb-2">Property Type:</strong> 
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                     selectedUnit.property_type === 'apartment' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
                     selectedUnit.property_type === 'villa' ? 'bg-green-100 text-green-800 border border-green-300' :
@@ -959,22 +973,22 @@ const Dashboard = ({ onLogout }) => {
                   </span>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <strong className="text-green-700 block mb-2">الموقع:</strong> 
-                  <span className="text-gray-800">{selectedUnit.location || 'غير محدد'}</span>
+                  <strong className="text-green-700 block mb-2">Location:</strong> 
+                  <span className="text-gray-800">{selectedUnit.location || 'Not specified'}</span>
                 </div>
                 <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-                  <strong className="text-emerald-700 block mb-2">السعر:</strong> 
+                  <strong className="text-emerald-700 block mb-2">Price:</strong> 
                   <span className="text-emerald-600 font-bold text-lg">
-                    {selectedUnit.price || 'غير محدد'}
+                    {selectedUnit.price || 'Not specified'}
                   </span>
                 </div>
                 <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                  <strong className="text-indigo-700 block mb-2">التوقيت:</strong> 
+                  <strong className="text-indigo-700 block mb-2">Date:</strong> 
                   <span className="text-gray-800">{selectedUnit.timestamp}</span>
                 </div>
                 {selectedUnit.agent_phone && (
                   <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
-                    <strong className="text-teal-700 block mb-2">الهاتف:</strong> 
+                    <strong className="text-teal-700 block mb-2">Phone:</strong> 
                     <a href={`tel:${selectedUnit.agent_phone}`} className="text-teal-600 hover:text-teal-800 font-medium hover:underline">
                       {selectedUnit.agent_phone}
                     </a>
@@ -983,22 +997,22 @@ const Dashboard = ({ onLogout }) => {
               </div>
               <div className="space-y-6">
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                  <strong className="text-slate-700 block mb-3">الرسالة الكاملة:</strong>
+                  <strong className="text-slate-700 block mb-3">Full Message:</strong>
                   <p className="text-gray-800 bg-white p-4 rounded-lg border leading-relaxed">{selectedUnit.message}</p>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <strong className="text-orange-700 block mb-2">الكلمات المفتاحية:</strong>
-                  <p className="text-gray-800">{selectedUnit.keywords || 'لا توجد'}</p>
+                  <strong className="text-orange-700 block mb-2">Keywords:</strong>
+                  <p className="text-gray-800">{selectedUnit.keywords || 'None'}</p>
                 </div>
                 {selectedUnit.agent_description && (
                   <div className="bg-rose-50 p-4 rounded-lg border border-rose-200">
-                    <strong className="text-rose-700 block mb-2">وصف السمسار:</strong>
+                    <strong className="text-rose-700 block mb-2">Agent Description:</strong>
                     <p className="text-gray-800">{selectedUnit.agent_description}</p>
                   </div>
                 )}
                 {selectedUnit.full_description && (
                   <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
-                    <strong className="text-cyan-700 block mb-3">الوصف الكامل:</strong>
+                    <strong className="text-cyan-700 block mb-3">Full Description:</strong>
                     <p className="text-gray-800 bg-white p-4 rounded-lg border leading-relaxed">{selectedUnit.full_description}</p>
                   </div>
                 )}
@@ -1009,7 +1023,7 @@ const Dashboard = ({ onLogout }) => {
                 onClick={closeModal}
                 className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
               >
-                إغلاق
+                Close
               </button>
             </div>
           </motion.div>
@@ -1019,4 +1033,4 @@ const Dashboard = ({ onLogout }) => {
   );
 };
 
-export default Dashboard;
+export default DashboardEnglish;
