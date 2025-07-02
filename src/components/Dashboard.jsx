@@ -247,7 +247,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-24">
             <motion.div 
-              className="flex items-center space-x-8" 
+              className="flex items-center gap-6" 
               dir="rtl"
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
@@ -258,7 +258,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                   <BuildingOffice2Icon className="h-10 w-10 text-white" />
                 </div>
               </div>
-              <div className="ml-6">
+              <div>
                 <h1 className="text-3xl font-bold gradient-text">
                   منصة العقارات الذكية
                 </h1>
@@ -307,7 +307,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <nav className="relative" dir="rtl">
-            <div className="flex justify-center space-x-4 glass p-4 rounded-3xl border border-white/20 shadow-2xl max-w-5xl mx-auto">
+            <div className="flex justify-center gap-4 glass p-4 rounded-3xl border border-white/20 shadow-2xl max-w-5xl mx-auto">
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -332,12 +332,9 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
-                    <div className="relative flex flex-col items-center space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <IconComponent className="h-5 w-5" />
-                        {isActive && <SparklesIcon className="h-4 w-4 animate-pulse" />}
-                      </div>
-                      <span className="text-xs">{tab.label}</span>
+                    <div className="relative z-10 flex flex-col items-center space-y-2">
+                      <IconComponent className="h-6 w-6" />
+                      <span className="text-xs font-medium">{tab.label}</span>
                       <span className="text-xs opacity-70">{tab.description}</span>
                     </div>
                   </motion.button>
@@ -349,7 +346,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
 
         {/* Enhanced Statistics Cards - Now Clickable Filters */}
         {/* First Row - 3 Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           
           {/* Welcome Card */}
           <motion.div 
@@ -628,7 +625,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                             {renderSortIcon('sender')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right w-32">رقم السمسار</th>
+                        <th className="py-4 px-6 text-right w-32 font-bold text-gray-200">رقم السمسار</th>
                         <th className="py-4 px-6 text-right w-28">
                           <motion.button
                             whileHover={{ scale: 1.05 }}

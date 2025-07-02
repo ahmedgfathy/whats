@@ -211,7 +211,8 @@ export const insertMessage = async (messageData) => {
     ...messageData,
     timestamp: messageData.timestamp || new Date().toLocaleString('ar-EG'),
     // Add missing fields for PropertyDetailsModal
-    agent_phone: generatePhoneNumber(),
+    // Use extracted phone number if available, otherwise generate one
+    agent_phone: messageData.agent_phone || generatePhoneNumber(),
     agent_description: generateAgentDescription(messageData.sender || 'مستخدم جديد'),
     full_description: generateFullDescription(
       messageData.property_type || 'other',
@@ -313,7 +314,8 @@ export const importChatMessages = async (parsedMessages) => {
           id: messages.length + 1,
           ...messageData,
           timestamp: messageData.timestamp || new Date().toLocaleString('ar-EG'),
-          agent_phone: generatePhoneNumber(),
+          // Use extracted phone number if available, otherwise generate one
+          agent_phone: messageData.agent_phone || generatePhoneNumber(),
           agent_description: generateAgentDescription(messageData.sender || 'مستخدم جديد'),
           full_description: generateFullDescription(
             messageData.property_type || 'other',
@@ -322,11 +324,13 @@ export const importChatMessages = async (parsedMessages) => {
           )
         };
         
-        // Debug: Log some imported messages to see their property types
+        // Debug: Log some imported messages to see their property types and phone numbers
         if (importedCount < 5) {
           console.log(`Sample imported message ${importedCount + 1}:`, {
             sender: newMessage.sender,
             property_type: newMessage.property_type,
+            agent_phone_extracted: messageData.agent_phone,
+            agent_phone_final: newMessage.agent_phone,
             message: newMessage.message.substring(0, 50) + '...'
           });
         }

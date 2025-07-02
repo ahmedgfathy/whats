@@ -110,6 +110,29 @@ export const extractPrice = (text) => {
   return '';
 };
 
+// Function to extract phone numbers from text
+export const extractPhoneNumber = (text) => {
+  // Egyptian phone number patterns - more comprehensive approach:
+  // Match any sequence starting with 01 or +201 followed by digits (with optional spaces/dashes)
+  const phoneRegex = /(?:\+201[0-9\s-]{8,}|01[0-9\s-]{8,})/g;
+  const matches = text.match(phoneRegex);
+  
+  if (matches && matches.length > 0) {
+    // Clean up the phone number - remove spaces, dashes, country code
+    let phone = matches[0];
+    phone = phone.replace(/[\s-]/g, ''); // Remove spaces and dashes
+    phone = phone.replace(/^\+201/, '01'); // Replace +201 with 01
+    
+    // Accept Egyptian phone numbers (11 digits: 01X-XXXX-XXXX)
+    // Also accept some variations that might be 12 digits
+    if (phone.match(/^01[0-9]{9,10}$/) && phone.length >= 11 && phone.length <= 12) {
+      return phone;
+    }
+  }
+  
+  return null;
+};
+
 // Function to process WhatsApp chat text and extract message data
 export const parseWhatsAppMessage = (line) => {
   // WhatsApp message format: [date, time] sender: message
@@ -128,7 +151,8 @@ export const parseWhatsAppMessage = (line) => {
       property_type: classifyPropertyType(message),
       keywords: extractKeywords(message).join(', '),
       location: extractLocation(message),
-      price: extractPrice(message)
+      price: extractPrice(message),
+      agent_phone: extractPhoneNumber(message) // Extract phone number from message
     };
     
     return messageData;
