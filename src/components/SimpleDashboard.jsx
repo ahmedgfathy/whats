@@ -29,7 +29,7 @@ const SimpleDashboard = ({ onLogout }) => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [activeTab, setActiveTab] = useState('table');
+  const [activeTab, setActiveTab] = useState('units');
   const [stats, setStats] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [messagesPerPage] = useState(20);
@@ -47,9 +47,9 @@ const SimpleDashboard = ({ onLogout }) => {
 
   const tabs = [
     { 
-      id: 'table', 
-      label: 'جدول العقارات الشامل', 
-      icon: MagnifyingGlassIcon, 
+      id: 'units', 
+      label: 'جدول الوحدات الشامل', 
+      icon: BuildingOffice2Icon, 
       gradient: 'from-purple-500 to-blue-500',
       description: 'جميع العقارات بالتفصيل'
     },
@@ -66,13 +66,6 @@ const SimpleDashboard = ({ onLogout }) => {
       icon: ArrowUpTrayIcon, 
       gradient: 'from-green-500 to-emerald-500',
       description: 'رفع ملفات WhatsApp'
-    },
-    { 
-      id: 'stats', 
-      label: 'التحليلات المتقدمة', 
-      icon: ChartBarIcon, 
-      gradient: 'from-indigo-500 to-purple-500',
-      description: 'إحصائيات ذكية'
     }
   ];
 
@@ -115,7 +108,7 @@ const SimpleDashboard = ({ onLogout }) => {
 
   const handleStatClick = (propertyType) => {
     setSelectedFilter(propertyType);
-    setActiveTab('table');
+    setActiveTab('units');
     setCurrentPage(1);
   };
 
@@ -408,7 +401,7 @@ const SimpleDashboard = ({ onLogout }) => {
         </div>
 
         {/* Content based on active tab */}
-        {activeTab === 'table' && (
+        {activeTab === 'units' && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -779,7 +772,7 @@ const SimpleDashboard = ({ onLogout }) => {
           </motion.div>
         )}
 
-        {activeTab === 'stats' && (
+        {/* This section is now integrated above as clickable statistics */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -900,8 +893,76 @@ const SimpleDashboard = ({ onLogout }) => {
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
+        
+        {/* Clickable Statistics Section - الإحصائيات المباشرة */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 shadow-2xl border border-gray-700 mb-8"
+        >
+          <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+            <ChartBarIcon className="h-8 w-8 text-purple-400" />
+            الإحصائيات المباشرة - اضغط للتصفية
+          </h3>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {/* All Properties */}
+            <motion.button
+              onClick={() => handleStatClick('all')}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className={`relative overflow-hidden p-6 rounded-2xl transition-all duration-300 ${
+                selectedFilter === 'all'
+                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-2xl transform scale-105'
+                  : 'bg-gradient-to-br from-gray-700 to-gray-800 text-gray-300 hover:text-white border border-gray-600 hover:from-purple-600 hover:to-blue-600'
+              }`}
+            >
+              <div className="flex flex-col items-center space-y-3">
+                <BuildingOffice2Icon className="h-8 w-8" />
+                <div className="text-center">
+                  <div className="text-2xl font-bold">
+                    {stats.reduce((sum, stat) => sum + stat.count, 0)}
+                  </div>
+                  <div className="text-xs">جميع العقارات</div>
+                </div>
+              </div>
+            </motion.button>
+
+            {/* Individual Property Types */}
+            {propertyFilters.slice(1).map((filter) => {
+              const IconComponent = filter.icon;
+              const stat = stats.find(s => s.property_type === filter.id);
+              const count = stat ? stat.count : 0;
+              
+              return (
+                <motion.button
+                  key={filter.id}
+                  onClick={() => handleStatClick(filter.id)}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative overflow-hidden p-6 rounded-2xl transition-all duration-300 ${
+                    selectedFilter === filter.id
+                      ? `bg-gradient-to-r ${filter.color} text-white shadow-2xl transform scale-105`
+                      : `bg-gradient-to-br from-gray-700 to-gray-800 text-gray-300 hover:text-white border border-gray-600 hover:bg-gradient-to-r hover:${filter.color}`
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-3">
+                    <IconComponent className="h-8 w-8" />
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{count}</div>
+                      <div className="text-xs">{filter.label}</div>
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+          
+          <div className="mt-4 text-center text-gray-400 text-sm">
+            انقر على أي نوع عقار لعرض الوحدات المطابقة في الجدول أدناه
+          </div>
+        </motion.div>
 
         {/* Success Message */}
         <div className="mt-8 bg-green-800/20 border border-green-600 rounded-xl p-6">
