@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
-import SimpleDashboard from './components/SimpleDashboard';
+import EnhancedDashboard from './components/EnhancedDashboard';
 import './App.css';
 
 function App() {
@@ -42,7 +42,7 @@ function App() {
             path="/dashboard" 
             element={
               isAuthenticated ? 
-                <SimpleDashboard onLogout={handleLogout} /> : 
+                <EnhancedDashboard onLogout={handleLogout} /> : 
                 <Navigate to="/login" replace />
             } 
           />
