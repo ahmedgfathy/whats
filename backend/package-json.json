@@ -1,7 +1,7 @@
 {
-  "name": "real-estate-chat-backend",
+  "name": "real-estate-chat-backend-json",
   "version": "1.0.0",
-  "description": "Backend API for Real Estate Chat Search Application",
+  "description": "Backend API for Real Estate Chat Search Application (JSON Storage)",
   "main": "server-json.js",
   "scripts": {
     "start": "node server-json.js",

@@ -20,7 +20,7 @@ import {
   ChartBarIcon,
   LanguageIcon
 } from '@heroicons/react/24/outline';
-import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/mockDatabase';
+import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/apiService';
 import ChatImportEnglish from './ChatImport-English';
 
 const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {

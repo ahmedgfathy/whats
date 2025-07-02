@@ -14,7 +14,7 @@ import {
   FireIcon
 } from '@heroicons/react/24/outline';
 import { parseWhatsAppChatFile } from '../utils/arabicTextProcessor';
-import { importChatMessages, getAllMessages, resetDatabase, getDatabaseSize } from '../services/mockDatabase';
+import { importChatMessages, getAllMessages, resetDatabase, getDatabaseSize } from '../services/apiService';
 
 const ChatImport = ({ onImportSuccess }) => {
   const [file, setFile] = useState(null);

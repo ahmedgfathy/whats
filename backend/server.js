@@ -238,6 +238,80 @@ app.get('/api/stats', (req, res) => {
   }
 });
 
+// Bulk import messages (for WhatsApp chat imports)
+app.post('/api/messages/bulk', (req, res) => {
+  const { messages: messagesToImport } = req.body;
+  
+  if (!Array.isArray(messagesToImport)) {
+    return res.status(400).json({ success: false, message: 'Messages must be an array' });
+  }
+  
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO chat_messages (sender, message, timestamp, property_type, keywords, location, price, agent_phone, agent_description, full_description)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    let importedCount = 0;
+    let skippedCount = 0;
+    let propertyCount = 0;
+    
+    // Start transaction for better performance
+    const transaction = db.transaction((messages) => {
+      for (const messageData of messages) {
+        try {
+          // Check for duplicates (simple check based on message and sender)
+          const checkStmt = db.prepare('SELECT id FROM chat_messages WHERE message = ? AND sender = ? LIMIT 1');
+          const existing = checkStmt.get(messageData.message, messageData.sender);
+          
+          if (existing) {
+            skippedCount++;
+            continue;
+          }
+          
+          stmt.run(
+            messageData.sender,
+            messageData.message,
+            messageData.timestamp,
+            messageData.property_type,
+            messageData.keywords,
+            messageData.location,
+            messageData.price,
+            messageData.agent_phone,
+            messageData.agent_description,
+            messageData.full_description
+          );
+          
+          importedCount++;
+          
+          if (messageData.property_type !== 'other') {
+            propertyCount++;
+          }
+        } catch (err) {
+          console.error('Error importing individual message:', err);
+          skippedCount++;
+        }
+      }
+    });
+    
+    // Execute transaction
+    transaction(messagesToImport);
+    
+    console.log(`Bulk import complete: ${importedCount} imported, ${skippedCount} skipped, ${propertyCount} properties`);
+    
+    res.json({ 
+      success: true, 
+      imported: importedCount,
+      total: messagesToImport.length,
+      skipped: skippedCount,
+      propertyMessages: propertyCount
+    });
+  } catch (error) {
+    console.error('Error in bulk import:', error);
+    res.status(500).json({ success: false, message: 'Database error during bulk import' });
+  }
+});
+
 // Get message by ID
 app.get('/api/messages/:id', (req, res) => {
   const { id } = req.params;

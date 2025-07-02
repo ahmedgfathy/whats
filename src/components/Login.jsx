@@ -12,6 +12,7 @@ import {
   ChevronRightIcon,
   LanguageIcon
 } from '@heroicons/react/24/outline';
+import { authenticateUser } from '../services/apiService';
 
 const Login = ({ onLogin, onLanguageSwitch }) => {
   const [credentials, setCredentials] = useState({
@@ -27,15 +28,19 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
     setLoading(true);
     setError('');
 
-    // Simulate API call delay
-    setTimeout(() => {
-      if (credentials.username === 'xinreal' && credentials.password === 'zerocall') {
+    try {
+      const isAuthenticated = await authenticateUser(credentials.username, credentials.password);
+      if (isAuthenticated) {
         onLogin();
       } else {
         setError('اسم المستخدم أو كلمة المرور غير صحيحة');
       }
-      setLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error('Authentication error:', error);
+      setError('خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
+    }
+    
+    setLoading(false);
   };
 
   const handleChange = (e) => {

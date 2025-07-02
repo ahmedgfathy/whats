@@ -21,7 +21,7 @@ import {
   FireIcon,
   EyeIcon
 } from '@heroicons/react/24/outline';
-import { getMessageById } from '../services/mockDatabase';
+import { getMessageById } from '../services/apiService';
 
 const PropertyDetailsModal = ({ propertyId, isOpen, onClose }) => {
   const [property, setProperty] = useState(null);

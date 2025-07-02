@@ -10,6 +10,7 @@ import {
   SparklesIcon,
   LanguageIcon
 } from '@heroicons/react/24/outline';
+import { authenticateUser } from '../services/apiService';
 
 const LoginEnglish = ({ onLogin, onLanguageSwitch }) => {
   const [credentials, setCredentials] = useState({
@@ -19,20 +20,24 @@ const LoginEnglish = ({ onLogin, onLanguageSwitch }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    // Simulate authentication delay
-    setTimeout(() => {
-      if (credentials.username === 'xinreal' && credentials.password === 'zerocall') {
+    try {
+      const isAuthenticated = await authenticateUser(credentials.username, credentials.password);
+      if (isAuthenticated) {
         onLogin();
       } else {
         setError('Invalid username or password');
       }
-      setLoading(false);
-    }, 1000);
+    } catch (error) {
+      console.error('Authentication error:', error);
+      setError('Server connection error. Please try again.');
+    }
+    
+    setLoading(false);
   };
 
   const handleChange = (e) => {
