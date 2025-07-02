@@ -270,22 +270,78 @@ export const getPropertyTypeStats = async () => {
 
 // Import messages from WhatsApp chat file
 export const importChatMessages = async (parsedMessages) => {
-  await delay(1000); // Simulate processing time
+  console.log(`Starting import of ${parsedMessages.length} messages...`);
+  
+  // Reduced delay for better UX with large imports
+  await delay(500);
   
   let importedCount = 0;
+  let skippedCount = 0;
   let propertyCount = 0;
   
-  for (const messageData of parsedMessages) {
-    await insertMessage(messageData);
-    importedCount++;
-    if (messageData.property_type !== 'other') {
-      propertyCount++;
+  // Process in batches for better performance
+  const batchSize = 100;
+  const totalBatches = Math.ceil(parsedMessages.length / batchSize);
+  
+  for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+    const startIndex = batchIndex * batchSize;
+    const endIndex = Math.min(startIndex + batchSize, parsedMessages.length);
+    const batch = parsedMessages.slice(startIndex, endIndex);
+    
+    console.log(`Processing batch ${batchIndex + 1}/${totalBatches} (${batch.length} messages)`);
+    
+    for (const messageData of batch) {
+      try {
+        // Check if message already exists (basic duplicate check)
+        const existingMessage = messages.find(msg => 
+          msg.message === messageData.message && 
+          msg.sender === messageData.sender
+        );
+        
+        if (existingMessage) {
+          skippedCount++;
+          continue;
+        }
+        
+        // Direct insertion without await delay for batch processing
+        const newMessage = {
+          id: messages.length + 1,
+          ...messageData,
+          timestamp: messageData.timestamp || new Date().toLocaleString('ar-EG'),
+          agent_phone: generatePhoneNumber(),
+          agent_description: generateAgentDescription(messageData.sender || 'مستخدم جديد'),
+          full_description: generateFullDescription(
+            messageData.property_type || 'other',
+            Math.floor(Math.random() * 200) + 80,
+            messageData.location || 'موقع غير محدد'
+          )
+        };
+        
+        messages.unshift(newMessage);
+        importedCount++;
+        
+        if (messageData.property_type !== 'other') {
+          propertyCount++;
+        }
+      } catch (error) {
+        console.error('Error importing message:', error);
+        skippedCount++;
+      }
+    }
+    
+    // Small delay between batches to prevent UI freeze
+    if (batchIndex < totalBatches - 1) {
+      await delay(50);
     }
   }
   
+  console.log(`Import complete: ${importedCount} imported, ${skippedCount} skipped`);
+  
   return {
     success: true,
-    messageCount: importedCount,
+    imported: importedCount,
+    total: parsedMessages.length,
+    skipped: skippedCount,
     propertyMessages: propertyCount
   };
 };

@@ -16,7 +16,7 @@ import {
 import { parseWhatsAppChatFile } from '../utils/arabicTextProcessor';
 import { importChatMessages, getAllMessages, resetDatabase, getDatabaseSize } from '../services/mockDatabase';
 
-const ChatImport = () => {
+const ChatImportEnglish = () => {
   const [file, setFile] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
@@ -63,7 +63,7 @@ const ChatImport = () => {
       } else {
         setImportResult({
           success: false,
-          error: 'يرجى اختيار ملف نصي (.txt) فقط'
+          error: 'Please select a text file (.txt) only'
         });
       }
     }
@@ -91,7 +91,7 @@ const ChatImport = () => {
 
     setImporting(true);
     setImportResult(null);
-    setImportProgress('جارٍ قراءة الملف...');
+    setImportProgress('Reading file...');
     
     try {
       const reader = new FileReader();
@@ -100,7 +100,7 @@ const ChatImport = () => {
         console.error('Error reading file');
         setImportResult({
           success: false,
-          error: 'حدث خطأ أثناء قراءة الملف'
+          error: 'Error reading file'
         });
         setImporting(false);
         setImportProgress('');
@@ -110,7 +110,7 @@ const ChatImport = () => {
         try {
           const content = e.target.result;
           console.log('File content loaded, size:', content.length);
-          setImportProgress('جارٍ تحليل الرسائل...');
+          setImportProgress('Parsing messages...');
           
           // Add timeout to prevent UI freeze with large files
           const messages = await new Promise((resolve, reject) => {
@@ -127,7 +127,7 @@ const ChatImport = () => {
           if (messages.length === 0) {
             setImportResult({
               success: false,
-              error: 'لم يتم العثور على رسائل صالحة في الملف'
+              error: 'No valid messages found in the file'
             });
             setImporting(false);
             setImportProgress('');
@@ -135,7 +135,7 @@ const ChatImport = () => {
           }
 
           console.log(`Parsed ${messages.length} messages, starting import...`);
-          setImportProgress(`جارٍ استيراد ${messages.length} رسالة...`);
+          setImportProgress(`Importing ${messages.length} messages...`);
           
           const result = await importChatMessages(messages);
           
@@ -153,7 +153,7 @@ const ChatImport = () => {
           console.error('Error importing messages:', error);
           setImportResult({
             success: false,
-            error: 'حدث خطأ أثناء معالجة الملف: ' + error.message
+            error: 'Error processing file: ' + error.message
           });
         } finally {
           setImporting(false);
@@ -167,7 +167,7 @@ const ChatImport = () => {
       console.error('Error reading file:', error);
       setImportResult({
         success: false,
-        error: 'حدث خطأ أثناء قراءة الملف'
+        error: 'Error reading file'
       });
       setImporting(false);
       setImportProgress('');
@@ -175,19 +175,19 @@ const ChatImport = () => {
   };
 
   const handleReset = async () => {
-    if (window.confirm('هل أنت متأكد من حذف جميع البيانات؟ هذا الإجراء غير قابل للتراجع.')) {
+    if (window.confirm('Are you sure you want to delete all data? This action cannot be undone.')) {
       try {
         await resetDatabase();
         setCurrentMessageCount(0);
         setImportResult({
           success: true,
-          message: 'تم حذف جميع البيانات بنجاح'
+          message: 'All data deleted successfully'
         });
       } catch (error) {
         console.error('Error resetting database:', error);
         setImportResult({
           success: false,
-          error: 'حدث خطأ أثناء حذف البيانات'
+          error: 'Error deleting data'
         });
       }
     }
@@ -206,7 +206,7 @@ const ChatImport = () => {
         animate={{ scale: 1 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="text-center" dir="rtl">
+        <div className="text-center">
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-3xl blur opacity-75"></div>
@@ -215,9 +215,9 @@ const ChatImport = () => {
               </div>
             </div>
           </div>
-          <h2 className="text-3xl font-bold gradient-text mb-4">استيراد ملفات WhatsApp</h2>
+          <h2 className="text-3xl font-bold gradient-text mb-4">Import WhatsApp Files</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
-            قم برفع ملف محادثة WhatsApp المُصدر لتحليل العقارات وإضافتها إلى قاعدة البيانات الذكية
+            Upload exported WhatsApp chat files to analyze properties and add them to the smart database
           </p>
         </div>
       </motion.div>
@@ -234,7 +234,7 @@ const ChatImport = () => {
             <FireIcon className="h-8 w-8 text-orange-400" />
           </div>
           <div className="text-3xl font-bold text-foreground mb-2">{currentMessageCount}</div>
-          <div className="text-sm text-muted-foreground">عقار في قاعدة البيانات</div>
+          <div className="text-sm text-muted-foreground">Properties in Database</div>
         </div>
         
         <div className="glass-light rounded-2xl p-6 border border-border/50 text-center">
@@ -242,7 +242,7 @@ const ChatImport = () => {
             <CpuChipIcon className="h-8 w-8 text-purple-400 animate-pulse" />
           </div>
           <div className="text-3xl font-bold text-foreground mb-2">AI</div>
-          <div className="text-sm text-muted-foreground">معالجة ذكية للنصوص</div>
+          <div className="text-sm text-muted-foreground">Smart Text Processing</div>
         </div>
         
         <div className="glass-light rounded-2xl p-6 border border-border/50 text-center">
@@ -250,7 +250,7 @@ const ChatImport = () => {
             <SparklesIcon className="h-8 w-8 text-blue-400" />
           </div>
           <div className="text-3xl font-bold text-foreground mb-2">24/7</div>
-          <div className="text-sm text-muted-foreground">معالجة فورية</div>
+          <div className="text-sm text-muted-foreground">Instant Processing</div>
         </div>
       </motion.div>
 
@@ -285,20 +285,20 @@ const ChatImport = () => {
                 </motion.div>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-foreground mb-3">اسحب وأفلت الملف هنا</h3>
-                <p className="text-muted-foreground text-lg mb-6">أو انقر لاختيار ملف من جهازك</p>
+                <h3 className="text-2xl font-bold text-foreground mb-3">Drag and drop file here</h3>
+                <p className="text-muted-foreground text-lg mb-6">Or click to choose file from your device</p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => document.getElementById('file-input').click()}
+                  onClick={() => document.getElementById('file-input-english').click()}
                   className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  <ArrowUpTrayIcon className="h-5 w-5 inline ml-2" />
-                  اختيار ملف
+                  <ArrowUpTrayIcon className="h-5 w-5 inline mr-2" />
+                  Choose File
                 </motion.button>
               </div>
               <p className="text-sm text-muted-foreground">
-                الملفات المدعومة: .txt (ملفات تصدير WhatsApp)
+                Supported files: .txt (WhatsApp export files)
               </p>
             </motion.div>
           ) : (
@@ -315,11 +315,11 @@ const ChatImport = () => {
               <div>
                 <h3 className="text-xl font-bold text-foreground mb-2">{file.name}</h3>
                 <p className="text-muted-foreground">
-                  حجم الملف: {(file.size / 1024).toFixed(1)} KB
+                  File size: {(file.size / 1024).toFixed(1)} KB
                 </p>
                 {preview.length > 0 && (
                   <p className="text-green-400 font-semibold mt-2">
-                    تم العثور على {preview.length} رسائل في المعاينة
+                    Found {preview.length} messages in preview
                   </p>
                 )}
               </div>
@@ -327,7 +327,7 @@ const ChatImport = () => {
           )}
           
           <input
-            id="file-input"
+            id="file-input-english"
             type="file"
             accept=".txt,text/plain"
             onChange={(e) => handleFileSelect(e.target.files[0])}
@@ -344,15 +344,15 @@ const ChatImport = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <h3 className="text-2xl font-bold text-foreground mb-6 text-right flex items-center justify-end">
-            <DocumentTextIcon className="h-6 w-6 ml-3 text-blue-400" />
-            معاينة الرسائل
+          <h3 className="text-2xl font-bold text-foreground mb-6 flex items-center">
+            <DocumentTextIcon className="h-6 w-6 mr-3 text-blue-400" />
+            Message Preview
           </h3>
-          <div className="space-y-4" dir="rtl">
+          <div className="space-y-4">
             {preview.map((message, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 + index * 0.1 }}
                 className="glass rounded-2xl p-4 border border-border/50"
@@ -362,10 +362,10 @@ const ChatImport = () => {
                     {message.sender}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {new Date(message.timestamp).toLocaleString('ar-SA')}
+                    {new Date(message.timestamp).toLocaleString('en-US')}
                   </span>
                 </div>
-                <p className="text-foreground">{message.content}</p>
+                <p className="text-foreground">{message.message}</p>
                 {message.property_type && (
                   <span className="inline-block mt-2 px-3 py-1 bg-primary/20 text-primary text-xs rounded-full">
                     {message.property_type}
@@ -396,12 +396,12 @@ const ChatImport = () => {
               {importing ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  {importProgress || 'جارٍ الاستيراد...'}
+                  {importProgress || 'Importing...'}
                 </>
               ) : (
                 <>
                   <CheckCircleIcon className="h-5 w-5" />
-                  بدء الاستيراد
+                  Start Import
                 </>
               )}
             </motion.button>
@@ -416,7 +416,7 @@ const ChatImport = () => {
               whileTap={{ scale: 0.95 }}
               className="px-8 py-4 glass border border-border/50 text-muted-foreground hover:text-foreground font-bold rounded-2xl transition-all duration-300"
             >
-              إلغاء
+              Cancel
             </motion.button>
           </div>
         </motion.div>
@@ -443,11 +443,11 @@ const ChatImport = () => {
             
             {importResult.success ? (
               <div>
-                <h3 className="text-xl font-bold text-green-400 mb-2">تم الاستيراد بنجاح!</h3>
+                <h3 className="text-xl font-bold text-green-400 mb-2">Import Successful!</h3>
                 {importResult.imported !== undefined ? (
                   <p className="text-foreground">
-                    تم استيراد {importResult.imported} رسالة من أصل {importResult.total}
-                    {importResult.skipped > 0 && ` (تم تخطي ${importResult.skipped} رسالة مكررة)`}
+                    Imported {importResult.imported} messages out of {importResult.total}
+                    {importResult.skipped > 0 && ` (skipped ${importResult.skipped} duplicate messages)`}
                   </p>
                 ) : (
                   <p className="text-foreground">{importResult.message}</p>
@@ -455,7 +455,7 @@ const ChatImport = () => {
               </div>
             ) : (
               <div>
-                <h3 className="text-xl font-bold text-red-400 mb-2">فشل في الاستيراد</h3>
+                <h3 className="text-xl font-bold text-red-400 mb-2">Import Failed</h3>
                 <p className="text-foreground">{importResult.error}</p>
               </div>
             )}
@@ -470,9 +470,9 @@ const ChatImport = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <h3 className="text-xl font-bold text-foreground mb-4 text-right flex items-center justify-end">
-          <ChartBarIcon className="h-5 w-5 ml-2 text-red-400" />
-          إدارة قاعدة البيانات
+        <h3 className="text-xl font-bold text-foreground mb-4 flex items-center">
+          <ChartBarIcon className="h-5 w-5 mr-2 text-red-400" />
+          Database Management
         </h3>
         <div className="flex justify-center">
           <motion.button
@@ -481,8 +481,8 @@ const ChatImport = () => {
             whileTap={{ scale: 0.95 }}
             className="px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            <TrashIcon className="h-5 w-5 inline ml-2" />
-            حذف جميع البيانات
+            <TrashIcon className="h-5 w-5 inline mr-2" />
+            Delete All Data
           </motion.button>
         </div>
       </motion.div>
@@ -490,4 +490,4 @@ const ChatImport = () => {
   );
 };
 
-export default ChatImport;
+export default ChatImportEnglish;

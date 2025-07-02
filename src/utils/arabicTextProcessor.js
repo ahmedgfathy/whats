@@ -113,6 +113,7 @@ export const extractPrice = (text) => {
 // Function to process WhatsApp chat text and extract message data
 export const parseWhatsAppMessage = (line) => {
   // WhatsApp message format: [date, time] sender: message
+  // Support multiple formats: [1/7/25, 10:30:25 AM], [1/7/25, 10:30:25], etc.
   const messageRegex = /^\[?(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s*(\d{1,2}:\d{2}(?::\d{2})?(?:\s*[AP]M)?)\]?\s*([^:]+):\s*(.+)$/;
   const match = line.match(messageRegex);
   
@@ -120,7 +121,7 @@ export const parseWhatsAppMessage = (line) => {
     const [, date, time, sender, message] = match;
     const timestamp = `${date} ${time}`;
     
-    return {
+    const messageData = {
       sender: sender.trim(),
       message: message.trim(),
       timestamp,
@@ -129,6 +130,8 @@ export const parseWhatsAppMessage = (line) => {
       location: extractLocation(message),
       price: extractPrice(message)
     };
+    
+    return messageData;
   }
   
   return null;
@@ -136,17 +139,40 @@ export const parseWhatsAppMessage = (line) => {
 
 // Function to process entire WhatsApp chat file
 export const parseWhatsAppChatFile = (fileContent) => {
+  console.log('Starting to parse file content. Length:', fileContent.length);
+  
   const lines = fileContent.split('\n');
   const messages = [];
+  let successCount = 0;
+  let errorCount = 0;
   
-  lines.forEach(line => {
-    if (line.trim()) {
-      const messageData = parseWhatsAppMessage(line.trim());
-      if (messageData) {
-        messages.push(messageData);
+  console.log('Number of lines to process:', lines.length);
+  
+  lines.forEach((line, index) => {
+    const trimmedLine = line.trim();
+    if (trimmedLine) {
+      try {
+        const messageData = parseWhatsAppMessage(trimmedLine);
+        if (messageData) {
+          messages.push(messageData);
+          successCount++;
+          
+          // Only log every 100th message to avoid console spam
+          if (successCount % 100 === 0) {
+            console.log(`Processed ${successCount} messages so far...`);
+          }
+        } else {
+          errorCount++;
+        }
+      } catch (error) {
+        errorCount++;
+        if (errorCount <= 5) { // Only log first 5 errors
+          console.warn(`Error parsing line ${index + 1}:`, error.message);
+        }
       }
     }
   });
   
+  console.log(`Parsing complete: ${successCount} messages parsed successfully, ${errorCount} lines skipped`);
   return messages;
 };

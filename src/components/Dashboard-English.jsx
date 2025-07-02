@@ -21,6 +21,7 @@ import {
   LanguageIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/mockDatabase';
+import ChatImportEnglish from './ChatImport-English';
 
 const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   const [messages, setMessages] = useState([]);
@@ -768,76 +769,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
         )}
 
         {activeTab === 'import' && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="bg-gray-800 rounded-xl p-8 shadow-2xl"
-          >
-            <div className="text-center mb-8">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full mb-4"
-              >
-                <ArrowUpTrayIcon className="h-10 w-10 text-white" />
-              </motion.div>
-              <h3 className="text-3xl font-bold mb-2">Import WhatsApp Chats</h3>
-              <p className="text-gray-400">Upload chat files to analyze and add them to the smart database</p>
-            </div>
-            
-            <div className="max-w-2xl mx-auto">
-              <motion.div 
-                whileHover={{ scale: 1.02 }}
-                className="border-2 border-dashed border-gray-600 hover:border-green-500 rounded-xl p-12 text-center transition-all duration-300 bg-gradient-to-br from-gray-800/50 to-gray-700/50"
-              >
-                <motion.div
-                  animate={{ y: [0, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="mb-6"
-                >
-                  <ArrowUpTrayIcon className="h-16 w-16 text-gray-400 mx-auto" />
-                </motion.div>
-                <h4 className="text-xl font-semibold mb-3 text-white">Drag and drop chat file here</h4>
-                <p className="text-gray-400 mb-6">Or click to select file from your device</p>
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-semibold shadow-lg"
-                >
-                  <ArrowUpTrayIcon className="h-5 w-5 mr-2 inline" />
-                  Choose File
-                </motion.button>
-              </motion.div>
-              
-              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <h5 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <SparklesIcon className="h-5 w-5 text-green-400" />
-                    Supported Formats
-                  </h5>
-                  <ul className="text-gray-300 text-sm space-y-1">
-                    <li>• Text files (.txt)</li>
-                    <li>• CSV files (.csv)</li>
-                    <li>• Direct WhatsApp export</li>
-                  </ul>
-                </div>
-                
-                <div className="bg-gray-700 rounded-lg p-4">
-                  <h5 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <CpuChipIcon className="h-5 w-5 text-blue-400" />
-                    Technical Info
-                  </h5>
-                  <ul className="text-gray-300 text-sm space-y-1">
-                    <li>• Maximum size: 10MB</li>
-                    <li>• Automatic Arabic text processing</li>
-                    <li>• Smart information extraction</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          <ChatImportEnglish />
         )}
 
         {activeTab === 'recent' && (
