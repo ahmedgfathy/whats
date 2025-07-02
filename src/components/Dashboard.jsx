@@ -17,7 +17,6 @@ import {
   BuildingLibraryIcon,
   SparklesIcon,
   CpuChipIcon,
-  TrendingUpIcon,
   ChartBarIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/mockDatabase';
@@ -56,7 +55,7 @@ const Dashboard = ({ onLogout }) => {
     { 
       id: 'recent', 
       label: 'النتائج الحديثة', 
-      icon: TrendingUpIcon, 
+      icon: ChartBarIcon, 
       gradient: 'from-blue-500 to-indigo-500',
       description: 'أحدث العقارات المضافة'
     },
@@ -197,8 +196,8 @@ const Dashboard = ({ onLogout }) => {
       return <SparklesIcon className="h-4 w-4 text-gray-500" />;
     }
     return sortDirection === 'asc' ? 
-      <TrendingUpIcon className="h-4 w-4 text-purple-400" /> : 
-      <ChevronDownIcon className="h-4 w-4 text-purple-400" />;
+      <ChevronUpIcon className="h-4 w-4 text-blue-400" /> : 
+      <ChevronDownIcon className="h-4 w-4 text-blue-400" />;
   };
 
   return (
@@ -308,18 +307,40 @@ const Dashboard = ({ onLogout }) => {
         </motion.div>
 
         {/* Enhanced Statistics Cards - Now Clickable Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           
           {/* Welcome Card */}
-          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 text-white">
-            <h2 className="text-2xl font-bold mb-2">مرحباً بك</h2>
-            <p className="text-blue-100">في نظام البحث في محادثات العقارات</p>
-            <div className="mt-4 text-3xl">🏠</div>
-          </div>
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-blue-400/20"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <span className="text-2xl">🏠</span>
+              </div>
+              <div className="bg-white/10 px-3 py-1 rounded-full text-xs font-medium">
+                مرحباً
+              </div>
+            </div>
+            <h2 className="text-xl font-bold mb-2">أهلاً وسهلاً</h2>
+            <p className="text-blue-100 text-sm leading-relaxed">في منصة العقارات الذكية لتحليل محادثات الواتساب</p>
+          </motion.div>
 
           {/* Search Card */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold mb-4">البحث السريع</h3>
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="bg-gradient-to-br from-slate-700 via-slate-800 to-gray-900 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-slate-600/50"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">البحث الذكي</h3>
+              <div className="bg-blue-500 p-2 rounded-lg">
+                <MagnifyingGlassIcon className="h-4 w-4 text-white" />
+              </div>
+            </div>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -327,77 +348,102 @@ const Dashboard = ({ onLogout }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="ابحث عن شقة، فيلا، أرض..."
-                className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+                className="flex-1 px-3 py-2 bg-slate-600/50 text-white rounded-lg border border-slate-500 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400/30 placeholder-slate-300 text-sm"
                 dir="rtl"
               />
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleSearch}
                 disabled={loading}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 flex items-center gap-1 font-medium shadow-lg text-sm"
               >
-                {loading ? '...' : <MagnifyingGlassIcon className="h-4 w-4" />}
+                {loading ? (
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <MagnifyingGlassIcon className="h-3 w-3" />
+                )}
                 بحث
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Clickable Stats Card for All Properties */}
           <motion.button
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             onClick={() => handleStatClick('all')}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className={`bg-gradient-to-br rounded-xl p-6 text-white transition-all duration-300 ${
+            className={`bg-gradient-to-br rounded-2xl p-6 text-white transition-all duration-300 shadow-xl hover:shadow-2xl border ${
               selectedFilter === 'all' 
-                ? 'from-purple-600 to-purple-800 ring-2 ring-purple-400 shadow-2xl' 
-                : 'from-gray-700 to-gray-800 hover:from-purple-600 hover:to-purple-800'
+                ? 'from-purple-500 to-purple-700 ring-2 ring-purple-300 shadow-purple-500/25 border-purple-400/50' 
+                : 'from-gray-600 to-gray-800 hover:from-purple-500 hover:to-purple-700 border-gray-600/50'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <BuildingOffice2Icon className="h-8 w-8" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <BuildingOffice2Icon className="h-6 w-6" />
+              </div>
               <span className="text-3xl font-bold">{stats.reduce((sum, stat) => sum + stat.count, 0)}</span>
             </div>
-            <h3 className="text-lg font-semibold">جميع العقارات</h3>
-            <p className="text-sm opacity-80">اضغط للعرض</p>
+            <h3 className="text-lg font-bold mb-2">جميع العقارات</h3>
+            <p className="text-sm opacity-80 leading-relaxed mb-3">اضغط لعرض كافة العقارات</p>
+            <div className="flex items-center text-xs opacity-70">
+              <SparklesIcon className="h-3 w-3 ml-1" />
+              <span>قابل للتفاعل</span>
+            </div>
           </motion.button>
 
           {/* Clickable Property Type Stats */}
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold mb-4">الإحصائيات المباشرة</h3>
-            <div className="space-y-3">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="bg-gradient-to-br from-slate-700 via-slate-800 to-gray-900 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-slate-600/50"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">الإحصائيات التفاعلية</h3>
+              <div className="bg-emerald-500 p-2 rounded-lg">
+                <ChartBarIcon className="h-4 w-4 text-white" />
+              </div>
+            </div>
+            <div className="space-y-2">
               {stats.map((stat) => (
                 <motion.button
                   key={stat.property_type}
                   onClick={() => handleStatClick(stat.property_type)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`w-full flex justify-between items-center p-3 rounded-lg transition-all duration-300 ${
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`w-full flex justify-between items-center p-2 rounded-lg transition-all duration-300 text-sm ${
                     selectedFilter === stat.property_type 
                       ? 'bg-blue-600 text-white shadow-lg transform scale-105' 
-                      : 'hover:bg-gray-700 bg-gray-750'
+                      : 'hover:bg-gray-700 bg-gray-800/50 text-gray-300'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${
                       stat.property_type === 'apartment' ? 'bg-blue-400' :
                       stat.property_type === 'villa' ? 'bg-green-400' :
                       stat.property_type === 'land' ? 'bg-yellow-400' :
                       stat.property_type === 'office' ? 'bg-purple-400' :
                       'bg-red-400'
                     }`}></div>
-                    <span className="font-medium">{getPropertyTypeLabel(stat.property_type)}</span>
+                    <span className="font-medium text-sm">{getPropertyTypeLabel(stat.property_type)}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`font-bold text-lg ${
+                  <div className="flex items-center gap-1">
+                    <span className={`font-bold ${
                       selectedFilter === stat.property_type ? 'text-white' : getPropertyTypeColor(stat.property_type)
                     }`}>
                       {stat.count}
                     </span>
-                    <ChevronLeftIcon className="h-4 w-4 opacity-60" />
+                    <ChevronLeftIcon className="h-3 w-3 opacity-60" />
                   </div>
                 </motion.button>
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Content based on active tab */}
@@ -406,14 +452,16 @@ const Dashboard = ({ onLogout }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-gray-800 rounded-xl p-6 shadow-2xl"
+            className="bg-gradient-to-br from-gray-800 via-gray-900 to-slate-900 rounded-2xl p-8 shadow-2xl border border-gray-700"
           >
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-8 pb-6 border-b border-gray-700">
               <div>
-                <h3 className="text-2xl font-bold mb-2">
+                <h3 className="text-3xl font-bold text-white mb-3 flex items-center gap-3">
+                  <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
                   {selectedFilter === 'all' ? 'جميع العقارات' : `عقارات ${getPropertyTypeLabel(selectedFilter)}`}
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-gray-400 flex items-center gap-2">
+                  <BuildingOffice2Icon className="h-5 w-5" />
                   {sortedMessages.length} عقار • صفحة {currentPage} من {totalPages}
                 </p>
               </div>
@@ -423,13 +471,13 @@ const Dashboard = ({ onLogout }) => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {setSelectedFilter('all'); setCurrentPage(1);}}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg"
+                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-300 shadow-lg font-medium"
                   >
                     <BuildingOffice2Icon className="h-4 w-4 ml-2 inline" />
                     إظهار الكل
                   </motion.button>
                 )}
-                <div className="flex items-center gap-2 text-sm text-gray-400">
+                <div className="flex items-center gap-2 text-sm text-gray-400 bg-gray-800 px-4 py-2 rounded-lg border border-gray-600">
                   <SparklesIcon className="h-4 w-4" />
                   <span>مرتب حسب: {sortField === 'timestamp' ? 'التاريخ' : sortField === 'sender' ? 'المرسل' : sortField === 'property_type' ? 'النوع' : sortField}</span>
                 </div>
@@ -438,25 +486,25 @@ const Dashboard = ({ onLogout }) => {
 
             {/* Enhanced Table */}
             {loading ? (
-              <div className="text-center py-12">
+              <div className="text-center py-16">
                 <motion.div 
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto mb-4"
+                  className="rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto mb-4"
                 ></motion.div>
                 <p className="text-gray-400 text-lg">جاري تحميل البيانات...</p>
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto rounded-lg border border-gray-700">
+                <div className="overflow-x-auto rounded-xl border border-gray-600 shadow-lg">
                   <table className="w-full text-right bg-gray-900" dir="rtl">
-                    <thead className="bg-gradient-to-r from-gray-800 to-gray-700">
+                    <thead className="bg-gradient-to-r from-gray-700 to-gray-800 border-b border-gray-600">
                       <tr>
                         <th className="py-4 px-6 text-right">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('sender')}
-                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
+                            className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
                             المرسل
                             {renderSortIcon('sender')}
@@ -466,18 +514,18 @@ const Dashboard = ({ onLogout }) => {
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('property_type')}
-                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
+                            className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
                             نوع العقار
                             {renderSortIcon('property_type')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right font-bold">المحتوى</th>
+                        <th className="py-4 px-6 text-right font-bold text-gray-200">المحتوى</th>
                         <th className="py-4 px-6 text-right">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('location')}
-                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
+                            className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
                             الموقع
                             {renderSortIcon('location')}
@@ -487,7 +535,7 @@ const Dashboard = ({ onLogout }) => {
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('price')}
-                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
+                            className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
                             السعر
                             {renderSortIcon('price')}
@@ -497,13 +545,13 @@ const Dashboard = ({ onLogout }) => {
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('timestamp')}
-                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
+                            className="flex items-center gap-2 hover:text-blue-400 transition-colors font-bold text-gray-200"
                           >
                             التاريخ
                             {renderSortIcon('timestamp')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right font-bold">التفاصيل</th>
+                        <th className="py-4 px-6 text-right font-bold text-gray-200">التفاصيل</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
@@ -513,7 +561,7 @@ const Dashboard = ({ onLogout }) => {
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ duration: 0.3, delay: index * 0.05 }}
-                          className="hover:bg-gray-800 transition-colors duration-200"
+                          className="hover:bg-gray-800 transition-colors duration-200 group"
                         >
                           <td className="py-4 px-6 font-semibold text-white">{message.sender}</td>
                           <td className="py-4 px-6">
@@ -535,11 +583,11 @@ const Dashboard = ({ onLogout }) => {
                           </td>
                           <td className="py-4 px-6">
                             {message.price ? (
-                              <span className="text-green-400 font-semibold bg-green-400/10 px-2 py-1 rounded">
+                              <span className="text-emerald-400 font-semibold bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/30">
                                 {message.price}
                               </span>
                             ) : (
-                              <span className="text-gray-500">غير محدد</span>
+                              <span className="text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full">غير محدد</span>
                             )}
                           </td>
                           <td className="py-4 px-6 text-gray-400 text-sm">
@@ -553,7 +601,7 @@ const Dashboard = ({ onLogout }) => {
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               onClick={() => showUnitDetails(message)}
-                              className="flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-xs shadow-lg"
+                              className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg font-medium"
                             >
                               <EyeIcon className="h-4 w-4 ml-1" />
                               عرض التفاصيل
@@ -709,7 +757,7 @@ const Dashboard = ({ onLogout }) => {
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-2xl font-bold flex items-center gap-3">
-                <TrendingUpIcon className="h-8 w-8 text-blue-400" />
+                <ChartBarIcon className="h-8 w-8 text-blue-400" />
                 آخر العقارات المضافة
               </h3>
               <span className="text-gray-400">أحدث 9 عقارات</span>
@@ -788,81 +836,100 @@ const Dashboard = ({ onLogout }) => {
 
       {/* Unit Details Modal */}
       {showModal && selectedUnit && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-semibold">تفاصيل العقار</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-gradient-to-br from-slate-100 to-white rounded-2xl p-8 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200"
+          >
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+              <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                تفاصيل العقار
+              </h3>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-white text-2xl"
+                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full p-2 transition-all duration-200"
               >
-                ×
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-right" dir="rtl">
-              <div className="space-y-4">
-                <div>
-                  <strong className="text-blue-400">المرسل:</strong> {selectedUnit.sender}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-right" dir="rtl">
+              <div className="space-y-6">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <strong className="text-blue-700 block mb-2">المرسل:</strong> 
+                  <span className="text-gray-800 font-medium">{selectedUnit.sender}</span>
                 </div>
-                <div>
-                  <strong className="text-blue-400">نوع العقار:</strong> 
-                  <span className={`mr-2 px-2 py-1 rounded-full text-xs ${getPropertyTypeColorClass(selectedUnit.property_type)}`}>
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <strong className="text-purple-700 block mb-2">نوع العقار:</strong> 
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    selectedUnit.property_type === 'apartment' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                    selectedUnit.property_type === 'villa' ? 'bg-green-100 text-green-800 border border-green-300' :
+                    selectedUnit.property_type === 'land' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
+                    selectedUnit.property_type === 'office' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
+                    'bg-red-100 text-red-800 border border-red-300'
+                  }`}>
                     {getPropertyTypeLabel(selectedUnit.property_type)}
                   </span>
                 </div>
-                <div>
-                  <strong className="text-blue-400">الموقع:</strong> {selectedUnit.location || 'غير محدد'}
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <strong className="text-green-700 block mb-2">الموقع:</strong> 
+                  <span className="text-gray-800">{selectedUnit.location || 'غير محدد'}</span>
                 </div>
-                <div>
-                  <strong className="text-blue-400">السعر:</strong> 
-                  <span className="text-green-400 font-semibold mr-2">
+                <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                  <strong className="text-emerald-700 block mb-2">السعر:</strong> 
+                  <span className="text-emerald-600 font-bold text-lg">
                     {selectedUnit.price || 'غير محدد'}
                   </span>
                 </div>
-                <div>
-                  <strong className="text-blue-400">التوقيت:</strong> {selectedUnit.timestamp}
+                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                  <strong className="text-indigo-700 block mb-2">التوقيت:</strong> 
+                  <span className="text-gray-800">{selectedUnit.timestamp}</span>
                 </div>
                 {selectedUnit.agent_phone && (
-                  <div>
-                    <strong className="text-blue-400">الهاتف:</strong> 
-                    <a href={`tel:${selectedUnit.agent_phone}`} className="text-green-400 hover:underline mr-2">
+                  <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+                    <strong className="text-teal-700 block mb-2">الهاتف:</strong> 
+                    <a href={`tel:${selectedUnit.agent_phone}`} className="text-teal-600 hover:text-teal-800 font-medium hover:underline">
                       {selectedUnit.agent_phone}
                     </a>
                   </div>
                 )}
               </div>
-              <div className="space-y-4">
-                <div>
-                  <strong className="text-blue-400">الرسالة الكاملة:</strong>
-                  <p className="mt-2 p-3 bg-gray-700 rounded-lg">{selectedUnit.message}</p>
+              <div className="space-y-6">
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  <strong className="text-slate-700 block mb-3">الرسالة الكاملة:</strong>
+                  <p className="text-gray-800 bg-white p-4 rounded-lg border leading-relaxed">{selectedUnit.message}</p>
                 </div>
-                <div>
-                  <strong className="text-blue-400">الكلمات المفتاحية:</strong>
-                  <p className="mt-2 text-gray-300">{selectedUnit.keywords || 'لا توجد'}</p>
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                  <strong className="text-orange-700 block mb-2">الكلمات المفتاحية:</strong>
+                  <p className="text-gray-800">{selectedUnit.keywords || 'لا توجد'}</p>
                 </div>
                 {selectedUnit.agent_description && (
-                  <div>
-                    <strong className="text-blue-400">وصف السمسار:</strong>
-                    <p className="mt-2 text-gray-300">{selectedUnit.agent_description}</p>
+                  <div className="bg-rose-50 p-4 rounded-lg border border-rose-200">
+                    <strong className="text-rose-700 block mb-2">وصف السمسار:</strong>
+                    <p className="text-gray-800">{selectedUnit.agent_description}</p>
                   </div>
                 )}
                 {selectedUnit.full_description && (
-                  <div>
-                    <strong className="text-blue-400">الوصف الكامل:</strong>
-                    <p className="mt-2 p-3 bg-gray-700 rounded-lg">{selectedUnit.full_description}</p>
+                  <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                    <strong className="text-cyan-700 block mb-3">الوصف الكامل:</strong>
+                    <p className="text-gray-800 bg-white p-4 rounded-lg border leading-relaxed">{selectedUnit.full_description}</p>
                   </div>
                 )}
               </div>
             </div>
-            <div className="mt-6 flex justify-center">
+            <div className="mt-8 flex justify-center pt-6 border-t border-gray-200">
               <button
                 onClick={closeModal}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
               >
                 إغلاق
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
