@@ -1,21 +1,80 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRightOnRectangleIcon, MagnifyingGlassIcon, ChevronUpIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, ArrowUpTrayIcon, ClockIcon, EyeIcon } from '@heroicons/react/24/outline';
-import { searchMessages, getAllMessages, getPropertyTypeStats } from '../services/mockDatabase';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ArrowRightOnRectangleIcon, 
+  EyeIcon,
+  MagnifyingGlassIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ArrowUpTrayIcon,
+  ClockIcon,
+  BuildingOffice2Icon,
+  HomeModernIcon,
+  MapPinIcon,
+  BuildingStorefrontIcon,
+  BuildingLibraryIcon,
+  SparklesIcon,
+  CpuChipIcon,
+  TrendingUpIcon,
+  ChartBarIcon
+} from '@heroicons/react/24/outline';
+import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/mockDatabase';
 
 const SimpleDashboard = ({ onLogout }) => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [messages, setMessages] = useState([]);
-  const [stats, setStats] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [totalMessages, setTotalMessages] = useState(0);
-  const [selectedFilter, setSelectedFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [messagesPerPage] = useState(12);
-  const [sortField, setSortField] = useState('timestamp');
-  const [sortDirection, setSortDirection] = useState('desc');
-  const [activeView, setActiveView] = useState('table'); // 'cards', 'table', 'import', 'recent'
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('table');
+  const [stats, setStats] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [messagesPerPage] = useState(20);
+  const [sortField, setSortField] = useState('timestamp');
+  const [sortDirection, setSortDirection] = useState('desc');
+
+  const propertyFilters = [
+    { id: 'all', label: 'جميع العقارات', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
+    { id: 'apartment', label: 'شقق', icon: HomeModernIcon, color: 'from-blue-500 to-cyan-500' },
+    { id: 'villa', label: 'فيلل', icon: HomeModernIcon, color: 'from-green-500 to-emerald-500' },
+    { id: 'land', label: 'أراضي', icon: MapPinIcon, color: 'from-orange-500 to-red-500' },
+    { id: 'office', label: 'مكاتب', icon: BuildingStorefrontIcon, color: 'from-indigo-500 to-purple-500' },
+    { id: 'warehouse', label: 'مخازن', icon: BuildingLibraryIcon, color: 'from-pink-500 to-rose-500' }
+  ];
+
+  const tabs = [
+    { 
+      id: 'table', 
+      label: 'جدول العقارات الشامل', 
+      icon: MagnifyingGlassIcon, 
+      gradient: 'from-purple-500 to-blue-500',
+      description: 'جميع العقارات بالتفصيل'
+    },
+    { 
+      id: 'recent', 
+      label: 'النتائج الحديثة', 
+      icon: TrendingUpIcon, 
+      gradient: 'from-blue-500 to-indigo-500',
+      description: 'أحدث العقارات المضافة'
+    },
+    { 
+      id: 'import', 
+      label: 'استيراد المحادثات', 
+      icon: ArrowUpTrayIcon, 
+      gradient: 'from-green-500 to-emerald-500',
+      description: 'رفع ملفات WhatsApp'
+    },
+    { 
+      id: 'stats', 
+      label: 'التحليلات المتقدمة', 
+      icon: ChartBarIcon, 
+      gradient: 'from-indigo-500 to-purple-500',
+      description: 'إحصائيات ذكية'
+    }
+  ];
 
   // Load initial data
   useEffect(() => {
@@ -28,7 +87,6 @@ const SimpleDashboard = ({ onLogout }) => {
       // Get all messages
       const allMessages = await getAllMessages('all', 1000);
       setMessages(allMessages);
-      setTotalMessages(allMessages.length);
 
       // Get property type statistics
       const propertyStats = await getPropertyTypeStats();
@@ -57,7 +115,7 @@ const SimpleDashboard = ({ onLogout }) => {
 
   const handleStatClick = (propertyType) => {
     setSelectedFilter(propertyType);
-    setActiveView('table');
+    setActiveTab('table');
     setCurrentPage(1);
   };
 
@@ -132,89 +190,132 @@ const SimpleDashboard = ({ onLogout }) => {
 
   const getPropertyTypeColorClass = (type) => {
     const colors = {
-      apartment: 'bg-blue-100 text-blue-800',
-      villa: 'bg-green-100 text-green-800',
-      land: 'bg-yellow-100 text-yellow-800',
-      office: 'bg-purple-100 text-purple-800',
-      warehouse: 'bg-red-100 text-red-800'
+      apartment: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      villa: 'bg-green-500/20 text-green-300 border-green-500/30',
+      land: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+      office: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      warehouse: 'bg-red-500/20 text-red-300 border-red-500/30'
     };
-    return colors[type] || 'bg-gray-100 text-gray-800';
+    return colors[type] || 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   };
 
   const renderSortIcon = (field) => {
     if (sortField !== field) {
-      return <ChevronUpIcon className="h-4 w-4 text-gray-500" />;
+      return <SparklesIcon className="h-4 w-4 text-gray-500" />;
     }
     return sortDirection === 'asc' ? 
-      <ChevronUpIcon className="h-4 w-4 text-blue-400" /> : 
-      <ChevronDownIcon className="h-4 w-4 text-blue-400" />;
+      <TrendingUpIcon className="h-4 w-4 text-purple-400" /> : 
+      <ChevronDownIcon className="h-4 w-4 text-purple-400" />;
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <header className="bg-gray-800 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-white">
-                البحث في العقارات
-              </h1>
-              <span className="text-lg text-gray-300 mr-4">Real Estate Chat Search</span>
-            </div>
-            <button
-              onClick={onLogout}
-              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <ArrowRightOnRectangleIcon className="h-5 w-5 ml-2" />
-              تسجيل الخروج
-            </button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-slate-900/40 to-slate-900"></div>
+        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Navigation Tabs */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-4 justify-center" dir="rtl">
-            <button
-              onClick={() => setActiveView('table')}
-              className={`flex items-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                activeView === 'table'
-                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
-                  : 'bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
+      {/* Header */}
+      <motion.header 
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative glass border-b border-white/10 shadow-2xl"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-24">
+            <motion.div 
+              className="flex items-center space-x-6" 
+              dir="rtl"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300 }}
             >
-              📊 جدول العقارات الشامل
-            </button>
-            <button
-              onClick={() => setActiveView('import')}
-              className={`flex items-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                activeView === 'import'
-                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg'
-                  : 'bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500 rounded-3xl blur opacity-75"></div>
+                <div className="relative p-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl shadow-2xl">
+                  <BuildingOffice2Icon className="h-10 w-10 text-white" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold gradient-text">
+                  منصة العقارات الذكية
+                </h1>
+                <div className="flex items-center space-x-2 mt-1">
+                  <SparklesIcon className="h-4 w-4 text-purple-400" />
+                  <CpuChipIcon className="h-4 w-4 text-purple-400 animate-pulse" />
+                  <p className="text-sm text-gray-300">تقنية الذكاء الاصطناعي للبحث المتقدم</p>
+                </div>
+              </div>
+            </motion.div>
+            
+            <motion.button
+              onClick={onLogout}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="group relative overflow-hidden flex items-center px-8 py-4 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
             >
-              <ArrowUpTrayIcon className="h-5 w-5 ml-2" />
-              استيراد المحادثات
-            </button>
-            <button
-              onClick={() => setActiveView('recent')}
-              className={`flex items-center px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                activeView === 'recent'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                  : 'bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700'
-              }`}
-            >
-              <ClockIcon className="h-5 w-5 ml-2" />
-              النتائج الحديثة
-            </button>
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <ArrowRightOnRectangleIcon className="h-5 w-5 ml-3 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="relative">تسجيل الخروج</span>
+            </motion.button>
           </div>
         </div>
-        {/* Statistics Cards - Now Clickable Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      </motion.header>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Navigation Tabs */}
+        <motion.div 
+          className="mb-16"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <nav className="relative" dir="rtl">
+            <div className="flex space-x-4 glass p-3 rounded-3xl border border-white/20 shadow-2xl">
+              {tabs.map((tab) => {
+                const IconComponent = tab.icon;
+                const isActive = activeTab === tab.id;
+                
+                return (
+                  <motion.button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`relative overflow-hidden px-8 py-6 text-sm font-bold rounded-2xl transition-all duration-500 flex flex-col items-center space-y-2 min-w-[140px] ${
+                      isActive
+                        ? 'text-white shadow-2xl transform scale-105'
+                        : 'text-gray-300 hover:text-white glass-light'
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className={`absolute inset-0 bg-gradient-to-r ${tab.gradient} rounded-2xl`}
+                        initial={false}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      />
+                    )}
+                    <div className="relative flex flex-col items-center space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <IconComponent className="h-5 w-5" />
+                        {isActive && <SparklesIcon className="h-4 w-4 animate-pulse" />}
+                      </div>
+                      <span className="text-xs">{tab.label}</span>
+                      <span className="text-xs opacity-70">{tab.description}</span>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </nav>
+        </motion.div>
+
+        {/* Enhanced Statistics Cards - Now Clickable Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           
           {/* Welcome Card */}
           <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-6 text-white">
@@ -247,316 +348,559 @@ const SimpleDashboard = ({ onLogout }) => {
             </div>
           </div>
 
-          {/* Clickable Stats Card */}
+          {/* Clickable Stats Card for All Properties */}
+          <motion.button
+            onClick={() => handleStatClick('all')}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className={`bg-gradient-to-br rounded-xl p-6 text-white transition-all duration-300 ${
+              selectedFilter === 'all' 
+                ? 'from-purple-600 to-purple-800 ring-2 ring-purple-400 shadow-2xl' 
+                : 'from-gray-700 to-gray-800 hover:from-purple-600 hover:to-purple-800'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <BuildingOffice2Icon className="h-8 w-8" />
+              <span className="text-3xl font-bold">{stats.reduce((sum, stat) => sum + stat.count, 0)}</span>
+            </div>
+            <h3 className="text-lg font-semibold">جميع العقارات</h3>
+            <p className="text-sm opacity-80">اضغط للعرض</p>
+          </motion.button>
+
+          {/* Clickable Property Type Stats */}
           <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-xl font-semibold mb-4">الإحصائيات المباشرة - اضغط للتصفية</h3>
+            <h3 className="text-xl font-semibold mb-4">الإحصائيات المباشرة</h3>
             <div className="space-y-3">
-              <button
-                onClick={() => handleStatClick('all')}
-                className={`w-full flex justify-between p-2 rounded-lg transition-colors ${
-                  selectedFilter === 'all' ? 'bg-blue-600 text-white' : 'hover:bg-gray-700'
-                }`}
-              >
-                <span>جميع العقارات</span>
-                <span className="text-blue-400">{stats.reduce((sum, stat) => sum + stat.count, 0)}</span>
-              </button>
               {stats.map((stat) => (
-                <button
+                <motion.button
                   key={stat.property_type}
                   onClick={() => handleStatClick(stat.property_type)}
-                  className={`w-full flex justify-between p-2 rounded-lg transition-colors ${
-                    selectedFilter === stat.property_type ? 'bg-blue-600 text-white' : 'hover:bg-gray-700'
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`w-full flex justify-between items-center p-3 rounded-lg transition-all duration-300 ${
+                    selectedFilter === stat.property_type 
+                      ? 'bg-blue-600 text-white shadow-lg transform scale-105' 
+                      : 'hover:bg-gray-700 bg-gray-750'
                   }`}
                 >
-                  <span>{getPropertyTypeLabel(stat.property_type)}</span>
-                  <span className={selectedFilter === stat.property_type ? 'text-white' : getPropertyTypeColor(stat.property_type)}>
-                    {stat.count}
-                  </span>
-                </button>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      stat.property_type === 'apartment' ? 'bg-blue-400' :
+                      stat.property_type === 'villa' ? 'bg-green-400' :
+                      stat.property_type === 'land' ? 'bg-yellow-400' :
+                      stat.property_type === 'office' ? 'bg-purple-400' :
+                      'bg-red-400'
+                    }`}></div>
+                    <span className="font-medium">{getPropertyTypeLabel(stat.property_type)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-bold text-lg ${
+                      selectedFilter === stat.property_type ? 'text-white' : getPropertyTypeColor(stat.property_type)
+                    }`}>
+                      {stat.count}
+                    </span>
+                    <ChevronLeftIcon className="h-4 w-4 opacity-60" />
+                  </div>
+                </motion.button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Content based on active view */}
-        {activeView === 'table' && (
-          <div className="bg-gray-800 rounded-xl p-6">
+        {/* Content based on active tab */}
+        {activeTab === 'table' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-800 rounded-xl p-6 shadow-2xl"
+          >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-bold">
-                {selectedFilter === 'all' ? 'جميع العقارات' : `عقارات ${getPropertyTypeLabel(selectedFilter)}`}
-              </h3>
-              <div className="flex items-center gap-4">
-                <span className="text-gray-400">
+              <div>
+                <h3 className="text-2xl font-bold mb-2">
+                  {selectedFilter === 'all' ? 'جميع العقارات' : `عقارات ${getPropertyTypeLabel(selectedFilter)}`}
+                </h3>
+                <p className="text-gray-400">
                   {sortedMessages.length} عقار • صفحة {currentPage} من {totalPages}
-                </span>
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
                 {selectedFilter !== 'all' && (
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => {setSelectedFilter('all'); setCurrentPage(1);}}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
+                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg"
                   >
+                    <BuildingOffice2Icon className="h-4 w-4 ml-2 inline" />
                     إظهار الكل
-                  </button>
+                  </motion.button>
                 )}
+                <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <SparklesIcon className="h-4 w-4" />
+                  <span>مرتب حسب: {sortField === 'timestamp' ? 'التاريخ' : sortField === 'sender' ? 'المرسل' : sortField === 'property_type' ? 'النوع' : sortField}</span>
+                </div>
               </div>
             </div>
 
-            {/* Table */}
+            {/* Enhanced Table */}
             {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                <p className="mt-4 text-gray-400">جاري تحميل البيانات...</p>
+              <div className="text-center py-12">
+                <motion.div 
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto mb-4"
+                ></motion.div>
+                <p className="text-gray-400 text-lg">جاري تحميل البيانات...</p>
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-right" dir="rtl">
-                    <thead>
-                      <tr className="border-b border-gray-700">
-                        <th className="py-3 px-4 text-right">
-                          <button
+                <div className="overflow-x-auto rounded-lg border border-gray-700">
+                  <table className="w-full text-right bg-gray-900" dir="rtl">
+                    <thead className="bg-gradient-to-r from-gray-800 to-gray-700">
+                      <tr>
+                        <th className="py-4 px-6 text-right">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('sender')}
-                            className="flex items-center gap-2 hover:text-blue-400 transition-colors"
+                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
                           >
                             المرسل
                             {renderSortIcon('sender')}
-                          </button>
+                          </motion.button>
                         </th>
-                        <th className="py-3 px-4 text-right">
-                          <button
+                        <th className="py-4 px-6 text-right">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('property_type')}
-                            className="flex items-center gap-2 hover:text-blue-400 transition-colors"
+                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
                           >
                             نوع العقار
                             {renderSortIcon('property_type')}
-                          </button>
+                          </motion.button>
                         </th>
-                        <th className="py-3 px-4 text-right">المحتوى</th>
-                        <th className="py-3 px-4 text-right">
-                          <button
+                        <th className="py-4 px-6 text-right font-bold">المحتوى</th>
+                        <th className="py-4 px-6 text-right">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('location')}
-                            className="flex items-center gap-2 hover:text-blue-400 transition-colors"
+                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
                           >
                             الموقع
                             {renderSortIcon('location')}
-                          </button>
+                          </motion.button>
                         </th>
-                        <th className="py-3 px-4 text-right">
-                          <button
+                        <th className="py-4 px-6 text-right">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('price')}
-                            className="flex items-center gap-2 hover:text-blue-400 transition-colors"
+                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
                           >
                             السعر
                             {renderSortIcon('price')}
-                          </button>
+                          </motion.button>
                         </th>
-                        <th className="py-3 px-4 text-right">
-                          <button
+                        <th className="py-4 px-6 text-right">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('timestamp')}
-                            className="flex items-center gap-2 hover:text-blue-400 transition-colors"
+                            className="flex items-center gap-2 hover:text-purple-400 transition-colors font-bold"
                           >
                             التاريخ
                             {renderSortIcon('timestamp')}
-                          </button>
+                          </motion.button>
                         </th>
-                        <th className="py-3 px-4 text-right"></th>
+                        <th className="py-4 px-6 text-right font-bold">التفاصيل</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {currentMessages.map((message) => (
-                        <tr key={message.id} className="border-b border-gray-700 hover:bg-gray-750 transition-colors">
-                          <td className="py-4 px-4 font-semibold">{message.sender}</td>
-                          <td className="py-4 px-4">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPropertyTypeColorClass(message.property_type)}`}>
-                              {getPropertyTypeLabel(message.property_type)}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 max-w-xs">
-                            <div className="truncate">{message.message}</div>
-                          </td>
-                          <td className="py-4 px-4">{message.location || '-'}</td>
-                          <td className="py-4 px-4">
-                            {message.price ? (
-                              <span className="text-green-400 font-semibold">{message.price}</span>
-                            ) : '-'}
-                          </td>
-                          <td className="py-4 px-4 text-gray-400 text-sm">{message.timestamp}</td>
-                          <td className="py-4 px-4 text-right">
-                            <button
-                              onClick={() => showUnitDetails(message)}
-                              className="text-blue-400 hover:underline"
+                    <tbody className="divide-y divide-gray-700">
+                      {currentMessages.map((message, index) => (
+                        <motion.tr 
+                          key={message.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3, delay: index * 0.05 }}
+                          className="hover:bg-gray-800 transition-colors duration-200"
+                        >
+                          <td className="py-4 px-6 font-semibold text-white">{message.sender}</td>
+                          <td className="py-4 px-6">
+                            <motion.span 
+                              whileHover={{ scale: 1.05 }}
+                              className={`px-3 py-1 rounded-full text-xs font-medium border ${getPropertyTypeColorClass(message.property_type)}`}
                             >
-                              تفاصيل
-                            </button>
+                              {getPropertyTypeLabel(message.property_type)}
+                            </motion.span>
                           </td>
-                        </tr>
+                          <td className="py-4 px-6 max-w-xs">
+                            <div className="truncate text-gray-300">{message.message}</div>
+                          </td>
+                          <td className="py-4 px-6 text-gray-300">
+                            <div className="flex items-center gap-1">
+                              <MapPinIcon className="h-4 w-4 text-gray-500" />
+                              {message.location || 'غير محدد'}
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            {message.price ? (
+                              <span className="text-green-400 font-semibold bg-green-400/10 px-2 py-1 rounded">
+                                {message.price}
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">غير محدد</span>
+                            )}
+                          </td>
+                          <td className="py-4 px-6 text-gray-400 text-sm">
+                            <div className="flex items-center gap-1">
+                              <ClockIcon className="h-4 w-4" />
+                              {message.timestamp}
+                            </div>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() => showUnitDetails(message)}
+                              className="flex items-center px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-xs shadow-lg"
+                            >
+                              <EyeIcon className="h-4 w-4 ml-1" />
+                              عرض التفاصيل
+                            </motion.button>
+                          </td>
+                        </motion.tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Pagination */}
+                {/* Enhanced Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6">
-                    <div className="text-gray-400">
-                      عرض {indexOfFirstMessage + 1} إلى {Math.min(indexOfLastMessage, sortedMessages.length)} من {sortedMessages.length} عقار
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    className="flex items-center justify-between mt-8 bg-gray-750 rounded-lg p-4"
+                  >
+                    <div className="text-gray-400 text-sm">
+                      عرض <span className="text-purple-400 font-semibold">{indexOfFirstMessage + 1}</span> إلى <span className="text-purple-400 font-semibold">{Math.min(indexOfLastMessage, sortedMessages.length)}</span> من <span className="text-purple-400 font-semibold">{sortedMessages.length}</span> عقار
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
+                    <div className="flex items-center gap-3">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
-                        className="flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="flex items-center px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg"
                       >
                         <ChevronRightIcon className="h-4 w-4 ml-1" />
                         السابق
-                      </button>
+                      </motion.button>
                       
                       <div className="flex items-center gap-2">
                         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                           const pageNumber = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
                           return (
-                            <button
+                            <motion.button
                               key={pageNumber}
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               onClick={() => setCurrentPage(pageNumber)}
-                              className={`px-3 py-2 rounded-lg transition-colors ${
+                              className={`px-4 py-2 rounded-lg transition-all duration-300 font-semibold ${
                                 currentPage === pageNumber
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                  ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg transform scale-110'
+                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
                               }`}
                             >
                               {pageNumber}
-                            </button>
+                            </motion.button>
                           );
                         })}
                       </div>
 
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
-                        className="flex items-center px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="flex items-center px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg"
                       >
                         التالي
                         <ChevronLeftIcon className="h-4 w-4 mr-1" />
-                      </button>
+                      </motion.button>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               </>
             )}
-          </div>
+          </motion.div>
         )}
 
-        {activeView === 'import' && (
-          <div className="bg-gray-800 rounded-xl p-8">
-            <h3 className="text-2xl font-bold mb-6 text-center">استيراد محادثات الواتساب</h3>
+        {activeTab === 'import' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-800 rounded-xl p-8 shadow-2xl"
+          >
+            <div className="text-center mb-8">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-600 to-emerald-600 rounded-full mb-4"
+              >
+                <ArrowUpTrayIcon className="h-10 w-10 text-white" />
+              </motion.div>
+              <h3 className="text-3xl font-bold mb-2">استيراد محادثات الواتساب</h3>
+              <p className="text-gray-400">قم برفع ملفات المحادثات لتحليلها وإضافتها إلى قاعدة البيانات</p>
+            </div>
+            
             <div className="max-w-2xl mx-auto">
-              <div className="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center">
-                <ArrowUpTrayIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h4 className="text-lg font-semibold mb-2">قم بسحب وإفلات ملف المحادثة هنا</h4>
-                <p className="text-gray-400 mb-4">أو انقر لاختيار الملف من جهازك</p>
-                <button className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                className="border-2 border-dashed border-gray-600 hover:border-green-500 rounded-xl p-12 text-center transition-all duration-300 bg-gradient-to-br from-gray-800/50 to-gray-700/50"
+              >
+                <motion.div
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="mb-6"
+                >
+                  <ArrowUpTrayIcon className="h-16 w-16 text-gray-400 mx-auto" />
+                </motion.div>
+                <h4 className="text-xl font-semibold mb-3 text-white">قم بسحب وإفلات ملف المحادثة هنا</h4>
+                <p className="text-gray-400 mb-6">أو انقر لاختيار الملف من جهازك</p>
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-semibold shadow-lg"
+                >
+                  <ArrowUpTrayIcon className="h-5 w-5 ml-2 inline" />
                   اختيار ملف
-                </button>
-              </div>
-              <div className="mt-6 text-center text-gray-400">
-                <p>الصيغ المدعومة: .txt, .csv</p>
-                <p>الحد الأقصى لحجم الملف: 10 ميجابايت</p>
+                </motion.button>
+              </motion.div>
+              
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <h5 className="font-semibold text-white mb-2 flex items-center gap-2">
+                    <SparklesIcon className="h-5 w-5 text-green-400" />
+                    الصيغ المدعومة
+                  </h5>
+                  <ul className="text-gray-300 text-sm space-y-1">
+                    <li>• ملفات النصوص (.txt)</li>
+                    <li>• ملفات CSV (.csv)</li>
+                    <li>• تصدير WhatsApp مباشر</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-gray-700 rounded-lg p-4">
+                  <h5 className="font-semibold text-white mb-2 flex items-center gap-2">
+                    <CpuChipIcon className="h-5 w-5 text-blue-400" />
+                    معلومات تقنية
+                  </h5>
+                  <ul className="text-gray-300 text-sm space-y-1">
+                    <li>• الحد الأقصى: 10 ميجابايت</li>
+                    <li>• معالجة تلقائية للنصوص العربية</li>
+                    <li>• استخراج ذكي للمعلومات</li>
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {activeView === 'recent' && (
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h3 className="text-2xl font-bold mb-6">آخر العقارات المضافة</h3>
+        {activeTab === 'recent' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-800 rounded-xl p-6 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold flex items-center gap-3">
+                <TrendingUpIcon className="h-8 w-8 text-blue-400" />
+                آخر العقارات المضافة
+              </h3>
+              <span className="text-gray-400">أحدث 9 عقارات</span>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {messages.slice(0, 9).map((message) => (
-                <div key={message.id} className="bg-gray-700 rounded-xl p-6 hover:bg-gray-600 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPropertyTypeColorClass(message.property_type)}`}>
+              {messages.slice(0, 9).map((message, index) => (
+                <motion.div 
+                  key={message.id} 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl p-6 hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg border border-gray-600"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <motion.span 
+                      whileHover={{ scale: 1.05 }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border ${getPropertyTypeColorClass(message.property_type)}`}
+                    >
                       {getPropertyTypeLabel(message.property_type)}
-                    </span>
-                    <span className="text-xs text-gray-400">{message.timestamp}</span>
+                    </motion.span>
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <ClockIcon className="h-3 w-3" />
+                      {message.timestamp}
+                    </div>
                   </div>
                   
-                  <h4 className="font-semibold text-white mb-2" dir="rtl">
+                  <h4 className="font-semibold text-white mb-3 flex items-center gap-2" dir="rtl">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                     {message.sender}
                   </h4>
                   
-                  <p className="text-gray-300 text-sm line-clamp-3 mb-3" dir="rtl">
+                  <p className="text-gray-300 text-sm line-clamp-3 mb-4 leading-relaxed" dir="rtl">
                     {message.message}
                   </p>
                   
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">
-                      📍 {message.location}
-                    </span>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-1 text-gray-400">
+                      <MapPinIcon className="h-4 w-4" />
+                      {message.location || 'غير محدد'}
+                    </div>
                     {message.price && (
-                      <span className="text-sm font-semibold text-green-400">
+                      <span className="text-green-400 font-semibold bg-green-400/10 px-2 py-1 rounded">
                         {message.price}
                       </span>
                     )}
                   </div>
-                </div>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => showUnitDetails(message)}
+                    className="w-full mt-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm font-medium"
+                  >
+                    عرض التفاصيل الكاملة
+                  </motion.button>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* Unit Details Modal */}
-        {showModal && selectedUnit && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="absolute inset-0 bg-black opacity-50"></div>
-            <div className="bg-gray-800 rounded-xl overflow-hidden shadow-lg max-w-lg w-full z-10">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-bold">
-                    تفاصيل العقار
-                  </h3>
-                  <button
-                    onClick={closeModal}
-                    className="text-gray-400 hover:text-white"
+        {activeTab === 'stats' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gray-800 rounded-xl p-6 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-bold flex items-center gap-3">
+                <ChartBarIcon className="h-8 w-8 text-purple-400" />
+                التحليلات المتقدمة
+              </h3>
+              <div className="text-gray-400 text-sm">
+                آخر تحديث: الآن
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={stat.property_type}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl p-6 text-center shadow-lg border border-gray-600"
+                >
+                  <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                    stat.property_type === 'apartment' ? 'bg-blue-500/20 text-blue-400' :
+                    stat.property_type === 'villa' ? 'bg-green-500/20 text-green-400' :
+                    stat.property_type === 'land' ? 'bg-yellow-500/20 text-yellow-400' :
+                    stat.property_type === 'office' ? 'bg-purple-500/20 text-purple-400' :
+                    'bg-red-500/20 text-red-400'
+                  }`}>
+                    {stat.property_type === 'apartment' ? '🏢' :
+                     stat.property_type === 'villa' ? '🏡' :
+                     stat.property_type === 'land' ? '🏞️' :
+                     stat.property_type === 'office' ? '🏢' : '🏭'}
+                  </div>
+                  <h4 className="text-lg font-semibold text-white mb-2">
+                    {getPropertyTypeLabel(stat.property_type)}
+                  </h4>
+                  <div className="text-3xl font-bold text-purple-400 mb-2">
+                    {stat.count}
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    {((stat.count / stats.reduce((sum, s) => sum + s.count, 0)) * 100).toFixed(1)}%
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleStatClick(stat.property_type)}
+                    className="mt-3 w-full py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-blue-700 transition-all duration-300"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
+                    عرض العقارات
+                  </motion.button>
+                </motion.div>
+              ))}
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-gray-700 rounded-xl p-6">
+                <h4 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <TrendingUpIcon className="h-6 w-6 text-green-400" />
+                  إحصائيات سريعة
+                </h4>
                 <div className="space-y-4">
-                  <div>
-                    <span className="text-gray-400">المرسل:</span>
-                    <span className="block text-white font-semibold">{selectedUnit.sender}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">نوع العقار:</span>
-                    <span className={`block text-sm rounded-full ${getPropertyTypeColorClass(selectedUnit.property_type)}`}>
-                      {getPropertyTypeLabel(selectedUnit.property_type)}
+                  <div className="flex justify-between items-center p-3 bg-gray-600 rounded-lg">
+                    <span className="text-gray-300">إجمالي العقارات</span>
+                    <span className="text-2xl font-bold text-purple-400">
+                      {stats.reduce((sum, stat) => sum + stat.count, 0)}
                     </span>
                   </div>
-                  <div>
-                    <span className="text-gray-400">الموقع:</span>
-                    <span className="block">{selectedUnit.location || '-'}</span>
+                  <div className="flex justify-between items-center p-3 bg-gray-600 rounded-lg">
+                    <span className="text-gray-300">أنواع العقارات</span>
+                    <span className="text-2xl font-bold text-blue-400">{stats.length}</span>
                   </div>
-                  <div>
-                    <span className="text-gray-400">السعر:</span>
-                    <span className="block text-green-400 font-semibold">
-                      {selectedUnit.price}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">التاريخ:</span>
-                    <span className="block text-sm">{selectedUnit.timestamp}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">المحتوى:</span>
-                    <p className="mt-1 text-white break-words">
-                      {selectedUnit.message}
-                    </p>
+                  <div className="flex justify-between items-center p-3 bg-gray-600 rounded-lg">
+                    <span className="text-gray-300">معدل العقارات اليومي</span>
+                    <span className="text-2xl font-bold text-green-400">~45</span>
                   </div>
                 </div>
               </div>
+              
+              <div className="bg-gray-700 rounded-xl p-6">
+                <h4 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                  <SparklesIcon className="h-6 w-6 text-yellow-400" />
+                  أكثر العقارات طلباً
+                </h4>
+                <div className="space-y-3">
+                  {stats
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 3)
+                    .map((stat, index) => (
+                      <motion.div
+                        key={stat.property_type}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className="flex items-center justify-between p-3 bg-gray-600 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                            index === 0 ? 'bg-yellow-500 text-yellow-900' :
+                            index === 1 ? 'bg-gray-400 text-gray-900' :
+                            'bg-amber-600 text-amber-100'
+                          }`}>
+                            {index + 1}
+                          </div>
+                          <span className="text-white font-medium">
+                            {getPropertyTypeLabel(stat.property_type)}
+                          </span>
+                        </div>
+                        <span className={`font-bold ${getPropertyTypeColor(stat.property_type)}`}>
+                          {stat.count}
+                        </span>
+                      </motion.div>
+                    ))}
+                </div>
+              </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Success Message */}
@@ -569,7 +913,87 @@ const SimpleDashboard = ({ onLogout }) => {
             <p>✅ جدول تفاعلي مع ترقيم الصفحات وإمكانيات فرز متقدمة</p>
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Unit Details Modal */}
+      {showModal && selectedUnit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-4xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">تفاصيل العقار</h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-right" dir="rtl">
+              <div className="space-y-4">
+                <div>
+                  <strong className="text-blue-400">المرسل:</strong> {selectedUnit.sender}
+                </div>
+                <div>
+                  <strong className="text-blue-400">نوع العقار:</strong> 
+                  <span className={`mr-2 px-2 py-1 rounded-full text-xs ${getPropertyTypeColorClass(selectedUnit.property_type)}`}>
+                    {getPropertyTypeLabel(selectedUnit.property_type)}
+                  </span>
+                </div>
+                <div>
+                  <strong className="text-blue-400">الموقع:</strong> {selectedUnit.location || 'غير محدد'}
+                </div>
+                <div>
+                  <strong className="text-blue-400">السعر:</strong> 
+                  <span className="text-green-400 font-semibold mr-2">
+                    {selectedUnit.price || 'غير محدد'}
+                  </span>
+                </div>
+                <div>
+                  <strong className="text-blue-400">التوقيت:</strong> {selectedUnit.timestamp}
+                </div>
+                {selectedUnit.agent_phone && (
+                  <div>
+                    <strong className="text-blue-400">الهاتف:</strong> 
+                    <a href={`tel:${selectedUnit.agent_phone}`} className="text-green-400 hover:underline mr-2">
+                      {selectedUnit.agent_phone}
+                    </a>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <strong className="text-blue-400">الرسالة الكاملة:</strong>
+                  <p className="mt-2 p-3 bg-gray-700 rounded-lg">{selectedUnit.message}</p>
+                </div>
+                <div>
+                  <strong className="text-blue-400">الكلمات المفتاحية:</strong>
+                  <p className="mt-2 text-gray-300">{selectedUnit.keywords || 'لا توجد'}</p>
+                </div>
+                {selectedUnit.agent_description && (
+                  <div>
+                    <strong className="text-blue-400">وصف السمسار:</strong>
+                    <p className="mt-2 text-gray-300">{selectedUnit.agent_description}</p>
+                  </div>
+                )}
+                {selectedUnit.full_description && (
+                  <div>
+                    <strong className="text-blue-400">الوصف الكامل:</strong>
+                    <p className="mt-2 p-3 bg-gray-700 rounded-lg">{selectedUnit.full_description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="mt-6 flex justify-center">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

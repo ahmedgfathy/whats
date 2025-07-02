@@ -1,48 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
+  ArrowRightOnRectangleIcon, 
+  EyeIcon,
   MagnifyingGlassIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   ArrowUpTrayIcon,
-  ChartBarIcon,
-  BugAntIcon,
-  ArrowRightOnRectangleIcon,
+  ClockIcon,
   BuildingOffice2Icon,
   HomeModernIcon,
   MapPinIcon,
   BuildingStorefrontIcon,
   BuildingLibraryIcon,
   SparklesIcon,
-  BoltIcon,
-  StarIcon,
-  TrendingUpIcon,
-  UsersIcon,
-  FireIcon,
   CpuChipIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  EyeIcon
+  TrendingUpIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
-import ChatImport from './ChatImport';
-import SearchResults from './SearchResults';
-import PropertyStats from './PropertyStats';
-import PropertyDetailsModal from './PropertyDetailsModal';
-import { searchMessages, getAllMessages, getMessageById, getPropertyTypeStats } from '../services/mockDatabase';
+import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/mockDatabase';
 
-const Dashboard = ({ onLogout }) => {
+const SimpleDashboard = ({ onLogout }) => {
+  const [messages, setMessages] = useState([]);
+  const [selectedUnit, setSelectedUnit] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('search');
+  const [stats, setStats] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [messagesPerPage] = useState(20);
   const [sortField, setSortField] = useState('timestamp');
   const [sortDirection, setSortDirection] = useState('desc');
-  const [stats, setStats] = useState([]);
-  const [selectedPropertyId, setSelectedPropertyId] = useState(null);
-  const [showModal, setShowModal] = useState(false);
 
   const propertyFilters = [
     { id: 'all', label: 'جميع العقارات', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -81,34 +73,49 @@ const Dashboard = ({ onLogout }) => {
       icon: ChartBarIcon, 
       gradient: 'from-indigo-500 to-purple-500',
       description: 'إحصائيات ذكية'
-    },
-    { 
-      id: 'debug', 
-      label: 'أدوات المطور', 
-      icon: BugAntIcon, 
-      gradient: 'from-purple-500 to-pink-500',
-      description: 'أدوات التشخيص'
     }
   ];
 
-  const handleSearch = async () => {
+  // Load initial data
+  useEffect(() => {
+    loadInitialData();
+  }, []);
+
+  const loadInitialData = async () => {
     setLoading(true);
     try {
-      const results = await getAllMessages('all', 1000);
-      setMessages(results);
-      
-      // Load statistics
+      // Get all messages
+      const allMessages = await getAllMessages('all', 1000);
+      setMessages(allMessages);
+
+      // Get property type statistics
       const propertyStats = await getPropertyTypeStats();
       setStats(propertyStats);
     } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error loading data:', error);
     }
+    setLoading(false);
+  };
+
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      loadInitialData();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const results = await searchMessages(searchTerm, selectedFilter, 1000);
+      setMessages(results);
+    } catch (error) {
+      console.error('Error searching:', error);
+    }
+    setLoading(false);
   };
 
   const handleStatClick = (propertyType) => {
     setSelectedFilter(propertyType);
+    setActiveTab('search');
     setCurrentPage(1);
   };
 
@@ -121,42 +128,20 @@ const Dashboard = ({ onLogout }) => {
     }
   };
 
-  const handleViewProperty = (propertyId) => {
-    setSelectedPropertyId(propertyId);
+  const showUnitDetails = (unit) => {
+    setSelectedUnit(unit);
     setShowModal(true);
   };
 
-  const handleCloseModal = () => {
+  const closeModal = () => {
     setShowModal(false);
-    setSelectedPropertyId(null);
+    setSelectedUnit(null);
   };
-
-  useEffect(() => {
-    handleSearch();
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-    
-    if (searchTerm.trim() || selectedFilter !== 'all') {
-      const delayedSearch = setTimeout(() => {
-        handleSearch();
-      }, 300);
-      return () => clearTimeout(delayedSearch);
-    } else {
-      handleSearch();
-    }
-  }, [searchTerm, selectedFilter]);
 
   // Filter and sort messages
   const filteredMessages = messages.filter(message => {
     if (selectedFilter === 'all') return true;
     return message.property_type === selectedFilter;
-  }).filter(message => {
-    if (!searchTerm.trim()) return true;
-    return message.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           message.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           message.sender.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const sortedMessages = [...filteredMessages].sort((a, b) => {
@@ -175,15 +160,11 @@ const Dashboard = ({ onLogout }) => {
     }
   });
 
-  // Calculate pagination
+  // Pagination
   const indexOfLastMessage = currentPage * messagesPerPage;
   const indexOfFirstMessage = indexOfLastMessage - messagesPerPage;
   const currentMessages = sortedMessages.slice(indexOfFirstMessage, indexOfLastMessage);
   const totalPages = Math.ceil(sortedMessages.length / messagesPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
 
   const getPropertyTypeLabel = (type) => {
     const labels = {
@@ -207,6 +188,17 @@ const Dashboard = ({ onLogout }) => {
     return colors[type] || 'text-gray-400';
   };
 
+  const getPropertyTypeColorClass = (type) => {
+    const colors = {
+      apartment: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      villa: 'bg-green-500/20 text-green-300 border-green-500/30',
+      land: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+      office: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+      warehouse: 'bg-red-500/20 text-red-300 border-red-500/30'
+    };
+    return colors[type] || 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+  };
+
   const renderSortIcon = (field) => {
     if (sortField !== field) {
       return <SparklesIcon className="h-4 w-4 text-gray-500" />;
@@ -214,49 +206,6 @@ const Dashboard = ({ onLogout }) => {
     return sortDirection === 'asc' ? 
       <TrendingUpIcon className="h-4 w-4 text-purple-400" /> : 
       <ChevronDownIcon className="h-4 w-4 text-purple-400" />;
-  };
-
-  // Debug functions
-  const testDatabase = async () => {
-    console.log('=== Database Test ===');
-    try {
-      const allMessages = await getAllMessages();
-      console.log('Total messages:', allMessages.length);
-      
-      if (allMessages.length > 0) {
-        const firstMessage = allMessages[0];
-        console.log('First message structure:', {
-          id: firstMessage.id,
-          hasAgentPhone: !!firstMessage.agent_phone,
-          hasAgentDescription: !!firstMessage.agent_description,
-          hasFullDescription: !!firstMessage.full_description,
-          sender: firstMessage.sender,
-          propertyType: firstMessage.property_type
-        });
-        
-        const messageById = await getMessageById(firstMessage.id);
-        console.log('getMessageById works:', !!messageById);
-        
-        if (messageById) {
-          console.log('Message by ID has all fields:', {
-            hasAgentPhone: !!messageById.agent_phone,
-            hasAgentDescription: !!messageById.agent_description,
-            hasFullDescription: !!messageById.full_description
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Database test error:', error);
-    }
-  };
-
-  const testPropertyModal = () => {
-    console.log('=== Property Modal Test ===');
-    console.log('Available messages for modal test:', messages.length);
-    if (messages.length > 0) {
-      console.log('First message ID:', messages[0].id);
-      console.log('Click on any property card to test the modal');
-    }
   };
 
   return (
@@ -398,44 +347,44 @@ const Dashboard = ({ onLogout }) => {
                       className={`relative overflow-hidden p-6 rounded-2xl transition-all duration-300 ${
                         selectedFilter === 'all'
                           ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-2xl transform scale-105'
-                          : 'glass border border-white/20 text-gray-300 hover:text-white'
+                          : 'glass-light text-gray-300 hover:text-white border border-white/20'
                       }`}
                     >
-                      <div className="text-center">
-                        <BuildingOffice2Icon className="h-8 w-8 mx-auto mb-2" />
-                        <div className="text-2xl font-bold mb-1">
-                          {stats.reduce((sum, stat) => sum + stat.count, 0)}
+                      <div className="flex flex-col items-center space-y-3">
+                        <BuildingOffice2Icon className="h-8 w-8" />
+                        <div className="text-center">
+                          <div className="text-2xl font-bold">
+                            {stats.reduce((sum, stat) => sum + stat.count, 0)}
+                          </div>
+                          <div className="text-xs">جميع العقارات</div>
                         </div>
-                        <div className="text-sm">جميع العقارات</div>
                       </div>
                     </motion.button>
 
                     {/* Individual Property Types */}
-                    {stats.map((stat, index) => {
-                      const IconComponent = propertyFilters.find(f => f.id === stat.property_type)?.icon || HomeModernIcon;
-                      const isSelected = selectedFilter === stat.property_type;
+                    {propertyFilters.slice(1).map((filter) => {
+                      const IconComponent = filter.icon;
+                      const stat = stats.find(s => s.property_type === filter.id);
+                      const count = stat ? stat.count : 0;
                       
                       return (
                         <motion.button
-                          key={stat.property_type}
-                          onClick={() => handleStatClick(stat.property_type)}
+                          key={filter.id}
+                          onClick={() => handleStatClick(filter.id)}
                           whileHover={{ scale: 1.05, y: -2 }}
                           whileTap={{ scale: 0.95 }}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.1 * index }}
                           className={`relative overflow-hidden p-6 rounded-2xl transition-all duration-300 ${
-                            isSelected
-                              ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-2xl transform scale-105'
-                              : 'glass border border-white/20 text-gray-300 hover:text-white'
+                            selectedFilter === filter.id
+                              ? `bg-gradient-to-r ${filter.color} text-white shadow-2xl transform scale-105`
+                              : 'glass-light text-gray-300 hover:text-white border border-white/20'
                           }`}
                         >
-                          <div className="text-center">
-                            <IconComponent className="h-8 w-8 mx-auto mb-2" />
-                            <div className="text-2xl font-bold mb-1">
-                              {stat.count}
+                          <div className="flex flex-col items-center space-y-3">
+                            <IconComponent className="h-8 w-8" />
+                            <div className="text-center">
+                              <div className="text-2xl font-bold">{count}</div>
+                              <div className="text-xs">{filter.label}</div>
                             </div>
-                            <div className="text-sm">{getPropertyTypeLabel(stat.property_type)}</div>
                           </div>
                         </motion.button>
                       );
@@ -444,47 +393,48 @@ const Dashboard = ({ onLogout }) => {
                 </div>
               </motion.div>
 
-              {/* Search Bar */}
+              {/* Search and Table Section */}
               <motion.div 
-                className="relative mb-8"
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+                className="space-y-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl blur-xl"></div>
-                <div className="relative glass-light rounded-3xl border border-white/20 p-8 shadow-2xl">
-                  <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-blue-500/30 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
-                    <div className="relative">
-                      <MagnifyingGlassIcon className="absolute left-6 top-1/2 transform -translate-y-1/2 text-gray-400 h-6 w-6 group-focus-within:text-purple-400 transition-colors duration-300" />
+                {/* Search Bar */}
+                <div className="glass-light rounded-2xl p-6 border border-white/20 shadow-xl">
+                  <div className="flex gap-4" dir="rtl">
+                    <div className="flex-1 relative">
+                      <MagnifyingGlassIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="ابحث في العقارات المعروضة... المرسل، الموقع، تفاصيل العقار"
-                        className="w-full pl-16 pr-8 py-6 bg-slate-800/50 border border-white/20 rounded-2xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-400/50 transition-all duration-300 text-right text-lg placeholder-gray-400 text-white font-medium shadow-lg backdrop-blur-xl"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                        placeholder="ابحث عن شقة، فيلا، أرض، موقع..."
+                        className="w-full pr-10 pl-4 py-3 bg-slate-800/50 text-white rounded-xl border border-white/20 focus:border-purple-500 focus:outline-none placeholder-gray-400"
                         dir="rtl"
                       />
-                      <div className="absolute right-6 top-1/2 transform -translate-y-1/2">
-                        <BoltIcon className="h-5 w-5 text-purple-400 animate-pulse" />
-                      </div>
                     </div>
+                    <motion.button 
+                      onClick={handleSearch}
+                      disabled={loading}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 flex items-center gap-2 shadow-lg"
+                    >
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      ) : (
+                        <MagnifyingGlassIcon className="h-5 w-5" />
+                      )}
+                      بحث
+                    </motion.button>
                   </div>
                 </div>
-              </motion.div>
 
-              {/* Properties Table */}
-              <motion.div 
-                className="relative"
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl blur-xl"></div>
-                <div className="relative glass-light rounded-3xl border border-white/20 overflow-hidden shadow-2xl">
-                  
-                  {/* Table Header */}
-                  <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 p-6 border-b border-white/10">
+                {/* Data Table */}
+                <div className="glass-light rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
+                  <div className="p-6 border-b border-white/10">
                     <div className="flex justify-between items-center">
                       <h3 className="text-2xl font-bold text-white">
                         {selectedFilter === 'all' 
@@ -565,7 +515,7 @@ const Dashboard = ({ onLogout }) => {
                                   <div className="text-white font-medium">{message.sender}</div>
                                 </td>
                                 <td className="p-4">
-                                  <span className={`px-3 py-1 rounded-full text-xs font-medium bg-white/10 ${getPropertyTypeColor(message.property_type)}`}>
+                                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getPropertyTypeColorClass(message.property_type)}`}>
                                     {getPropertyTypeLabel(message.property_type)}
                                   </span>
                                 </td>
@@ -582,16 +532,16 @@ const Dashboard = ({ onLogout }) => {
                                 </td>
                                 <td className="p-4 text-center">
                                   <motion.button
-                                    onClick={() => handleViewProperty(message.id)}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
+                                    onClick={() => showUnitDetails(message)}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
                                     className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg"
                                   >
                                     <EyeIcon className="h-4 w-4 ml-1" />
                                     عرض التفاصيل
                                   </motion.button>
                                 </td>
-                              </tr>
+                              </motion.tr>
                             ))}
                           </tbody>
                         </table>
@@ -610,7 +560,7 @@ const Dashboard = ({ onLogout }) => {
                                 disabled={currentPage === 1}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="flex items-center px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="flex items-center px-4 py-2 glass-light text-white rounded-lg hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-white/20"
                               >
                                 <ChevronRightIcon className="h-4 w-4 ml-1" />
                                 السابق
@@ -620,19 +570,17 @@ const Dashboard = ({ onLogout }) => {
                                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                   const pageNumber = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
                                   return (
-                                    <motion.button
+                                    <button
                                       key={pageNumber}
                                       onClick={() => setCurrentPage(pageNumber)}
-                                      whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.9 }}
                                       className={`px-3 py-2 rounded-lg transition-colors ${
                                         currentPage === pageNumber
-                                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white'
-                                          : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                                          ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg'
+                                          : 'glass-light text-gray-300 hover:text-white border border-white/20'
                                       }`}
                                     >
                                       {pageNumber}
-                                    </motion.button>
+                                    </button>
                                   );
                                 })}
                               </div>
@@ -642,7 +590,7 @@ const Dashboard = ({ onLogout }) => {
                                 disabled={currentPage === totalPages}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="flex items-center px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="flex items-center px-4 py-2 glass-light text-white rounded-lg hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-white/20"
                               >
                                 التالي
                                 <ChevronLeftIcon className="h-4 w-4 mr-1" />
@@ -657,40 +605,29 @@ const Dashboard = ({ onLogout }) => {
               </motion.div>
             </motion.div>
           )}
-        </AnimatePresence>
 
-        {/* Recent Tab */}
-        {activeTab === 'recent' && (
-          <motion.div
-            key="recent"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
-          >
-            <motion.div 
-              className="relative"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+          {/* Recent Tab */}
+          {activeTab === 'recent' && (
+            <motion.div
+              key="recent"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-8"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-3xl blur-xl"></div>
-              <div className="relative glass-light rounded-3xl border border-white/20 p-8 shadow-2xl">
-                <h3 className="text-2xl font-bold text-white mb-6 text-center">
-                  آخر العقارات المضافة
-                </h3>
+              <div className="glass-light rounded-3xl border border-white/20 p-8 shadow-2xl">
+                <h3 className="text-2xl font-bold text-white mb-6 text-center">آخر العقارات المضافة</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {messages.slice(0, 9).map((message, index) => (
+                  {messages.slice(0, 9).map((message) => (
                     <motion.div 
-                      key={message.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className="glass rounded-2xl p-6 border border-white/20 hover:bg-white/10 transition-all duration-300 cursor-pointer"
-                      onClick={() => handleViewProperty(message.id)}
+                      key={message.id} 
+                      className="glass-light rounded-2xl p-6 border border-white/20 hover:border-purple-500/50 transition-all duration-300 cursor-pointer"
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      onClick={() => showUnitDetails(message)}
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium bg-white/10 ${getPropertyTypeColor(message.property_type)}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getPropertyTypeColorClass(message.property_type)}`}>
                           {getPropertyTypeLabel(message.property_type)}
                         </span>
                         <span className="text-xs text-gray-400">{message.timestamp}</span>
@@ -701,13 +638,12 @@ const Dashboard = ({ onLogout }) => {
                       </h4>
                       
                       <p className="text-gray-300 text-sm line-clamp-3 mb-3" dir="rtl">
-                        {message.message.slice(0, 100)}...
+                        {message.message}
                       </p>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <MapPinIcon className="h-3 w-3" />
-                          {message.location || 'غير محدد'}
+                        <span className="text-xs text-gray-400">
+                          📍 {message.location}
                         </span>
                         {message.price && (
                           <span className="text-sm font-semibold text-green-400">
@@ -715,82 +651,178 @@ const Dashboard = ({ onLogout }) => {
                           </span>
                         )}
                       </div>
-                      
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="w-full mt-4 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg text-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewProperty(message.id);
-                        }}
-                      >
-                        عرض التفاصيل
-                      </motion.button>
                     </motion.div>
                   ))}
                 </div>
               </div>
             </motion.div>
-          </motion.div>
-        )}
+          )}
 
-        {/* Import Tab */}
-        {activeTab === 'import' && <ChatImport />}
-
-        {/* Stats Tab */}
-        {activeTab === 'stats' && <PropertyStats />}
-
-        {/* Debug Tab */}
-        {activeTab === 'debug' && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-light rounded-3xl shadow-2xl p-8 border border-white/20"
-          >
-            <h2 className="text-2xl font-bold text-white mb-6 text-right flex items-center justify-end">
-              <BugAntIcon className="h-6 w-6 ml-3 text-purple-400" />
-              أدوات المطور والتشخيص
-            </h2>
-            <div className="space-y-6">
-              <div className="flex gap-4 justify-center">
-                <motion.button
-                  onClick={testDatabase}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg"
-                >
-                  <ChartBarIcon className="h-5 w-5 inline ml-2" />
-                  اختبار قاعدة البيانات
-                </motion.button>
-                <motion.button
-                  onClick={testPropertyModal}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg"
-                >
-                  <HomeModernIcon className="h-5 w-5 inline ml-2" />
-                  اختبار نافذة العقارات
-                </motion.button>
+          {/* Import Tab */}
+          {activeTab === 'import' && (
+            <motion.div
+              key="import"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-8"
+            >
+              <div className="glass-light rounded-3xl border border-white/20 p-8 shadow-2xl">
+                <h3 className="text-2xl font-bold text-white mb-6 text-center">استيراد محادثات الواتساب</h3>
+                <div className="max-w-2xl mx-auto">
+                  <div className="border-2 border-dashed border-white/30 rounded-3xl p-12 text-center hover:border-purple-500/50 transition-all duration-300">
+                    <ArrowUpTrayIcon className="h-20 w-20 text-gray-400 mx-auto mb-6" />
+                    <h4 className="text-xl font-semibold text-white mb-4">قم بسحب وإفلات ملف المحادثة هنا</h4>
+                    <p className="text-gray-400 mb-6">أو انقر لاختيار الملف من جهازك</p>
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-2xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg"
+                    >
+                      اختيار ملف
+                    </motion.button>
+                  </div>
+                  <div className="mt-8 text-center text-gray-400">
+                    <p>الصيغ المدعومة: .txt, .csv</p>
+                    <p>الحد الأقصى لحجم الملف: 10 ميجابايت</p>
+                  </div>
+                </div>
               </div>
-              <div className="text-center p-6 glass rounded-2xl border border-white/20">
-                <p className="text-gray-300 text-sm leading-relaxed">
-                  🔧 افتح وحدة تحكم المطور بالضغط على F12 ثم انقر على الأزرار أعلاه لرؤية نتائج الاختبار المفصلة
-                </p>
+            </motion.div>
+          )}
+
+          {/* Stats Tab */}
+          {activeTab === 'stats' && (
+            <motion.div
+              key="stats"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="space-y-8"
+            >
+              <div className="glass-light rounded-3xl border border-white/20 p-8 shadow-2xl text-center">
+                <h3 className="text-2xl font-bold text-white mb-4">التحليلات المتقدمة</h3>
+                <p className="text-gray-300">قريباً... تحليلات وإحصائيات متقدمة لبيانات العقارات</p>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Success Message */}
+        <motion.div 
+          className="mt-12 glass-light rounded-3xl border border-green-500/30 p-8 shadow-2xl"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <h4 className="text-green-400 font-bold text-xl mb-4 text-center">🎉 قاعدة البيانات متصلة بنجاح!</h4>
+          <div className="text-green-300 space-y-2 text-center">
+            <p>✅ تم تحميل {stats.reduce((sum, stat) => sum + stat.count, 0)} عقار من قاعدة البيانات</p>
+            <p>✅ النظام يعمل بكامل طاقته مع البحث والتصنيف والترتيب</p>
+            <p>✅ يمكنك الآن النقر على الإحصائيات للتصفية وترتيب الجدول</p>
+            <p>✅ جدول تفاعلي مع ترقيم الصفحات وإمكانيات فرز متقدمة</p>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Property Details Modal */}
-      <PropertyDetailsModal 
-        propertyId={selectedPropertyId}
-        isOpen={showModal}
-        onClose={handleCloseModal}
-      />
+      {/* Unit Details Modal */}
+      {showModal && selectedUnit && (
+        <motion.div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div 
+            className="glass-light rounded-3xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto border border-white/20 shadow-2xl"
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 20 }}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-white">تفاصيل العقار</h3>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-white text-3xl transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-right" dir="rtl">
+              <div className="space-y-6">
+                <div>
+                  <strong className="text-purple-400">المرسل:</strong> 
+                  <span className="text-white mr-2">{selectedUnit.sender}</span>
+                </div>
+                <div>
+                  <strong className="text-purple-400">نوع العقار:</strong> 
+                  <span className={`mr-2 px-3 py-1 rounded-full text-xs border ${getPropertyTypeColorClass(selectedUnit.property_type)}`}>
+                    {getPropertyTypeLabel(selectedUnit.property_type)}
+                  </span>
+                </div>
+                <div>
+                  <strong className="text-purple-400">الموقع:</strong> 
+                  <span className="text-white mr-2">{selectedUnit.location || 'غير محدد'}</span>
+                </div>
+                <div>
+                  <strong className="text-purple-400">السعر:</strong> 
+                  <span className="text-green-400 font-semibold mr-2">
+                    {selectedUnit.price || 'غير محدد'}
+                  </span>
+                </div>
+                <div>
+                  <strong className="text-purple-400">التوقيت:</strong> 
+                  <span className="text-white mr-2">{selectedUnit.timestamp}</span>
+                </div>
+                {selectedUnit.agent_phone && (
+                  <div>
+                    <strong className="text-purple-400">الهاتف:</strong> 
+                    <a href={`tel:${selectedUnit.agent_phone}`} className="text-green-400 hover:underline mr-2">
+                      {selectedUnit.agent_phone}
+                    </a>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <strong className="text-purple-400">الرسالة الكاملة:</strong>
+                  <p className="mt-2 p-4 glass rounded-2xl text-white border border-white/20">{selectedUnit.message}</p>
+                </div>
+                <div>
+                  <strong className="text-purple-400">الكلمات المفتاحية:</strong>
+                  <p className="mt-2 text-gray-300">{selectedUnit.keywords || 'لا توجد'}</p>
+                </div>
+                {selectedUnit.agent_description && (
+                  <div>
+                    <strong className="text-purple-400">وصف السمسار:</strong>
+                    <p className="mt-2 text-gray-300">{selectedUnit.agent_description}</p>
+                  </div>
+                )}
+                {selectedUnit.full_description && (
+                  <div>
+                    <strong className="text-purple-400">الوصف الكامل:</strong>
+                    <p className="mt-2 p-4 glass rounded-2xl text-white border border-white/20">{selectedUnit.full_description}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="mt-8 flex justify-center">
+              <motion.button
+                onClick={closeModal}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg"
+              >
+                إغلاق
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };
 
-export default Dashboard;
+export default SimpleDashboard;

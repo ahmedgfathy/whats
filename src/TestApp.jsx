@@ -6,6 +6,7 @@ function TestApp() {
       <h1>Test Page - React is Working!</h1>
       <p>If you can see this, React is loading correctly.</p>
       <p>Current time: {new Date().toLocaleString()}</p>
+      <p>Time: {Date.now()}</p>
     </div>
   );
 }
