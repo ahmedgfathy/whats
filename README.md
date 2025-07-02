@@ -11,18 +11,31 @@ A React application with SQLite database for searching and classifying Arabic re
 - 🔐 **Secure Login** - Authentication system with hardcoded credentials
 - 📊 **Statistics Dashboard** - Visual insights into property data
 - 📱 **Responsive Design** - Modern UI with Tailwind CSS
+- 📞 **Agent Information** - Display agent phone numbers for easy contact
 
 ## Tech Stack
 
 - **Frontend**: React 18 with Vite
+- **Backend**: Node.js with Express
 - **Database**: SQLite with better-sqlite3
 - **Styling**: Tailwind CSS
 - **Routing**: React Router
-- **Icons**: Lucide React
+- **Icons**: Lucide React & Heroicons
 - **Font**: Noto Sans Arabic for proper Arabic display
+
+## Project Structure
+
+```
+whats/
+├── src/                    # React frontend
+├── backend/               # Node.js backend with SQLite
+├── data/                  # SQLite database files
+└── public/               # Static assets
+```
 
 ## Quick Start
 
+### Option 1: Frontend Only (Mock Data)
 1. **Install Dependencies**
    ```bash
    npm install
@@ -33,9 +46,30 @@ A React application with SQLite database for searching and classifying Arabic re
    npm run dev
    ```
 
-3. **Login Credentials**
-   - Username: `xinreal`
-   - Password: `zerocall`
+### Option 2: Full Stack (Real SQLite Database)
+1. **Start Backend Server**
+   ```bash
+   # Windows
+   start-backend.bat
+   
+   # Manual
+   cd backend
+   npm install
+   npm run dev
+   ```
+
+2. **Start Frontend**
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+3. **Database File Location**
+   The SQLite database will be created at: `data/real_estate_chat.db`
+
+### Login Credentials
+- Username: `xinreal`
+- Password: `zerocall`
 
 ## Usage
 

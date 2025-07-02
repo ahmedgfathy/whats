@@ -217,7 +217,7 @@ const Dashboard = ({ onLogout }) => {
         transition={{ duration: 0.8, ease: "easeOut" }}
         className="relative glass border-b border-white/10 shadow-2xl"
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-24">
             <motion.div 
               className="flex items-center space-x-6" 
@@ -257,7 +257,7 @@ const Dashboard = ({ onLogout }) => {
         </div>
       </motion.header>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Navigation Tabs */}
         <motion.div 
           className="mb-16"
@@ -266,7 +266,7 @@ const Dashboard = ({ onLogout }) => {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <nav className="relative" dir="rtl">
-            <div className="flex space-x-4 glass p-3 rounded-3xl border border-white/20 shadow-2xl">
+            <div className="flex justify-center space-x-4 glass p-4 rounded-3xl border border-white/20 shadow-2xl max-w-5xl mx-auto">
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -277,7 +277,7 @@ const Dashboard = ({ onLogout }) => {
                     onClick={() => setActiveTab(tab.id)}
                     whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`relative overflow-hidden px-8 py-6 text-sm font-bold rounded-2xl transition-all duration-500 flex flex-col items-center space-y-2 min-w-[140px] ${
+                    className={`relative overflow-hidden px-8 py-5 text-sm font-bold rounded-2xl transition-all duration-500 flex flex-col items-center space-y-2 min-w-[160px] ${
                       isActive
                         ? 'text-white shadow-2xl transform scale-105'
                         : 'text-gray-300 hover:text-white glass-light'
@@ -307,7 +307,7 @@ const Dashboard = ({ onLogout }) => {
         </motion.div>
 
         {/* Enhanced Statistics Cards - Now Clickable Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
           
           {/* Welcome Card */}
           <motion.div 
@@ -500,7 +500,7 @@ const Dashboard = ({ onLogout }) => {
                   <table className="w-full text-right bg-gray-900" dir="rtl">
                     <thead className="bg-gradient-to-r from-gray-700 to-gray-800 border-b border-gray-600">
                       <tr>
-                        <th className="py-4 px-6 text-right">
+                        <th className="py-4 px-6 text-right w-36">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('sender')}
@@ -510,7 +510,8 @@ const Dashboard = ({ onLogout }) => {
                             {renderSortIcon('sender')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right">
+                        <th className="py-4 px-6 text-right w-32">رقم السمسار</th>
+                        <th className="py-4 px-6 text-right w-28">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('property_type')}
@@ -520,8 +521,8 @@ const Dashboard = ({ onLogout }) => {
                             {renderSortIcon('property_type')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right font-bold text-gray-200">المحتوى</th>
-                        <th className="py-4 px-6 text-right">
+                        <th className="py-4 px-6 text-right font-bold text-gray-200 min-w-[280px]">المحتوى</th>
+                        <th className="py-4 px-6 text-right w-32">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('location')}
@@ -531,7 +532,7 @@ const Dashboard = ({ onLogout }) => {
                             {renderSortIcon('location')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right">
+                        <th className="py-4 px-6 text-right w-36">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('price')}
@@ -541,7 +542,7 @@ const Dashboard = ({ onLogout }) => {
                             {renderSortIcon('price')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right">
+                        <th className="py-4 px-6 text-right w-32">
                           <motion.button
                             whileHover={{ scale: 1.05 }}
                             onClick={() => handleSort('timestamp')}
@@ -551,7 +552,7 @@ const Dashboard = ({ onLogout }) => {
                             {renderSortIcon('timestamp')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right font-bold text-gray-200">التفاصيل</th>
+                        <th className="py-4 px-6 text-right font-bold text-gray-200 w-32">التفاصيل</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
@@ -563,8 +564,13 @@ const Dashboard = ({ onLogout }) => {
                           transition={{ duration: 0.3, delay: index * 0.05 }}
                           className="hover:bg-gray-800 transition-colors duration-200 group"
                         >
-                          <td className="py-4 px-6 font-semibold text-white">{message.sender}</td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 font-semibold text-white w-36">{message.sender}</td>
+                          <td className="py-4 px-6 w-32">
+                            <span className="text-green-400 font-mono text-sm bg-green-400/10 px-2 py-1 rounded border border-green-400/30">
+                              {message.agent_phone || 'غير متاح'}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 w-28">
                             <motion.span 
                               whileHover={{ scale: 1.05 }}
                               className={`px-3 py-1 rounded-full text-xs font-medium border ${getPropertyTypeColorClass(message.property_type)}`}
@@ -572,31 +578,31 @@ const Dashboard = ({ onLogout }) => {
                               {getPropertyTypeLabel(message.property_type)}
                             </motion.span>
                           </td>
-                          <td className="py-4 px-6 max-w-xs">
-                            <div className="truncate text-gray-300">{message.message}</div>
+                          <td className="py-4 px-6 min-w-[280px]">
+                            <div className="text-gray-300 leading-relaxed">{message.message}</div>
                           </td>
-                          <td className="py-4 px-6 text-gray-300">
+                          <td className="py-4 px-6 text-gray-300 w-32">
                             <div className="flex items-center gap-1">
                               <MapPinIcon className="h-4 w-4 text-gray-500" />
                               {message.location || 'غير محدد'}
                             </div>
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 w-36">
                             {message.price ? (
-                              <span className="text-emerald-400 font-semibold bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/30">
+                              <span className="text-emerald-400 font-semibold bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/30 text-sm">
                                 {message.price}
                               </span>
                             ) : (
-                              <span className="text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full">غير محدد</span>
+                              <span className="text-gray-500 bg-gray-800/50 px-3 py-1 rounded-full text-sm">غير محدد</span>
                             )}
                           </td>
-                          <td className="py-4 px-6 text-gray-400 text-sm">
+                          <td className="py-4 px-6 text-gray-400 text-sm w-32">
                             <div className="flex items-center gap-1">
                               <ClockIcon className="h-4 w-4" />
                               {message.timestamp}
                             </div>
                           </td>
-                          <td className="py-4 px-6 text-right">
+                          <td className="py-4 px-6 text-right w-32">
                             <motion.button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
