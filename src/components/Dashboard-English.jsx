@@ -78,8 +78,8 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      // Get all messages
-      const allMessages = await getAllMessages('all', 1000);
+      // Get all messages - remove the limit to get actual count
+      const allMessages = await getAllMessages('all', 10000);
       setMessages(allMessages);
 
       // Get property type statistics
@@ -114,7 +114,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
     setLoading(true);
     
     try {
-      const filteredMessages = await getAllMessages(filterType === 'all' ? null : filterType, 1000);
+      const filteredMessages = await getAllMessages(filterType === 'all' ? null : filterType, 10000);
       setMessages(filteredMessages);
     } catch (error) {
       console.error('Error filtering messages:', error);
@@ -769,7 +769,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
         )}
 
         {activeTab === 'import' && (
-          <ChatImportEnglish />
+          <ChatImportEnglish onImportSuccess={loadInitialData} />
         )}
 
         {activeTab === 'recent' && (

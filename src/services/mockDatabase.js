@@ -224,7 +224,7 @@ export const insertMessage = async (messageData) => {
 };
 
 // Search messages
-export const searchMessages = async (searchTerm = '', propertyType = 'all', limit = 1000) => {
+export const searchMessages = async (searchTerm = '', propertyType = 'all', limit = 10000) => {
   await delay(300);
   
   let filtered = messages;
@@ -247,7 +247,7 @@ export const searchMessages = async (searchTerm = '', propertyType = 'all', limi
 };
 
 // Get all messages
-export const getAllMessages = async (propertyType = 'all', limit = 1000) => {
+export const getAllMessages = async (propertyType = 'all', limit = 10000) => {
   return searchMessages('', propertyType, limit);
 };
 

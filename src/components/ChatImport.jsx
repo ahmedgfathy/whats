@@ -16,7 +16,7 @@ import {
 import { parseWhatsAppChatFile } from '../utils/arabicTextProcessor';
 import { importChatMessages, getAllMessages, resetDatabase, getDatabaseSize } from '../services/mockDatabase';
 
-const ChatImport = () => {
+const ChatImport = ({ onImportSuccess }) => {
   const [file, setFile] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState(null);
@@ -148,6 +148,11 @@ const ChatImport = () => {
 
           const updatedMessages = await getAllMessages();
           setCurrentMessageCount(updatedMessages.length);
+          
+          // Notify parent component to refresh data
+          if (onImportSuccess) {
+            onImportSuccess();
+          }
           
         } catch (error) {
           console.error('Error importing messages:', error);
