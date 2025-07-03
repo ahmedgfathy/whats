@@ -888,6 +888,125 @@ app.post('/api/messages/import', (req, res) => {
   }
 });
 
+// Property type statistics (for frontend compatibility)
+app.get('/api/stats', (req, res) => {
+  try {
+    let stats = [];
+    
+    if (USE_SQLITE) {
+      const propertyStats = db.prepare(`
+        SELECT 
+          pt.code as property_type,
+          COUNT(p.id) as count
+        FROM property_types pt
+        LEFT JOIN properties p ON pt.id = p.property_type_id AND p.is_available = 1
+        GROUP BY pt.id, pt.code
+        ORDER BY count DESC
+      `).all();
+      
+      stats = propertyStats;
+      
+    } else {
+      const properties = readJSONFile(DB_FILES.properties).filter(p => p.is_available);
+      const propertyTypes = readJSONFile(DB_FILES.property_types).filter(pt => pt.is_active);
+      
+      stats = propertyTypes.map(pt => {
+        const count = properties.filter(p => p.property_type_id === pt.id).length;
+        return {
+          property_type: pt.type_code,
+          count: count
+        };
+      });
+    }
+    
+    console.log('API /stats response:', stats);
+    res.json({ success: true, stats });
+    
+  } catch (error) {
+    console.error('Error fetching property type stats:', error);
+    res.status(500).json({ success: false, message: 'Database error' });
+  }
+});
+
+// Admin: Remove duplicate messages
+app.post('/api/admin/remove-duplicates', (req, res) => {
+  try {
+    let removedCount = 0;
+    let totalBeforeCleanup = 0;
+    let totalAfterCleanup = 0;
+    
+    if (USE_SQLITE) {
+      // Get initial count
+      totalBeforeCleanup = db.prepare('SELECT COUNT(*) as count FROM chat_messages').get().count;
+      
+      // Find and remove duplicates based on message text and sender
+      const findDuplicatesStmt = db.prepare(`
+        SELECT id, message, sender_name, 
+               ROW_NUMBER() OVER (PARTITION BY message, sender_name ORDER BY created_at ASC) as row_num
+        FROM chat_messages
+      `);
+      
+      const duplicates = findDuplicatesStmt.all();
+      const duplicateIds = duplicates
+        .filter(row => row.row_num > 1)
+        .map(row => row.id);
+      
+      if (duplicateIds.length > 0) {
+        const deleteStmt = db.prepare('DELETE FROM chat_messages WHERE id = ?');
+        const deleteTransaction = db.transaction((ids) => {
+          for (const id of ids) {
+            deleteStmt.run(id);
+          }
+        });
+        
+        deleteTransaction(duplicateIds);
+        removedCount = duplicateIds.length;
+      }
+      
+      // Get final count
+      totalAfterCleanup = db.prepare('SELECT COUNT(*) as count FROM chat_messages').get().count;
+      
+    } else {
+      // JSON fallback
+      const messages = readJSONFile(DB_FILES.chat_messages);
+      totalBeforeCleanup = messages.length;
+      
+      const uniqueMessages = [];
+      const seen = new Set();
+      
+      messages.forEach(msg => {
+        const key = `${msg.message_text || msg.message}-${msg.sender_name || msg.sender}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueMessages.push(msg);
+        } else {
+          removedCount++;
+        }
+      });
+      
+      if (removedCount > 0) {
+        writeJSONFile(DB_FILES.chat_messages, uniqueMessages);
+      }
+      
+      totalAfterCleanup = uniqueMessages.length;
+    }
+    
+    console.log(`🧹 Duplicate cleanup: Removed ${removedCount} duplicates. Total: ${totalBeforeCleanup} → ${totalAfterCleanup}`);
+    
+    res.json({ 
+      success: true, 
+      message: `تم حذف ${removedCount} رسالة مكررة بنجاح`,
+      removed: removedCount,
+      totalBefore: totalBeforeCleanup,
+      totalAfter: totalAfterCleanup
+    });
+    
+  } catch (error) {
+    console.error('Error removing duplicates:', error);
+    res.status(500).json({ success: false, message: 'خطأ في حذف الرسائل المكررة' });
+  }
+});
+
 // Statistics
 app.get('/api/statistics', (req, res) => {
   try {

@@ -200,6 +200,21 @@ export const checkBackendHealth = async () => {
   }
 };
 
+// Admin function: Remove duplicate messages
+export const removeDuplicateMessages = async () => {
+  try {
+    console.log('Removing duplicate messages...');
+    const response = await apiCall('/admin/remove-duplicates', {
+      method: 'POST'
+    });
+    console.log('Duplicate removal result:', response);
+    return response;
+  } catch (error) {
+    console.error('Error removing duplicates:', error);
+    throw error;
+  }
+};
+
 export default {
   authenticateUser,
   insertMessage,
@@ -210,5 +225,6 @@ export default {
   getMessageById,
   resetDatabase,
   getDatabaseSize,
-  checkBackendHealth
+  checkBackendHealth,
+  removeDuplicateMessages
 };

@@ -18,9 +18,11 @@ import {
   SparklesIcon,
   CpuChipIcon,
   ChartBarIcon,
-  LanguageIcon
+  LanguageIcon,
+  ShieldCheckIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
-import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/apiService';
+import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages } from '../services/apiService';
 import ChatImport from './ChatImport';
 
 const Dashboard = ({ onLogout, onLanguageSwitch }) => {
@@ -36,6 +38,8 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const [messagesPerPage] = useState(20);
   const [sortField, setSortField] = useState('timestamp');
   const [sortDirection, setSortDirection] = useState('desc');
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminResult, setAdminResult] = useState(null);
 
   const propertyFilters = [
     { id: 'all', label: 'جميع العقارات', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -67,6 +71,13 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
       icon: ArrowUpTrayIcon, 
       gradient: 'from-green-500 to-emerald-500',
       description: 'رفع ملفات WhatsApp'
+    },
+    { 
+      id: 'admin', 
+      label: 'إدارة النظام', 
+      icon: ShieldCheckIcon, 
+      gradient: 'from-red-500 to-pink-500',
+      description: 'أدوات الإدارة والصيانة'
     }
   ];
 
@@ -114,6 +125,41 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
       console.error('Error loading data:', error);
     }
     setLoading(false);
+  };
+
+  // Admin function: Remove duplicates
+  const handleRemoveDuplicates = async () => {
+    if (!window.confirm('هل أنت متأكد من حذف الرسائل المكررة؟ هذا الإجراء غير قابل للتراجع.')) {
+      return;
+    }
+    
+    setAdminLoading(true);
+    setAdminResult(null);
+    
+    try {
+      console.log('Dashboard: Starting duplicate removal...');
+      const result = await removeDuplicateMessages();
+      
+      setAdminResult({
+        success: true,
+        message: result.message,
+        removed: result.removed,
+        totalBefore: result.totalBefore,
+        totalAfter: result.totalAfter
+      });
+      
+      // Refresh data after cleanup
+      await loadInitialData();
+      
+    } catch (error) {
+      console.error('Error removing duplicates:', error);
+      setAdminResult({
+        success: false,
+        message: 'حدث خطأ أثناء حذف الرسائل المكررة'
+      });
+    } finally {
+      setAdminLoading(false);
+    }
   };
 
   const handleSearch = async () => {
@@ -869,6 +915,133 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'admin' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gradient-to-br from-red-800/20 via-gray-900 to-pink-800/20 rounded-2xl p-8 shadow-2xl border border-red-600/30"
+          >
+            <div className="flex items-center justify-between mb-8 pb-6 border-b border-red-600/30">
+              <div>
+                <h3 className="text-3xl font-bold text-red-400 flex items-center gap-3">
+                  <ShieldCheckIcon className="h-8 w-8" />
+                  إدارة النظام
+                </h3>
+                <p className="text-gray-300 mt-2">أدوات الصيانة وإدارة قاعدة البيانات</p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-400">العدد الحالي للرسائل</div>
+                <div className="text-2xl font-bold text-red-400">{messages.length}</div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Remove Duplicates Section */}
+              <motion.div 
+                className="bg-gray-800/50 rounded-xl p-6 border border-red-600/20"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <h4 className="text-xl font-bold text-red-300 mb-4 flex items-center gap-2">
+                  <TrashIcon className="h-5 w-5" />
+                  إزالة الرسائل المكررة
+                </h4>
+                <p className="text-gray-300 mb-6 leading-relaxed">
+                  يقوم هذا الأمر بالبحث عن الرسائل المكررة وحذفها من قاعدة البيانات لتحسين الأداء وتوفير مساحة التخزين.
+                </p>
+                
+                <motion.button
+                  onClick={handleRemoveDuplicates}
+                  disabled={adminLoading}
+                  whileHover={{ scale: adminLoading ? 1 : 1.05 }}
+                  whileTap={{ scale: adminLoading ? 1 : 0.95 }}
+                  className={`w-full px-6 py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-3 ${
+                    adminLoading 
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                      : 'bg-gradient-to-r from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700 shadow-lg hover:shadow-xl'
+                  }`}
+                >
+                  {adminLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-gray-400/30 border-t-gray-400 rounded-full animate-spin"></div>
+                      جاري الفحص والحذف...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-5 w-5" />
+                      حذف الرسائل المكررة
+                    </>
+                  )}
+                </motion.button>
+              </motion.div>
+
+              {/* Result Display Section */}
+              <motion.div 
+                className="bg-gray-800/50 rounded-xl p-6 border border-red-600/20"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <h4 className="text-xl font-bold text-red-300 mb-4">نتائج العملية</h4>
+                
+                {adminResult ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 rounded-lg border ${
+                      adminResult.success 
+                        ? 'bg-green-800/20 border-green-600/50 text-green-300' 
+                        : 'bg-red-800/20 border-red-600/50 text-red-300'
+                    }`}
+                  >
+                    <div className="font-semibold mb-2">
+                      {adminResult.success ? '✅ تمت العملية بنجاح' : '❌ فشلت العملية'}
+                    </div>
+                    <div className="text-sm opacity-90">
+                      {adminResult.message}
+                    </div>
+                    {adminResult.success && adminResult.removed !== undefined && (
+                      <div className="mt-3 space-y-1 text-sm">
+                        <div>• تم حذف: <span className="font-bold text-red-400">{adminResult.removed}</span> رسالة مكررة</div>
+                        <div>• العدد قبل الحذف: <span className="font-bold">{adminResult.totalBefore}</span></div>
+                        <div>• العدد بعد الحذف: <span className="font-bold text-green-400">{adminResult.totalAfter}</span></div>
+                      </div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <div className="text-gray-400 text-center py-8">
+                    <ShieldCheckIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                    <p>لم يتم تنفيذ أي عملية بعد</p>
+                    <p className="text-sm mt-1">استخدم الأزرار على اليسار لبدء عمليات الصيانة</p>
+                  </div>
+                )}
+              </motion.div>
+            </div>
+
+            {/* Warning Section */}
+            <motion.div 
+              className="mt-8 bg-yellow-800/20 border border-yellow-600/30 rounded-xl p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 text-yellow-400 mt-1">⚠️</div>
+                <div>
+                  <h5 className="font-bold text-yellow-300 mb-2">تحذير مهم</h5>
+                  <div className="text-yellow-200 space-y-1 text-sm">
+                    <p>• جميع عمليات الصيانة هذه غير قابلة للتراجع</p>
+                    <p>• تأكد من إنشاء نسخة احتياطية من قاعدة البيانات قبل تنفيذ أي عملية</p>
+                    <p>• يُنصح بتنفيذ هذه العمليات في أوقات قليلة الاستخدام</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
 
