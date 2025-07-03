@@ -200,13 +200,49 @@ const initializeJSONDatabase = () => {
 // Common utility functions
 const validateEgyptianPhone = (phone) => {
   if (!phone) return false;
-  const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+  const cleanPhone = phone.replace(/[\s\-\(\)\+]/g, '');
+  // Handle international format (+20 prefix) and local format
+  if (cleanPhone.startsWith('20')) {
+    // International format: +20 10XXXXXXXX -> 010XXXXXXXX
+    return /^20(010|011|012|015)\d{8}$/.test(cleanPhone);
+  }
+  // Local format: 010XXXXXXXX
   return /^(010|011|012|015)\d{8}$/.test(cleanPhone);
 };
 
-const getPhoneCarrier = (phone) => {
+const normalizePhoneNumber = (phone) => {
   if (!phone) return null;
-  const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+  
+  // Extract all digits
+  const allDigits = phone.replace(/[^\d]/g, '');
+  
+  // Handle international format (+20 prefix)
+  if (allDigits.startsWith('20')) {
+    if (allDigits.length === 13) {
+      // +20 10XXXXXXXX -> 010XXXXXXXX
+      return allDigits.substring(2);
+    } else if (allDigits.length === 12) {
+      // +20 1XXXXXXXX -> 01XXXXXXXX (missing leading zero)
+      return '0' + allDigits.substring(2);
+    }
+  }
+  
+  // Handle local format
+  if (allDigits.length === 11 && /^(010|011|012|015)/.test(allDigits)) {
+    return allDigits;
+  }
+  
+  // Handle 10-digit format (missing leading zero)
+  if (allDigits.length === 10 && /^(10|11|12|15)/.test(allDigits)) {
+    return '0' + allDigits;
+  }
+  
+  return null;
+};
+
+const getPhoneCarrier = (phone) => {
+  const normalizedPhone = normalizePhoneNumber(phone);
+  if (!normalizedPhone) return null;
   
   const carriers = {
     '010': 'فودافون',
@@ -215,7 +251,7 @@ const getPhoneCarrier = (phone) => {
     '015': 'المصرية للاتصالات'
   };
   
-  const prefix = cleanPhone.substring(0, 3);
+  const prefix = normalizedPhone.substring(0, 3);
   return carriers[prefix] || null;
 };
 
@@ -496,7 +532,10 @@ app.post('/api/messages/bulk', (req, res) => {
       
       // Create or find agent
       let agentId = null;
-      const phone = sender.match(/\d{11}/)?.[0];
+      // Extract phone number - handle both international (+20 10XXXXXXXX) and local formats
+      const phoneMatch = sender.match(/(\+?20\s*)?(\d{2,3})\s*(\d{8})/);
+      const rawPhone = phoneMatch ? phoneMatch[0] : null;
+      const phone = normalizePhoneNumber(rawPhone || sender);
       
       if (phone && validateEgyptianPhone(phone)) {
         if (USE_SQLITE) {
@@ -654,7 +693,10 @@ app.post('/api/messages/import', (req, res) => {
       
       // Create or find agent
       let agentId = null;
-      const phone = sender.match(/\d{11}/)?.[0];
+      // Extract phone number - handle both international (+20 10XXXXXXXX) and local formats
+      const phoneMatch = sender.match(/(\+?20\s*)?(\d{2,3})\s*(\d{8})/);
+      const rawPhone = phoneMatch ? phoneMatch[0] : null;
+      const phone = normalizePhoneNumber(rawPhone || sender);
       
       if (phone && validateEgyptianPhone(phone)) {
         if (USE_SQLITE) {
