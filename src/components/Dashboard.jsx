@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowRightOnRectangleIcon, 
   EyeIcon,
+  PencilIcon,
+  TrashIcon,
   MagnifyingGlassIcon,
   ChevronUpIcon,
   ChevronDownIcon,
@@ -23,12 +25,13 @@ import {
   TrashIcon,
   DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
-import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages, searchAll, searchProperties } from '../services/apiService';
+import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages, searchAll, searchProperties, updateMessage, deleteMessage } from '../services/apiService';
 import ChatImport from './ChatImport';
 import CSVImport from './CSVImport';
 import SimpleCSVImport from './SimpleCSVImport';
 import CombinedSearchResults from './CombinedSearchResults';
 import CSVPropertyDetailsModal from './CSVPropertyDetailsModal';
+import EditPropertyModal from './EditPropertyModal';
 
 // Virtual property image generator
 const getVirtualPropertyImage = (propertyType, messageId) => {
@@ -81,6 +84,8 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const [showModal, setShowModal] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [showPropertyModal, setShowPropertyModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEditProperty, setSelectedEditProperty] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -296,6 +301,66 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const closePropertyModal = () => {
     setShowPropertyModal(false);
     setSelectedProperty(null);
+  };
+
+  // Edit property functions
+  const showEditProperty = (property) => {
+    setSelectedEditProperty(property);
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedEditProperty(null);
+  };
+
+  const handleEditSave = async (updatedData) => {
+    try {
+      await updateMessage(selectedEditProperty.id, updatedData);
+      
+      // Refresh the data
+      await loadInitialData();
+      
+      // Close modal
+      closeEditModal();
+      
+      // Show success message
+      setAdminResult({
+        success: true,
+        message: 'تم تحديث العقار بنجاح'
+      });
+    } catch (error) {
+      console.error('Error updating property:', error);
+      setAdminResult({
+        success: false,
+        message: 'حدث خطأ أثناء تحديث العقار: ' + error.message
+      });
+    }
+  };
+
+  const handleDeleteProperty = async (property) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا العقار؟ هذا الإجراء غير قابل للتراجع.')) {
+      return;
+    }
+
+    try {
+      await deleteMessage(property.id);
+      
+      // Refresh the data
+      await loadInitialData();
+      
+      // Show success message
+      setAdminResult({
+        success: true,
+        message: 'تم حذف العقار بنجاح'
+      });
+    } catch (error) {
+      console.error('Error deleting property:', error);
+      setAdminResult({
+        success: false,
+        message: 'حدث خطأ أثناء حذف العقار: ' + error.message
+      });
+    }
   };
 
   // Filter and sort messages
@@ -857,7 +922,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                             {renderSortIcon('timestamp')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-right font-bold text-gray-200 w-32">التفاصيل</th>
+                        <th className="py-4 px-6 text-right font-bold text-gray-200 w-48">الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
@@ -907,16 +972,41 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                               {message.timestamp}
                             </div>
                           </td>
-                          <td className="py-4 px-6 text-right w-32">
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => showUnitDetails(message)}
-                              className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg font-medium"
-                            >
-                              <EyeIcon className="h-4 w-4 ml-1" />
-                              عرض التفاصيل
-                            </motion.button>
+                          <td className="py-4 px-6 text-right w-48">
+                            <div className="flex items-center gap-2 justify-end">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => showUnitDetails(message)}
+                                className="flex items-center px-3 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg font-medium"
+                                title="عرض التفاصيل"
+                              >
+                                <EyeIcon className="h-4 w-4 ml-1" />
+                                عرض
+                              </motion.button>
+                              
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => showEditProperty(message)}
+                                className="flex items-center px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg font-medium"
+                                title="تعديل العقار"
+                              >
+                                <PencilIcon className="h-4 w-4 ml-1" />
+                                تعديل
+                              </motion.button>
+                              
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleDeleteProperty(message)}
+                                className="flex items-center px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg font-medium"
+                                title="حذف العقار"
+                              >
+                                <TrashIcon className="h-4 w-4 ml-1" />
+                                حذف
+                              </motion.button>
+                            </div>
                           </td>
                         </motion.tr>
                       ))}
@@ -1072,14 +1162,37 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                     )}
                   </div>
                   
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => showUnitDetails(message)}
-                    className="w-full mt-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm font-medium"
-                  >
-                    عرض التفاصيل الكاملة
-                  </motion.button>
+                  <div className="flex items-center gap-2 mt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => showUnitDetails(message)}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm font-medium"
+                    >
+                      <EyeIcon className="h-4 w-4" />
+                      عرض
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => showEditProperty(message)}
+                      className="flex items-center justify-center px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-sm font-medium"
+                      title="تعديل"
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleDeleteProperty(message)}
+                      className="flex items-center justify-center px-3 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 text-sm font-medium"
+                      title="حذف"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </motion.button>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -1411,6 +1524,14 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
         property={selectedProperty}
         isOpen={showPropertyModal}
         onClose={closePropertyModal}
+      />
+
+      {/* Edit Property Modal */}
+      <EditPropertyModal
+        property={selectedEditProperty}
+        isOpen={showEditModal}
+        onClose={closeEditModal}
+        onSave={handleEditSave}
       />
     </div>
   );

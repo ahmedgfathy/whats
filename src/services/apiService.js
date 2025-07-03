@@ -344,6 +344,33 @@ export const checkBackendHealth = async () => {
   }
 };
 
+// Update message/property
+export const updateMessage = async (id, messageData) => {
+  try {
+    const response = await apiCall(`/messages/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(messageData)
+    });
+    return response;
+  } catch (error) {
+    console.error('Error updating message:', error);
+    throw new Error('Failed to update property: ' + error.message);
+  }
+};
+
+// Delete message/property
+export const deleteMessage = async (id) => {
+  try {
+    const response = await apiCall(`/messages/${id}`, {
+      method: 'DELETE'
+    });
+    return response;
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    throw new Error('Failed to delete property: ' + error.message);
+  }
+};
+
 // Search properties from CSV import
 export const searchProperties = async (searchTerm = '', filter = '', limit = 100) => {
   const params = new URLSearchParams();
@@ -387,6 +414,8 @@ export default {
   logoutUser,
   validateSession,
   insertMessage,
+  updateMessage,
+  deleteMessage,
   searchMessages,
   getAllMessages,
   getPropertyTypeStats,
