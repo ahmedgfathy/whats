@@ -121,25 +121,11 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
       description: 'أحدث العقارات المضافة'
     },
     { 
-      id: 'import', 
-      label: 'استيراد المحادثات', 
-      icon: ArrowUpTrayIcon, 
-      gradient: 'from-green-500 to-emerald-500',
-      description: 'رفع ملفات WhatsApp'
-    },
-    { 
-      id: 'csv-import', 
-      label: 'استيراد CSV', 
-      icon: DocumentArrowUpIcon, 
-      gradient: 'from-purple-500 to-indigo-500',
-      description: 'رفع ملفات CSV وExcel'
-    },
-    { 
       id: 'admin', 
       label: 'إدارة النظام', 
       icon: ShieldCheckIcon, 
       gradient: 'from-red-500 to-pink-500',
-      description: 'أدوات الإدارة والصيانة'
+      description: 'الاستيراد والإدارة والصيانة'
     }
   ];
 
@@ -546,14 +532,14 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
 
         {/* Enhanced Statistics Cards - Now Clickable Filters */}
         {/* First Row - 3 Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
           
           {/* Welcome Card */}
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-blue-400/20"
+            className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-xl hover:shadow-2xl transition-all duration-300 border border-blue-400/20"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
@@ -572,7 +558,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="bg-gradient-to-br from-slate-700 via-slate-800 to-gray-900 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-slate-600/50"
+            className="bg-gradient-to-br from-slate-700 via-slate-800 to-gray-900 rounded-2xl p-5 shadow-xl hover:shadow-2xl transition-all duration-300 border border-slate-600/50"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white">البحث الذكي</h3>
@@ -657,7 +643,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
             onClick={() => handleStatClick('all')}
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className={`bg-gradient-to-br rounded-2xl p-6 text-white transition-all duration-300 shadow-xl hover:shadow-2xl border ${
+            className={`bg-gradient-to-br rounded-2xl p-5 text-white transition-all duration-300 shadow-xl hover:shadow-2xl border ${
               selectedFilter === 'all' 
                 ? 'from-purple-500 to-purple-700 ring-2 ring-purple-300 shadow-purple-500/25 border-purple-400/50' 
                 : 'from-gray-600 to-gray-800 hover:from-purple-500 hover:to-purple-700 border-gray-600/50'
@@ -677,6 +663,82 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
             </div>
           </motion.button>
         </div>
+
+        {/* Property Classification Cards */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mb-8"
+        >
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              تصنيف العقارات
+            </h3>
+            <p className="text-gray-400 text-sm">اختر نوع العقار للبحث المتخصص</p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {propertyFilters.map((filter, index) => {
+              const IconComponent = filter.icon;
+              const isActive = selectedFilter === filter.id;
+              
+              // Find the count for this property type from stats
+              const stat = stats.find(s => s.property_type === filter.id);
+              const count = stat ? stat.count : 0;
+              
+              return (
+                <motion.button
+                  key={filter.id}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  onClick={() => handleStatClick(filter.id)}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative group bg-gradient-to-br ${filter.color} rounded-xl p-4 text-white transition-all duration-300 shadow-lg hover:shadow-xl border ${
+                    isActive 
+                      ? 'ring-2 ring-white/50 shadow-2xl scale-105 border-white/30' 
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className={`p-2 rounded-lg transition-all duration-300 ${
+                      isActive 
+                        ? 'bg-white/30 scale-110' 
+                        : 'bg-white/20 group-hover:bg-white/30'
+                    }`}>
+                      <IconComponent className="h-5 w-5" />
+                    </div>
+                    <span className="text-xs font-medium text-center leading-tight">{filter.label}</span>
+                    <div className={`text-lg font-bold transition-all duration-300 ${
+                      isActive 
+                        ? 'text-white scale-110' 
+                        : 'text-white/90 group-hover:text-white'
+                    }`}>
+                      {count.toLocaleString()}
+                    </div>
+                    <div className={`w-full h-0.5 rounded-full transition-all duration-300 ${
+                      isActive 
+                        ? 'bg-white/60' 
+                        : 'bg-white/20 group-hover:bg-white/40'
+                    }`}></div>
+                  </div>
+                  
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeFilter"
+                      className="absolute inset-0 bg-white/10 rounded-xl border-2 border-white/30"
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+        </motion.div>
 
         {/* Content based on active tab */}
         {activeTab === 'units' && (
@@ -1029,22 +1091,76 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="bg-gradient-to-br from-red-900/30 via-gray-900 to-pink-900/30 rounded-2xl p-8 shadow-2xl border border-red-500/20"
+            className="space-y-8"
           >
-            <div className="flex items-center justify-between mb-8 pb-4 border-b border-red-500/20">
-              <div>
-                <h3 className="text-3xl font-bold text-red-400 flex items-center gap-3">
-                  <ShieldCheckIcon className="h-8 w-8" />
-                  إدارة النظام
-                </h3>
-                <p className="text-gray-400 mt-2">أدوات صيانة وإدارة قاعدة البيانات</p>
-              </div>
-              <div className="bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/30">
-                <span className="text-red-400 text-sm font-medium">منطقة إدارية</span>
+            {/* Admin Header */}
+            <div className="bg-gradient-to-br from-red-900/30 via-gray-900 to-pink-900/30 rounded-2xl p-6 shadow-2xl border border-red-500/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-3xl font-bold text-red-400 flex items-center gap-3">
+                    <ShieldCheckIcon className="h-8 w-8" />
+                    إدارة النظام
+                  </h3>
+                  <p className="text-gray-400 mt-2">الاستيراد والإدارة والصيانة</p>
+                </div>
+                <div className="bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/30">
+                  <span className="text-red-400 text-sm font-medium">منطقة إدارية</span>
+                </div>
               </div>
             </div>
 
+            {/* Import Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* WhatsApp Chat Import */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-green-900/30 via-gray-900 to-emerald-900/30 rounded-2xl p-6 shadow-2xl border border-green-500/20"
+              >
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-green-500/20">
+                  <div>
+                    <h3 className="text-2xl font-bold text-green-400 flex items-center gap-3">
+                      <ArrowUpTrayIcon className="h-6 w-6" />
+                      استيراد محادثات الواتساب
+                    </h3>
+                    <p className="text-gray-400 mt-2">رفع وتحليل ملفات محادثات الواتساب</p>
+                  </div>
+                  <div className="bg-green-500/10 px-4 py-2 rounded-lg border border-green-500/30">
+                    <span className="text-green-400 text-sm font-medium">ملفات TXT</span>
+                  </div>
+                </div>
+
+                <ChatImport onImportSuccess={loadInitialData} />
+              </motion.div>
+
+              {/* CSV Import */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-purple-900/30 via-gray-900 to-indigo-900/30 rounded-2xl p-6 shadow-2xl border border-purple-500/20"
+              >
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-purple-500/20">
+                  <div>
+                    <h3 className="text-2xl font-bold text-purple-400 flex items-center gap-3">
+                      <DocumentArrowUpIcon className="h-6 w-6" />
+                      استيراد ملفات CSV
+                    </h3>
+                    <p className="text-gray-400 mt-2">رفع وتحويل ملفات CSV و Excel إلى قاعدة البيانات</p>
+                  </div>
+                  <div className="bg-purple-500/10 px-4 py-2 rounded-lg border border-purple-500/30">
+                    <span className="text-purple-400 text-sm font-medium">ملفات البيانات</span>
+                  </div>
+                </div>
+
+                <SimpleCSVImport onImportComplete={loadInitialData} />
+              </motion.div>
+            </div>
+
+            {/* Management Section */}
+            <div className="bg-gradient-to-br from-red-900/30 via-gray-900 to-pink-900/30 rounded-2xl p-8 shadow-2xl border border-red-500/20">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Remove Duplicates Section */}
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -1123,49 +1239,50 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                   </div>
                 </div>
               </motion.div>
-            </div>
+              </div>
 
-            {/* Result Message */}
-            {adminResult && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`mt-8 p-6 rounded-xl border ${
-                  adminResult.success 
-                    ? 'bg-green-900/20 border-green-500/30' 
-                    : 'bg-red-900/20 border-red-500/30'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  {adminResult.success ? (
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  ) : (
-                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
-                      <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                  <div>
-                    <h4 className={`font-bold mb-2 ${adminResult.success ? 'text-green-400' : 'text-red-400'}`}>
-                      {adminResult.success ? 'تمت العملية بنجاح' : 'فشلت العملية'}
-                    </h4>
-                    <p className="text-gray-300 mb-3">{adminResult.message}</p>
-                    {adminResult.success && adminResult.removed !== undefined && (
-                      <div className="text-sm text-gray-400 space-y-1">
-                        <p>• تم حذف {adminResult.removed} رسالة مكررة</p>
-                        <p>• العدد قبل التنظيف: {adminResult.totalBefore.toLocaleString()}</p>
-                        <p>• العدد بعد التنظيف: {adminResult.totalAfter.toLocaleString()}</p>
+              {/* Result Message */}
+              {adminResult && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`mt-8 p-6 rounded-xl border ${
+                    adminResult.success 
+                      ? 'bg-green-900/20 border-green-500/30' 
+                      : 'bg-red-900/20 border-red-500/30'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {adminResult.success ? (
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
                       </div>
                     )}
+                    <div>
+                      <h4 className={`font-bold mb-2 ${adminResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                        {adminResult.success ? 'تمت العملية بنجاح' : 'فشلت العملية'}
+                      </h4>
+                      <p className="text-gray-300 mb-3">{adminResult.message}</p>
+                      {adminResult.success && adminResult.removed !== undefined && (
+                        <div className="text-sm text-gray-400 space-y-1">
+                          <p>• تم حذف {adminResult.removed} رسالة مكررة</p>
+                          <p>• العدد قبل التنظيف: {adminResult.totalBefore.toLocaleString()}</p>
+                          <p>• العدد بعد التنظيف: {adminResult.totalAfter.toLocaleString()}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
+            </div>
           </motion.div>
         )}
 

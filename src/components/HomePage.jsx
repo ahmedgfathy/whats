@@ -158,11 +158,7 @@ const HomePage = () => {
     setLoading(false);
   };
 
-  const clearSearch = () => {
-    setSearchTerm('');
-    setFilteredMessages([]);
-    setCurrentPage(1);
-  };
+
 
   const handleLanguageSwitch = () => {
     const newLanguage = language === 'arabic' ? 'english' : 'arabic';
@@ -256,12 +252,91 @@ const HomePage = () => {
       dir={language === 'arabic' ? 'rtl' : 'ltr'}
       lang={language === 'arabic' ? 'ar' : 'en'}
     >
-      {/* Background Effects */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-      </div>
+
+      {/* Floating Property Icons - Like Login Page */}
+      {[
+        { Icon: HomeModernIcon, delay: 0, position: "top-24 left-16", rotation: "0deg" },
+        { Icon: BuildingOffice2Icon, delay: 0.3, position: "top-40 right-24", rotation: "15deg" },
+        { Icon: MapPinIcon, delay: 0.6, position: "bottom-40 left-24", rotation: "-10deg" },
+        { Icon: BuildingStorefrontIcon, delay: 0.9, position: "bottom-32 right-16", rotation: "20deg" },
+        { Icon: BuildingLibraryIcon, delay: 1.2, position: "top-1/2 left-8", rotation: "-15deg" },
+        { Icon: SparklesIcon, delay: 1.5, position: "top-1/3 right-12", rotation: "10deg" }
+      ].map(({ Icon, delay, position, rotation }, index) => (
+        <motion.div
+          key={index}
+          className={`absolute ${position} text-white/5 pointer-events-none z-5 hidden lg:block`}
+          initial={{ opacity: 0, y: 100, rotate: 0 }}
+          animate={{ 
+            opacity: 1, 
+            y: 0,
+            rotate: [0, 15, -15, 0],
+          }}
+          transition={{ 
+            delay,
+            duration: 2,
+            rotate: {
+              repeat: Infinity,
+              duration: 6,
+              ease: "easeInOut"
+            }
+          }}
+          style={{ transform: `rotate(${rotation})` }}
+        >
+          <Icon className="h-20 w-20" />
+        </motion.div>
+      ))}
+
+      {/* Animated Phone CRM Feature */}
+      <motion.div
+        className="fixed bottom-8 right-8 z-50 pointer-events-auto"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ 
+          delay: 2,
+          duration: 0.8,
+          type: "spring",
+          stiffness: 200
+        }}
+      >
+        <motion.div
+          animate={{ 
+            y: [0, -10, 0],
+            rotate: [0, 5, -5, 0]
+          }}
+          transition={{ 
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="relative group"
+        >
+          {/* Glow Effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+          
+          {/* Phone Button */}
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/login')}
+            className="relative p-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-full shadow-2xl hover:shadow-green-500/25 transition-all duration-300"
+          >
+            <PhoneIcon className="h-6 w-6" />
+          </motion.button>
+
+          {/* Tooltip */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileHover={{ opacity: 1, x: 0 }}
+            className="absolute right-full top-1/2 transform -translate-y-1/2 mr-4 px-3 py-2 bg-black/80 backdrop-blur-sm text-white text-sm rounded-lg border border-white/20 whitespace-nowrap pointer-events-none"
+          >
+            {language === 'arabic' ? 'اتصل بنا - نظام CRM متقدم' : 'Contact Us - Advanced CRM System'}
+            <div className="absolute top-1/2 left-full transform -translate-y-1/2 w-0 h-0 border-t-4 border-b-4 border-l-4 border-transparent border-l-black/80"></div>
+          </motion.div>
+
+          {/* Pulse Effect */}
+          <div className="absolute inset-0 rounded-full bg-green-500/30 animate-ping"></div>
+        </motion.div>
+      </motion.div>
 
       {/* Header */}
       <motion.header 
@@ -284,10 +359,10 @@ const HomePage = () => {
                 </div>
               </div>
               <div className="hidden sm:block">
-                <h1 className="text-xl lg:text-3xl font-bold gradient-text">
+                <h1 className="text-xl lg:text-3xl font-bold gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   {texts.title}
                 </h1>
-                <div className="flex items-center space-x-2 mt-1">
+                <div className="flex items-center space-x-2 mt-2 lg:mt-3">
                   <SparklesIcon className="h-3 w-3 lg:h-4 lg:w-4 text-purple-400" />
                   <CpuChipIcon className="h-3 w-3 lg:h-4 lg:w-4 text-purple-400 animate-pulse" />
                   <p className="text-xs lg:text-sm text-gray-300">{texts.subtitle}</p>
@@ -324,118 +399,209 @@ const HomePage = () => {
         </div>
       </motion.header>
 
-      {/* Hero Section with Background Slider */}
-      <div className="relative">
-        {/* Full-width Background Hero Slider */}
-        <div className="absolute inset-0 w-full h-[70vh] overflow-hidden">
+      {/* Hero Section - New Design */}
+      <div className="relative z-10 min-h-screen flex items-center">
+        <div className="absolute inset-0">
           <PropertyHeroSlider language={language} isBackground={true} />
-          <div className="absolute inset-0 bg-black/40"></div>
         </div>
-
-        {/* Content Over Background */}
-        <div className="relative z-10 py-16 lg:py-24">
+        
+        <div className="relative z-20 w-full">
           <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Hero Section */}
-            <motion.div 
-              className="text-center mb-16"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <motion.h2 
-                className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-2xl"
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
+            <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+              
+              {/* Left Side - Hero Content */}
+              <motion.div 
+                className="text-center lg:text-right space-y-8"
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                {/* Main Title */}
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                >
+                  <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
+                    <span className="block gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 lg:mb-4">{texts.brandName}</span>
+                    <span className="gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                      {texts.brandSubtitle}
+                    </span>
+                  </h1>
+                </motion.div>
+
+                {/* Subtitle */}
+                <motion.p 
+                  className="text-xl md:text-2xl text-gray-700 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                >
+                  {language === 'arabic' 
+                    ? 'اكتشف أفضل العقارات في مصر مع تقنيات الذكاء الاصطناعي المتطورة'
+                    : 'Discover the best properties in Egypt with advanced AI technology'
+                  }
+                </motion.p>
+
+                {/* Features */}
+                <motion.div 
+                  className="flex flex-wrap justify-center lg:justify-start gap-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                >
+                  {[
+                    { icon: CpuChipIcon, text: language === 'arabic' ? 'بحث ذكي' : 'Smart Search' },
+                    { icon: ChartBarIcon, text: language === 'arabic' ? 'إحصائيات متقدمة' : 'Advanced Analytics' },
+                    { icon: StarIcon, text: language === 'arabic' ? 'عقارات مميزة' : 'Premium Properties' }
+                  ].map((feature, index) => (
+                    <motion.div
+                      key={index}
+                      whileHover={{ scale: 1.05 }}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 shadow-lg"
+                    >
+                      <feature.icon className="h-5 w-5 text-purple-600" />
+                      <span className="text-gray-700 font-medium">{feature.text}</span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+
+                {/* CTA Buttons */}
+                <motion.div 
+                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                >
+                  <motion.button
+                    onClick={() => navigate('/login')}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-3 justify-center"
+                  >
+                    <UserIcon className="h-5 w-5" />
+                    {texts.login}
+                  </motion.button>
+                  
+                  <motion.button
+                    onClick={() => document.getElementById('properties-section').scrollIntoView({ behavior: 'smooth' })}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-8 py-4 bg-white/90 backdrop-blur-sm text-gray-800 font-bold rounded-2xl border-2 border-gray-300 hover:border-purple-400 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 justify-center"
+                  >
+                    <EyeIcon className="h-5 w-5" />
+                    {language === 'arabic' ? 'استكشف العقارات' : 'Explore Properties'}
+                  </motion.button>
+                </motion.div>
+              </motion.div>
+
+              {/* Right Side - Search Section */}
+              <motion.div 
+                className="lg:order-last"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
-                {texts.title}
-              </motion.h2>
-              <motion.p 
-                className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto drop-shadow-lg"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              >
-                {texts.subtitle}
-              </motion.p>
-            </motion.div>
-
-            {/* Search Section */}
-            <motion.div 
-              className="mb-12"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            >
-              <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl">
-                <div className="flex flex-col sm:flex-row gap-4 items-center">
-                  <div className="flex-1 relative w-full">
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder={texts.search}
-                      className="w-full px-4 md:px-6 py-3 md:py-4 bg-white/20 text-white rounded-2xl border border-white/30 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 placeholder-white/70 text-base md:text-lg pr-12 backdrop-blur-sm"
-                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    />
-                    {searchTerm && (
-                      <button
-                        onClick={() => {
-                          setSearchTerm('');
-                          loadInitialData();
-                        }}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors duration-200"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleSearch}
-                      disabled={loading || !searchTerm.trim()}
-                      className="px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-lg text-base md:text-lg min-w-fit"
-                    >
-                      {loading ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <MagnifyingGlassIcon className="h-5 w-5" />
+                <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/50">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                  >
+                    <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                      {language === 'arabic' ? 'ابحث عن عقارك المثالي' : 'Find Your Perfect Property'}
+                    </h3>
+                    
+                    {/* Search Input */}
+                    <div className="relative mb-6">
+                      <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder={texts.search}
+                        className="w-full px-6 py-4 bg-gray-50 text-gray-800 rounded-2xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-400/20 placeholder-gray-500 text-lg pr-14"
+                        onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      />
+                      {searchTerm && (
+                        <button
+                          onClick={() => {
+                            setSearchTerm('');
+                            loadInitialData();
+                          }}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
                       )}
-                      {texts.searchBtn}
-                    </motion.button>
-                    {searchTerm && (
+                    </div>
+
+                    {/* Search Buttons */}
+                    <div className="flex gap-3">
                       <motion.button 
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          setSearchTerm('');
-                          setSelectedFilter('all');
-                          loadInitialData();
-                        }}
-                        className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-gray-500/80 to-gray-600/80 text-white rounded-2xl hover:from-gray-600/80 hover:to-gray-700/80 transition-all duration-200 flex items-center gap-2 font-medium shadow-lg text-base md:text-lg backdrop-blur-sm"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleSearch}
+                        disabled={loading || !searchTerm.trim()}
+                        className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium shadow-lg text-base"
                       >
-                        {language === 'arabic' ? 'مسح' : 'Clear'}
+                        {loading ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <MagnifyingGlassIcon className="h-5 w-5" />
+                        )}
+                        {texts.searchBtn}
                       </motion.button>
-                    )}
-                  </div>
+                      
+                      {searchTerm && (
+                        <motion.button 
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setSearchTerm('');
+                            setSelectedFilter('all');
+                            loadInitialData();
+                          }}
+                          className="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium shadow-lg text-base"
+                        >
+                          {language === 'arabic' ? 'مسح' : 'Clear'}
+                        </motion.button>
+                      )}
+                    </div>
+
+                    {/* Quick Stats */}
+                    <motion.div 
+                      className="mt-6 grid grid-cols-3 gap-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.7 }}
+                    >
+                      {stats.slice(0, 3).map((stat, index) => (
+                        <div key={index} className="text-center p-3 bg-gray-50 rounded-xl">
+                          <div className="text-lg font-bold text-purple-600">{stat.count?.toLocaleString() || '0'}</div>
+                          <div className="text-xs text-gray-600">{stat.property_type === 'apartment' ? (language === 'arabic' ? 'شقق' : 'Apartments') : stat.property_type === 'villa' ? (language === 'arabic' ? 'فيلل' : 'Villas') : (language === 'arabic' ? 'أراضي' : 'Land')}</div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  </motion.div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="relative max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Statistics Cards */}
+      {/* Properties Section */}
+      <div id="properties-section" className="relative z-20 bg-gradient-to-b from-transparent to-slate-900/50">
+        <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+        {/* Property Filter Statistics */}
         <motion.div 
           className="mb-12"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {propertyFilters.map((filter, index) => {
@@ -667,6 +833,7 @@ const HomePage = () => {
             <p className="text-sm">{language === 'arabic' ? 'منصة ذكية لعرض العقارات' : 'Smart Platform for Real Estate Listings'}</p>
           </div>
         </motion.footer>
+        </div>
       </div>
     </div>
   );

@@ -10,9 +10,15 @@ import {
   UserIcon,
   LockClosedIcon,
   ChevronRightIcon,
-  LanguageIcon
+  LanguageIcon,
+  ArrowLeftIcon,
+  KeyIcon,
+  UserPlusIcon,
+  GlobeAltIcon
 } from '@heroicons/react/24/outline';
 import { authenticateUser } from '../services/apiService';
+import Registration from './Registration';
+import ForgotPassword from './ForgotPassword';
 
 const Login = ({ onLogin, onLanguageSwitch }) => {
   const [credentials, setCredentials] = useState({
@@ -22,6 +28,7 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [currentView, setCurrentView] = useState('login'); // 'login', 'register', 'forgot'
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,6 +88,19 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
     { Icon: SparklesIcon, delay: 1.5, position: "bottom-20 right-20" }
   ];
 
+  const handleGoToHomePage = () => {
+    window.location.href = '/';
+  };
+
+  // Render different views based on currentView state
+  if (currentView === 'register') {
+    return <Registration onBack={() => setCurrentView('login')} onLogin={onLogin} onLanguageSwitch={onLanguageSwitch} />;
+  }
+
+  if (currentView === 'forgot') {
+    return <ForgotPassword onBack={() => setCurrentView('login')} onLanguageSwitch={onLanguageSwitch} />;
+  }
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 font-cairo lang-arabic" dir="rtl" lang="ar">
       {/* Animated Background */}
@@ -102,6 +122,20 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
           <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <LanguageIcon className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform duration-300" />
           <span className="relative">English</span>
+        </motion.button>
+      </div>
+
+      {/* Homepage Button */}
+      <div className="absolute top-6 left-6 z-20">
+        <motion.button
+          onClick={handleGoToHomePage}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="group relative overflow-hidden flex items-center px-4 py-2 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-xl border border-white/20 transition-all duration-300 shadow-lg"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <GlobeAltIcon className="h-4 w-4 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+          <span className="relative">الصفحة الرئيسية</span>
         </motion.button>
       </div>
 
@@ -267,19 +301,34 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
                   </div>
                 )}
               </motion.button>
-            </form>
 
-            {/* Demo Credentials */}
-            <motion.div 
-              variants={itemVariants}
-              className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-xl"
-            >
-              <p className="text-xs text-gray-300 text-center mb-2 font-semibold">بيانات تجريبية:</p>
-              <div className="text-xs text-gray-400 text-center space-y-1">
-                <p>المستخدم: <span className="text-purple-300 font-mono">xinreal</span></p>
-                <p>كلمة المرور: <span className="text-purple-300 font-mono">zerocall</span></p>
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-4 mt-6">
+                <motion.button
+                  type="button"
+                  onClick={() => setCurrentView('forgot')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative overflow-hidden bg-white/5 text-gray-300 hover:text-white py-3 px-4 rounded-xl font-semibold text-sm border border-white/20 hover:border-orange-500/50 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <KeyIcon className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
+                  <span className="relative">نسيت كلمة المرور</span>
+                </motion.button>
+
+                <motion.button
+                  type="button"
+                  onClick={() => setCurrentView('register')}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative overflow-hidden bg-white/5 text-gray-300 hover:text-white py-3 px-4 rounded-xl font-semibold text-sm border border-white/20 hover:border-green-500/50 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <UserPlusIcon className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
+                  <span className="relative">تسجيل جديد</span>
+                </motion.button>
               </div>
-            </motion.div>
+            </form>
           </motion.div>
 
           {/* Footer */}

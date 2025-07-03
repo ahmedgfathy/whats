@@ -6,59 +6,65 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // Featured properties with beautiful images
+  // Featured properties with light, bright images and pricing info
   const featuredProperties = [
     {
       id: 1,
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=600&fit=crop&auto=format',
+      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
       title: language === 'arabic' ? 'فيلا فاخرة في الشيخ زايد' : 'Luxury Villa in Sheikh Zayed',
       location: language === 'arabic' ? 'الشيخ زايد، الجيزة' : 'Sheikh Zayed, Giza',
-      price: language === 'arabic' ? '4.5 مليون جنيه' : '4.5M EGP',
+      price: language === 'arabic' ? 'تبدأ من 4.5 مليون جنيه' : 'Starting from 4.5M EGP',
+      priceValue: '4.5M',
       type: 'villa',
       area: '300م²'
     },
     {
       id: 2,
-      image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&h=600&fit=crop&auto=format',
+      image: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
       title: language === 'arabic' ? 'شقة مودرن في التجمع الخامس' : 'Modern Apartment in New Cairo',
       location: language === 'arabic' ? 'التجمع الخامس، القاهرة الجديدة' : 'Fifth Settlement, New Cairo',
-      price: language === 'arabic' ? '2.8 مليون جنيه' : '2.8M EGP',
+      price: language === 'arabic' ? 'تبدأ من 2.8 مليون جنيه' : 'Starting from 2.8M EGP',
+      priceValue: '2.8M',
       type: 'apartment',
       area: '180م²'
     },
     {
       id: 3,
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=600&fit=crop&auto=format',
+      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
       title: language === 'arabic' ? 'قصر فخم في الزمالك' : 'Luxury Palace in Zamalek',
       location: language === 'arabic' ? 'الزمالك، القاهرة' : 'Zamalek, Cairo',
-      price: language === 'arabic' ? '12 مليون جنيه' : '12M EGP',
+      price: language === 'arabic' ? 'تبدأ من 12 مليون جنيه' : 'Starting from 12M EGP',
+      priceValue: '12M',
       type: 'villa',
       area: '600م²'
     },
     {
       id: 4,
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=600&fit=crop&auto=format',
+      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
       title: language === 'arabic' ? 'بنتهاوس في مدينة نصر' : 'Penthouse in Nasr City',
       location: language === 'arabic' ? 'مدينة نصر، القاهرة' : 'Nasr City, Cairo',
-      price: language === 'arabic' ? '6.2 مليون جنيه' : '6.2M EGP',
+      price: language === 'arabic' ? 'تبدأ من 6.2 مليون جنيه' : 'Starting from 6.2M EGP',
+      priceValue: '6.2M',
       type: 'apartment',
       area: '250م²'
     },
     {
       id: 5,
-      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200&h=600&fit=crop&auto=format',
+      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.4&contrast=0.6',
       title: language === 'arabic' ? 'فيلا على البحر في الساحل' : 'Beachfront Villa in North Coast',
       location: language === 'arabic' ? 'الساحل الشمالي' : 'North Coast',
-      price: language === 'arabic' ? '8.5 مليون جنيه' : '8.5M EGP',
+      price: language === 'arabic' ? 'تبدأ من 8.5 مليون جنيه' : 'Starting from 8.5M EGP',
+      priceValue: '8.5M',
       type: 'villa',
       area: '400م²'
     },
     {
       id: 6,
-      image: 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=1200&h=600&fit=crop&auto=format',
+      image: 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
       title: language === 'arabic' ? 'دوبلكس في المعادي' : 'Duplex in Maadi',
       location: language === 'arabic' ? 'المعادي، القاهرة' : 'Maadi, Cairo',
-      price: language === 'arabic' ? '5.1 مليون جنيه' : '5.1M EGP',
+      price: language === 'arabic' ? 'تبدأ من 5.1 مليون جنيه' : 'Starting from 5.1M EGP',
+      priceValue: '5.1M',
       type: 'apartment',
       area: '280م²'
     }
@@ -70,7 +76,7 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
 
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % featuredProperties.length);
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying, featuredProperties.length]);
@@ -119,35 +125,38 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
         isBackground 
           ? 'h-full' 
           : 'h-96 md:h-[500px] rounded-2xl shadow-2xl'
-      } bg-gray-800`} 
+      }`} 
       dir={language === 'arabic' ? 'rtl' : 'ltr'}
     >
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}
-          initial={{ opacity: 0, scale: 1.1 }}
+          initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.7, ease: 'easeInOut' }}
+          exit={{ opacity: 0, scale: 1.05 }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
           className="absolute inset-0"
         >
-          {/* Background Image */}
+          {/* Background Image with Enhanced Dark Overlay */}
           <div
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: `url(${featuredProperties[currentSlide].image})`
+              backgroundImage: `url(${featuredProperties[currentSlide].image})`,
+              filter: 'brightness(0.8) contrast(1.1) saturate(1.2)'
             }}
           >
-            {/* Gradient Overlay - Different for background mode */}
+            {/* Enhanced Dark Overlay for better contrast and readability */}
             {isBackground ? (
               <>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/40"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/30"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/85 via-slate-800/60 to-slate-700/40"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-900/40 via-slate-900/30 to-blue-900/40"></div>
+                <div className="absolute inset-0 bg-black/20"></div>
               </>
             ) : (
               <>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-800/70 to-slate-700/50"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-slate-900/40 to-blue-900/50"></div>
+                <div className="absolute inset-0 bg-black/25"></div>
               </>
             )}
           </div>
@@ -169,7 +178,7 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
                     transition={{ duration: 0.5, delay: 0.3 }}
                     className="mb-4"
                   >
-                    <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r ${getPropertyTypeColor(featuredProperties[currentSlide].type)} text-white shadow-lg`}>
+                    <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r ${getPropertyTypeColor(featuredProperties[currentSlide].type)} text-white shadow-lg border-2 border-white/20`}>
                       {getPropertyTypeLabel(featuredProperties[currentSlide].type)}
                       <span className="mx-2">•</span>
                       {featuredProperties[currentSlide].area}
@@ -181,7 +190,7 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.4 }}
-                    className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight"
+                    className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight drop-shadow-lg"
                   >
                     {featuredProperties[currentSlide].title}
                   </motion.h2>
@@ -193,21 +202,29 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
                     transition={{ duration: 0.5, delay: 0.5 }}
                     className="flex items-center gap-2 text-gray-200 mb-4 text-lg"
                   >
-                    <MapPinIcon className="w-5 h-5 text-red-400" />
-                    <span>{featuredProperties[currentSlide].location}</span>
+                    <MapPinIcon className="w-5 h-5 text-blue-400" />
+                    <span className="font-medium">{featuredProperties[currentSlide].location}</span>
                   </motion.div>
 
-                  {/* Price */}
+                  {/* Price with "Starting from" text */}
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.6 }}
-                    className="flex items-center gap-2 mb-6"
+                    className="mb-6"
                   >
-                    <CurrencyDollarIcon className="w-6 h-6 text-green-400" />
-                    <span className="text-2xl md:text-3xl font-bold text-green-400">
-                      {featuredProperties[currentSlide].price}
-                    </span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <CurrencyDollarIcon className="w-6 h-6 text-green-400" />
+                      <span className="text-sm font-medium text-gray-300 uppercase tracking-wider">
+                        {language === 'arabic' ? 'السعر يبدأ من' : 'Price Starting From'}
+                      </span>
+                    </div>
+                    <div className="text-3xl md:text-4xl font-bold text-green-400 drop-shadow-lg">
+                      {featuredProperties[currentSlide].priceValue} 
+                      <span className="text-lg text-gray-300 ml-2">
+                        {language === 'arabic' ? 'جنيه مصري' : 'EGP'}
+                      </span>
+                    </div>
                   </motion.div>
 
                   {/* CTA Button */}
@@ -217,7 +234,7 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
                     transition={{ duration: 0.5, delay: 0.7 }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-8 py-3 bg-white text-gray-900 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
+                    className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl border-2 border-white/30"
                   >
                     {language === 'arabic' ? 'عرض التفاصيل' : 'View Details'}
                   </motion.button>
