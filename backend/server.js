@@ -9,7 +9,8 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Increase limit for large CSV files
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Create database directory if it doesn't exist
 const dbDir = path.join(__dirname, '../data');
@@ -333,6 +334,8 @@ app.get('/api/messages/:id', (req, res) => {
 
 // CSV Import endpoint
 app.post('/api/import-csv', (req, res) => {
+  // Debug: log the raw request body
+  console.log('Raw /api/import-csv request body:', req.body);
   try {
     const { tableName, headers, data } = req.body;
     
@@ -347,10 +350,38 @@ app.post('/api/import-csv', (req, res) => {
     console.log(`Headers: ${headers.join(', ')}`);
     console.log(`Data rows: ${data.length}`);
 
+    // Clean headers for SQL - ensure they're unique and valid
+    const cleanHeaders = headers.map((header, index) => {
+      if (!header || header.trim() === '') {
+        return `column_${index + 1}`;
+      }
+      // Replace special characters and spaces
+      return header.trim().replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 50);
+    });
+
+    // Ensure header uniqueness
+    const uniqueHeaders = [];
+    const usedHeaders = new Set();
+    
+    cleanHeaders.forEach((header, index) => {
+      let uniqueHeader = header;
+      let counter = 1;
+      
+      while (usedHeaders.has(uniqueHeader)) {
+        uniqueHeader = `${header}_${counter}`;
+        counter++;
+      }
+      
+      uniqueHeaders.push(uniqueHeader);
+      usedHeaders.add(uniqueHeader);
+    });
+
+    console.log('Clean unique headers:', uniqueHeaders);
+
     // Create or update table based on CSV structure
     const createTableSQL = `CREATE TABLE IF NOT EXISTS ${tableName} (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      ${headers.map(header => `\`${header}\` TEXT`).join(', ')},
+      ${uniqueHeaders.map(header => `\`${header}\` TEXT`).join(', ')},
       imported_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`;
     
@@ -358,8 +389,8 @@ app.post('/api/import-csv', (req, res) => {
     console.log(`Table ${tableName} created/updated`);
 
     // Prepare insert statement
-    const placeholders = headers.map(() => '?').join(', ');
-    const insertSQL = `INSERT INTO ${tableName} (${headers.map(h => `\`${h}\``).join(', ')}) VALUES (${placeholders})`;
+    const placeholders = uniqueHeaders.map(() => '?').join(', ');
+    const insertSQL = `INSERT INTO ${tableName} (${uniqueHeaders.map(h => `\`${h}\``).join(', ')}) VALUES (${placeholders})`;
     const insertStmt = db.prepare(insertSQL);
 
     // Insert data in transaction for better performance
@@ -394,6 +425,166 @@ app.post('/api/import-csv', (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to import CSV data: ' + error.message
+    });
+  }
+});
+
+// Search Properties Import endpoint
+app.get('/api/search-properties', (req, res) => {
+  try {
+    const { q: searchTerm, filter, limit = 100 } = req.query;
+    
+    if (!searchTerm || searchTerm.trim() === '') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Search term is required' 
+      });
+    }
+
+    console.log(`Searching properties for: "${searchTerm}" with filter: ${filter}`);
+
+    // Build search query based on filter
+    let searchQuery = '';
+    let searchColumns = [];
+    
+    switch (filter) {
+      case 'شقة':
+      case 'apartment':
+        searchColumns = ['Property_Name', 'Property_Category', 'Property_Type'];
+        break;
+      case 'فيلا':
+      case 'villa':
+        searchColumns = ['Property_Name', 'Property_Category', 'Property_Type'];
+        break;
+      case 'أرض':
+      case 'land':
+        searchColumns = ['Property_Name', 'Property_Category', 'Property_Type'];
+        break;
+      case 'منطقة':
+      case 'location':
+        searchColumns = ['Regions'];
+        break;
+      default:
+        // Search all relevant columns
+        searchColumns = [
+          'Property_Name', 'Property_Category', 'Property_Type', 
+          'Regions', 'Description', 'Name', 'Mobile_No'
+        ];
+    }
+
+    // Create WHERE clause with LIKE conditions
+    const whereConditions = searchColumns
+      .map(col => `\`${col}\` LIKE ?`)
+      .join(' OR ');
+    
+    const searchParams = searchColumns.map(() => `%${searchTerm}%`);
+
+    const sql = `
+      SELECT * FROM properties_import 
+      WHERE ${whereConditions}
+      ORDER BY id DESC
+      LIMIT ?
+    `;
+
+    const properties = db.prepare(sql).all(...searchParams, parseInt(limit));
+
+    console.log(`Found ${properties.length} properties matching "${searchTerm}"`);
+
+    res.json({
+      success: true,
+      data: properties,
+      total: properties.length,
+      searchTerm,
+      filter
+    });
+
+  } catch (error) {
+    console.error('Properties search error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to search properties: ' + error.message
+    });
+  }
+});
+
+// Combined Search endpoint (both chat messages and properties)
+app.get('/api/search-all', (req, res) => {
+  try {
+    const { q: searchTerm, filter, limit = 50 } = req.query;
+    
+    if (!searchTerm || searchTerm.trim() === '') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Search term is required' 
+      });
+    }
+
+    console.log(`Combined search for: "${searchTerm}" with filter: ${filter}`);
+
+    // Search chat messages
+    let messageQuery = '';
+    let messageParams = [];
+    
+    if (filter) {
+      messageQuery = `
+        SELECT *, 'chat' as source FROM chat_messages 
+        WHERE (message LIKE ? OR location LIKE ? OR agent_description LIKE ?) 
+        AND property_type LIKE ?
+        ORDER BY id DESC LIMIT ?
+      `;
+      messageParams = [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`, `%${filter}%`, Math.floor(limit/2)];
+    } else {
+      messageQuery = `
+        SELECT *, 'chat' as source FROM chat_messages 
+        WHERE message LIKE ? OR location LIKE ? OR agent_description LIKE ?
+        ORDER BY id DESC LIMIT ?
+      `;
+      messageParams = [`%${searchTerm}%`, `%${searchTerm}%`, `%${searchTerm}%`, Math.floor(limit/2)];
+    }
+
+    const chatResults = db.prepare(messageQuery).all(...messageParams);
+
+    // Search properties
+    const propertyColumns = [
+      'Property_Name', 'Property_Category', 'Property_Type', 
+      'Regions', 'Description', 'Name', 'Mobile_No'
+    ];
+    
+    const propertyWhereConditions = propertyColumns
+      .map(col => `\`${col}\` LIKE ?`)
+      .join(' OR ');
+    
+    const propertyParams = propertyColumns.map(() => `%${searchTerm}%`);
+    
+    const propertyQuery = `
+      SELECT *, 'property' as source FROM properties_import 
+      WHERE ${propertyWhereConditions}
+      ORDER BY id DESC LIMIT ?
+    `;
+
+    const propertyResults = db.prepare(propertyQuery).all(...propertyParams, Math.floor(limit/2));
+
+    const combinedResults = {
+      chatMessages: chatResults,
+      properties: propertyResults,
+      totalChat: chatResults.length,
+      totalProperties: propertyResults.length,
+      searchTerm,
+      filter
+    };
+
+    console.log(`Combined search found: ${chatResults.length} chat messages, ${propertyResults.length} properties`);
+
+    res.json({
+      success: true,
+      data: combinedResults
+    });
+
+  } catch (error) {
+    console.error('Combined search error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to perform combined search: ' + error.message
     });
   }
 });

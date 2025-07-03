@@ -6,13 +6,21 @@ const API_BASE_URL = 'http://localhost:3001/api';
 // Helper function to handle API calls
 const apiCall = async (endpoint, options = {}) => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const requestOptions = {
       headers: {
         'Content-Type': 'application/json',
         ...options.headers
       },
       ...options
-    });
+    };
+    
+    console.log(`Making API call to: ${url}`);
+    console.log('Request options:', requestOptions);
+    
+    const response = await fetch(url, requestOptions);
+    
+    console.log(`Response status: ${response.status}`);
     
     const data = await response.json();
     
@@ -240,19 +248,24 @@ export const importChatMessages = async (parsedMessages) => {
 export const importCSVData = async (tableName, headers, data) => {
   try {
     console.log(`Starting CSV import to table: ${tableName}`);
-    console.log(`Headers: ${headers.join(', ')}`);
-    console.log(`Data rows: ${data.length}`);
+    console.log(`Headers: ${headers?.join(', ')}`);
+    console.log(`Data rows: ${data?.length}`);
+    
+    const requestBody = {
+      tableName,
+      headers,
+      data
+    };
+    
+    console.log('CSV Import Request Body:', requestBody);
+    console.log('Request Body JSON:', JSON.stringify(requestBody));
     
     const response = await apiCall('/import-csv', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('authToken')}`
       },
-      body: JSON.stringify({
-        tableName,
-        headers,
-        data
-      })
+      body: JSON.stringify(requestBody)
     });
     
     console.log('CSV import result:', response);
@@ -331,6 +344,42 @@ export const checkBackendHealth = async () => {
   }
 };
 
+// Search properties from CSV import
+export const searchProperties = async (searchTerm = '', filter = '', limit = 100) => {
+  const params = new URLSearchParams();
+  
+  if (searchTerm.trim()) {
+    params.append('q', searchTerm);
+  }
+  
+  if (filter && filter !== 'all') {
+    params.append('filter', filter);
+  }
+  
+  params.append('limit', limit.toString());
+  
+  const response = await apiCall(`/search-properties?${params.toString()}`);
+  return response.data;
+};
+
+// Combined search across both chat messages and properties
+export const searchAll = async (searchTerm = '', filter = '', limit = 50) => {
+  const params = new URLSearchParams();
+  
+  if (searchTerm.trim()) {
+    params.append('q', searchTerm);
+  }
+  
+  if (filter && filter !== 'all') {
+    params.append('filter', filter);
+  }
+  
+  params.append('limit', limit.toString());
+  
+  const response = await apiCall(`/search-all?${params.toString()}`);
+  return response.data;
+};
+
 // Duplicate function removed - using the first declaration above
 
 export default {
@@ -349,5 +398,7 @@ export default {
   removeDuplicateMessages,
   importCSVData,
   getDatabaseTables,
-  validateCSVData
+  validateCSVData,
+  searchProperties,
+  searchAll
 };

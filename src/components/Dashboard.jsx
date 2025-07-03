@@ -23,9 +23,11 @@ import {
   TrashIcon,
   DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
-import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages } from '../services/apiService';
+import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages, searchAll, searchProperties } from '../services/apiService';
 import ChatImport from './ChatImport';
 import CSVImport from './CSVImport';
+import SimpleCSVImport from './SimpleCSVImport';
+import CombinedSearchResults from './CombinedSearchResults';
 
 // Virtual property image generator
 const getVirtualPropertyImage = (propertyType, messageId) => {
@@ -88,6 +90,8 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminResult, setAdminResult] = useState(null);
   const [showCSVImport, setShowCSVImport] = useState(false);
+  const [searchResultType, setSearchResultType] = useState('chat'); // 'chat', 'properties', 'combined'
+  const [combinedResults, setCombinedResults] = useState(null);
 
   const propertyFilters = [
     { id: 'all', label: 'جميع العقارات', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -233,16 +237,37 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
     });
   };
 
-  const handleSearch = async () => {
+  const handleSearch = async (searchType = 'combined') => {
     if (!searchTerm.trim()) {
       loadInitialData();
+      setCombinedResults(null);
+      setSearchResultType('chat');
       return;
     }
 
     setLoading(true);
     try {
-      const results = await searchMessages(searchTerm, selectedFilter, 10000);
-      setMessages(results);
+      if (searchType === 'combined') {
+        // Search both chat messages and properties
+        const results = await searchAll(searchTerm, selectedFilter, 100);
+        setCombinedResults(results);
+        setSearchResultType('combined');
+        
+        // Also set chat messages for backward compatibility
+        setMessages(results.chatMessages || []);
+      } else if (searchType === 'properties') {
+        // Search only properties
+        const results = await searchProperties(searchTerm, selectedFilter, 100);
+        setMessages([]); // Clear chat messages
+        setCombinedResults({ properties: results, chatMessages: [] });
+        setSearchResultType('properties');
+      } else {
+        // Search only chat messages (original behavior)
+        const results = await searchMessages(searchTerm, selectedFilter, 10000);
+        setMessages(results);
+        setCombinedResults(null);
+        setSearchResultType('chat');
+      }
     } catch (error) {
       console.error('Error searching:', error);
     }
@@ -857,125 +882,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* CSV Import Instructions */}
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2 }}
-                className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/20"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <DocumentArrowUpIcon className="h-6 w-6 text-blue-400" />
-                  <h4 className="text-xl font-bold text-blue-400">تعليمات الاستيراد</h4>
-                </div>
-                
-                <div className="space-y-4 text-gray-300">
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                    <div>
-                      <span className="font-semibold text-green-400">الملفات المدعومة:</span>
-                      <p className="text-sm mt-1">CSV, Excel (.xlsx)</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
-                    <div>
-                      <span className="font-semibold text-yellow-400">هيكل البيانات:</span>
-                      <p className="text-sm mt-1">سيتم تحليل الصف الأول كرؤوس الأعمدة</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
-                    <div>
-                      <span className="font-semibold text-purple-400">المعاينة:</span>
-                      <p className="text-sm mt-1">عرض أول 5 صفوف قبل الاستيراد</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-red-400 rounded-full mt-2"></div>
-                    <div>
-                      <span className="font-semibold text-red-400">تحذير:</span>
-                      <p className="text-sm mt-1">تأكد من صحة البيانات قبل الاستيراد</p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Import Action */}
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 }}
-                className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-xl p-6 border border-green-500/20"
-              >
-                <div className="flex items-center gap-3 mb-6">
-                  <ArrowUpTrayIcon className="h-6 w-6 text-green-400" />
-                  <h4 className="text-xl font-bold text-green-400">رفع الملف</h4>
-                </div>
-
-                <div className="text-center">
-                  <motion.button
-                    onClick={() => setShowCSVImport(true)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full px-8 py-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-3"
-                  >
-                    <DocumentArrowUpIcon className="h-6 w-6" />
-                    <span>اختيار ملف CSV للاستيراد</span>
-                  </motion.button>
-                  
-                  <p className="text-gray-400 text-sm mt-4 leading-relaxed">
-                    انقر لاختيار ملف CSV أو Excel من جهازك
-                    <br />
-                    سيتم معاينة البيانات قبل الاستيراد النهائي
-                  </p>
-                </div>
-
-                {/* Sample CSV Format */}
-                <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
-                  <h5 className="text-sm font-bold text-gray-300 mb-2">مثال على تنسيق CSV:</h5>
-                  <code className="text-xs text-gray-400 font-mono">
-                    Property Name,Property Type,Price,Location,Description
-                    <br />
-                    شقة 120 متر,apartment,750000,القاهرة,شقة مميزة...
-                  </code>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* CSV Import Statistics */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="mt-8 bg-gradient-to-r from-indigo-900/20 to-purple-900/20 rounded-xl p-6 border border-indigo-500/20"
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <ChartBarIcon className="h-6 w-6 text-indigo-400" />
-                <h4 className="text-xl font-bold text-indigo-400">إحصائيات الاستيراد</h4>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-blue-400">{messages.length.toLocaleString()}</div>
-                  <div className="text-sm text-gray-400">إجمالي العقارات الحالية</div>
-                </div>
-                
-                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-400">{stats.length}</div>
-                  <div className="text-sm text-gray-400">أنواع العقارات</div>
-                </div>
-                
-                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-400">21,049</div>
-                  <div className="text-sm text-gray-400">سجلات في ملف CSV المرفق</div>
-                </div>
-              </div>
-            </motion.div>
+            <SimpleCSVImport onImportComplete={loadInitialData} />
           </motion.div>
         )}
 
