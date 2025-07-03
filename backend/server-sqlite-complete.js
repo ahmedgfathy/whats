@@ -544,7 +544,7 @@ app.post('/api/messages/bulk', (req, res) => {
           
           if (!agent) {
             stmt = db.prepare(`
-              INSERT INTO agents (name, phone, phone_operator, description, created_at)
+              INSERT INTO agents (name, phone, phone_carrier, description, created_at)
               VALUES (?, ?, ?, ?, ?)
             `);
             const result = stmt.run(
