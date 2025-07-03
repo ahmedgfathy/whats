@@ -94,7 +94,14 @@ const PropertyDetailsModal = ({ propertyId, isOpen, onClose }) => {
 
   const formatPhoneNumber = (phone) => {
     if (!phone) return 'غير متوفر';
-    return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+    
+    // Handle Egyptian phone numbers (11 digits starting with 01)
+    if (/^01\d{9}$/.test(phone)) {
+      return phone.replace(/(\d{3})(\d{4})(\d{4})/, '$1 $2 $3');
+    }
+    
+    // Fallback for other formats
+    return phone;
   };
 
   if (!isOpen) return null;
@@ -343,7 +350,7 @@ const PropertyDetailsModal = ({ propertyId, isOpen, onClose }) => {
                         {property.agent_phone && (
                           <div className="text-center p-4 glass rounded-xl border border-white/10">
                             <p className="text-gray-300 text-sm mb-2">رقم الهاتف</p>
-                            <p className="text-xl font-bold text-white font-mono">
+                            <p className="text-xl font-bold text-white font-mono" dir="ltr">
                               {formatPhoneNumber(property.agent_phone)}
                             </p>
                           </div>

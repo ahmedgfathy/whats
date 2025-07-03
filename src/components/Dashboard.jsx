@@ -681,7 +681,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                         >
                           <td className="py-4 px-6 font-semibold text-white w-36">{message.sender}</td>
                           <td className="py-4 px-6 w-32">
-                            <span className="text-green-400 font-mono text-sm bg-green-400/10 px-2 py-1 rounded border border-green-400/30">
+                            <span className="text-green-400 font-mono text-sm bg-green-400/10 px-2 py-1 rounded border border-green-400/30" dir="ltr">
                               {message.agent_phone || 'غير متاح'}
                             </span>
                           </td>
@@ -944,7 +944,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                 {selectedUnit.agent_phone && (
                   <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
                     <strong className="text-teal-700 block mb-2">الهاتف:</strong> 
-                    <a href={`tel:${selectedUnit.agent_phone}`} className="text-teal-600 hover:text-teal-800 font-medium hover:underline">
+                    <a href={`tel:${selectedUnit.agent_phone}`} className="text-teal-600 hover:text-teal-800 font-medium hover:underline font-mono" dir="ltr">
                       {selectedUnit.agent_phone}
                     </a>
                   </div>
