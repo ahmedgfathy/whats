@@ -18,7 +18,9 @@ import {
   SparklesIcon,
   CpuChipIcon,
   ChartBarIcon,
-  LanguageIcon
+  LanguageIcon,
+  ShieldCheckIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages } from '../services/apiService';
 import ChatImportEnglish from './ChatImport-English';
@@ -36,6 +38,8 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   const [messagesPerPage] = useState(20);
   const [sortField, setSortField] = useState('timestamp');
   const [sortDirection, setSortDirection] = useState('desc');
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [adminResult, setAdminResult] = useState(null);
 
   const propertyFilters = [
     { id: 'all', label: 'All Properties', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -67,6 +71,13 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
       icon: ArrowUpTrayIcon, 
       gradient: 'from-green-500 to-emerald-500',
       description: 'Upload WhatsApp files'
+    },
+    { 
+      id: 'admin', 
+      label: 'System Administration', 
+      icon: ShieldCheckIcon, 
+      gradient: 'from-red-500 to-pink-500',
+      description: 'Management & maintenance tools'
     }
   ];
 
