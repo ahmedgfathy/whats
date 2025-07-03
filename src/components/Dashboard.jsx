@@ -28,6 +28,7 @@ import ChatImport from './ChatImport';
 import CSVImport from './CSVImport';
 import SimpleCSVImport from './SimpleCSVImport';
 import CombinedSearchResults from './CombinedSearchResults';
+import CSVPropertyDetailsModal from './CSVPropertyDetailsModal';
 
 // Virtual property image generator
 const getVirtualPropertyImage = (propertyType, messageId) => {
@@ -78,6 +79,8 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const [messages, setMessages] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -297,6 +300,16 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const closeModal = () => {
     setShowModal(false);
     setSelectedUnit(null);
+  };
+
+  const showPropertyDetails = (property) => {
+    setSelectedProperty(property);
+    setShowPropertyModal(true);
+  };
+
+  const closePropertyModal = () => {
+    setShowPropertyModal(false);
+    setSelectedProperty(null);
   };
 
   // Filter and sort messages
@@ -567,7 +580,9 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                 <MagnifyingGlassIcon className="h-4 w-4 text-white" />
               </div>
             </div>
-            <div className="flex gap-2">
+            
+            {/* Search Input */}
+            <div className="flex gap-2 mb-3">
               <input
                 type="text"
                 value={searchTerm}
@@ -580,7 +595,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={handleSearch}
+                onClick={() => handleSearch('combined')}
                 disabled={loading}
                 className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 flex items-center gap-1 font-medium shadow-lg text-sm"
               >
@@ -590,6 +605,46 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                   <MagnifyingGlassIcon className="h-3 w-3" />
                 )}
                 بحث
+              </motion.button>
+            </div>
+
+            {/* Search Type Buttons */}
+            <div className="flex gap-1 text-xs">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleSearch('combined')}
+                className={`px-2 py-1 rounded-md transition-all duration-200 ${
+                  searchResultType === 'combined' 
+                    ? 'bg-purple-500 text-white' 
+                    : 'bg-slate-600/50 text-slate-300 hover:bg-slate-600'
+                }`}
+              >
+                بحث شامل
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleSearch('chat')}
+                className={`px-2 py-1 rounded-md transition-all duration-200 ${
+                  searchResultType === 'chat' 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-slate-600/50 text-slate-300 hover:bg-slate-600'
+                }`}
+              >
+                محادثات
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleSearch('properties')}
+                className={`px-2 py-1 rounded-md transition-all duration-200 ${
+                  searchResultType === 'properties' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-slate-600/50 text-slate-300 hover:bg-slate-600'
+                }`}
+              >
+                عقارات CSV
               </motion.button>
             </div>
           </motion.div>
@@ -661,7 +716,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
               </div>
             </div>
 
-            {/* Enhanced Table */}
+            {/* Enhanced Table or Combined Search Results */}
             {loading ? (
               <div className="text-center py-16">
                 <motion.div 
@@ -671,6 +726,17 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
                 />
                 <p className="mt-4 text-gray-300">جاري تحميل البيانات...</p>
               </div>
+            ) : searchResultType === 'combined' && combinedResults ? (
+              <CombinedSearchResults 
+                combinedResults={combinedResults}
+                onItemClick={(item, type) => {
+                  if (type === 'chat') {
+                    showUnitDetails(item);
+                  } else {
+                    showPropertyDetails(item);
+                  }
+                }}
+              />
             ) : (
               <>
                 <div className="overflow-x-auto rounded-xl border border-gray-600 shadow-lg">
@@ -1221,6 +1287,13 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
         isOpen={showCSVImport}
         onClose={() => setShowCSVImport(false)}
         onImportComplete={handleCSVImportComplete}
+      />
+
+      {/* CSV Property Details Modal */}
+      <CSVPropertyDetailsModal
+        property={selectedProperty}
+        isOpen={showPropertyModal}
+        onClose={closePropertyModal}
       />
     </div>
   );
