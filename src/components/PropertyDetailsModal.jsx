@@ -23,10 +23,56 @@ import {
 } from '@heroicons/react/24/outline';
 import { getMessageById } from '../services/apiService';
 
+// Virtual property image generator
+const getVirtualPropertyImage = (propertyType, messageId) => {
+  const imageCategories = {
+    apartment: [
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=250&fit=crop&auto=format'
+    ],
+    villa: [
+      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1571939228382-b2f2b585ce15?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=250&fit=crop&auto=format'
+    ],
+    land: [
+      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1566467712871-f3d5aba3f6c7?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1494280686715-9fd497f4c1a5?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=250&fit=crop&auto=format'
+    ],
+    office: [
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1575444758702-4a6b9222336e?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1541746972996-4e0b0f93e586?w=400&h=250&fit=crop&auto=format'
+    ],
+    warehouse: [
+      'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1580687774429-74ee6e4a3fb4?w=400&h=250&fit=crop&auto=format'
+    ]
+  };
+
+  const images = imageCategories[propertyType] || imageCategories.apartment;
+  const imageIndex = Math.abs(messageId || 0) % images.length;
+  return images[imageIndex];
+};
+
 const PropertyDetailsModal = ({ propertyId, isOpen, onClose }) => {
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [language] = useState('arabic'); // Default to Arabic for now
 
   useEffect(() => {
     if (isOpen && propertyId) {
@@ -104,6 +150,39 @@ const PropertyDetailsModal = ({ propertyId, isOpen, onClose }) => {
     return phone;
   };
 
+  // Function to clean agent names from phone numbers
+  const cleanAgentName = (agentName) => {
+    if (!agentName) return agentName;
+    
+    // Remove Egyptian phone numbers in various formats
+    // Patterns: +20 XX XXXXXXXX, 01XXXXXXXXX, +201XXXXXXXXX, etc.
+    const phonePatterns = [
+      /\+?20\s*\d{2}\s*\d{8}/g,  // +20 XX XXXXXXXX
+      /\+?20\s*\d{10}/g,         // +20XXXXXXXXXX
+      /01\d{9}/g,                // 01XXXXXXXXX
+      /\+201\d{8}/g,             // +201XXXXXXXX
+      /\d{11}/g,                 // Any 11-digit number
+      /\+\d{12,}/g,              // Any international format
+      /\d{3}\s*\d{3}\s*\d{4}/g,  // XXX XXX XXXX format
+      /\d{4}\s*\d{3}\s*\d{4}/g   // XXXX XXX XXXX format
+    ];
+    
+    let cleanedName = agentName;
+    
+    // Remove all phone number patterns
+    phonePatterns.forEach(pattern => {
+      cleanedName = cleanedName.replace(pattern, '');
+    });
+    
+    // Clean up extra spaces and special characters
+    cleanedName = cleanedName
+      .replace(/[-\(\)\s]+/g, ' ')  // Replace dashes, parentheses, and multiple spaces
+      .trim()                       // Remove leading/trailing spaces
+      .replace(/\s+/g, ' ');        // Replace multiple spaces with single space
+    
+    return cleanedName || agentName; // Return original if cleaning results in empty string
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -120,8 +199,10 @@ const PropertyDetailsModal = ({ propertyId, isOpen, onClose }) => {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: "spring", duration: 0.5 }}
-          className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden"
+          className={`relative w-full max-w-4xl max-h-[90vh] overflow-hidden ${language === 'arabic' ? 'font-cairo lang-arabic' : 'font-roboto lang-english'}`}
           onClick={(e) => e.stopPropagation()}
+          dir={language === 'arabic' ? 'rtl' : 'ltr'}
+          lang={language === 'arabic' ? 'ar' : 'en'}
         >
           {/* Background with Glass Effect */}
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl"></div>
@@ -305,7 +386,7 @@ const PropertyDetailsModal = ({ propertyId, isOpen, onClose }) => {
                           <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
                             <UserIcon className="h-8 w-8 text-white" />
                           </div>
-                          <h4 className="text-xl font-bold text-white mb-2">{property.sender}</h4>
+                          <h4 className="text-xl font-bold text-white mb-2">{cleanAgentName(property.sender)}</h4>
                           <p className="text-gray-300 text-sm">
                             {property.agent_description || 'وسيط عقاري معتمد'}
                           </p>

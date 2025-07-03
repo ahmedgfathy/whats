@@ -82,7 +82,7 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 font-cairo lang-arabic" dir="rtl" lang="ar">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-slate-900/40 to-slate-900"></div>
@@ -157,7 +157,7 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
               className="text-4xl font-bold mb-3 gradient-text"
               variants={itemVariants}
             >
-              منصة العقارات الذكية
+              كونتابو
             </motion.h1>
             
             <motion.p 
@@ -165,7 +165,7 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
               variants={itemVariants}
             >
               <SparklesIcon className="h-5 w-5 text-purple-400" />
-              أدخل بياناتك للوصول إلى النظام
+              منصة العقارات الذكية - أدخل بياناتك للوصول إلى النظام
             </motion.p>
           </motion.div>
 
@@ -288,7 +288,7 @@ const Login = ({ onLogin, onLanguageSwitch }) => {
             className="text-center mt-8"
           >
             <p className="text-gray-400 text-sm">
-              © 2025 منصة العقارات الذكية - جميع الحقوق محفوظة
+              © 2025 كونتابو - جميع الحقوق محفوظة
             </p>
           </motion.div>
         </motion.div>

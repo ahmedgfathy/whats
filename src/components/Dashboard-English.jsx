@@ -25,6 +25,51 @@ import {
 import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages } from '../services/apiService';
 import ChatImportEnglish from './ChatImport-English';
 
+// Virtual property image generator
+const getVirtualPropertyImage = (propertyType, messageId) => {
+  const imageCategories = {
+    apartment: [
+      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=250&fit=crop&auto=format'
+    ],
+    villa: [
+      'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1571939228382-b2f2b585ce15?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=250&fit=crop&auto=format'
+    ],
+    land: [
+      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1566467712871-f3d5aba3f6c7?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1494280686715-9fd497f4c1a5?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=250&fit=crop&auto=format'
+    ],
+    office: [
+      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1575444758702-4a6b9222336e?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1568992687947-868a62a9f521?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1541746972996-4e0b0f93e586?w=400&h=250&fit=crop&auto=format'
+    ],
+    warehouse: [
+      'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=250&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1580687774429-74ee6e4a3fb4?w=400&h=250&fit=crop&auto=format'
+    ]
+  };
+
+  const images = imageCategories[propertyType] || imageCategories.apartment;
+  const imageIndex = Math.abs(messageId || 0) % images.length;
+  return images[imageIndex];
+};
+
 const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   const [messages, setMessages] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
@@ -141,6 +186,37 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
     setLoading(false);
   };
 
+  const handleRemoveDuplicates = async () => {
+    setAdminLoading(true);
+    setAdminResult(null);
+    
+    try {
+      console.log('English Dashboard: Starting duplicate removal...');
+      const result = await removeDuplicateMessages();
+      console.log('English Dashboard: Duplicate removal result:', result);
+      
+      setAdminResult({
+        success: true,
+        message: `Successfully removed ${result.removed} duplicate messages`,
+        removed: result.removed,
+        totalBefore: result.totalBefore,
+        totalAfter: result.totalAfter
+      });
+      
+      // Refresh data after cleanup
+      await loadInitialData();
+      
+    } catch (error) {
+      console.error('Error removing duplicates:', error);
+      setAdminResult({
+        success: false,
+        message: 'An error occurred while removing duplicate messages'
+      });
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
   const handleSort = (field) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -228,8 +304,41 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
     return colors[type] || 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   };
 
+  // Function to clean agent names from phone numbers
+  const cleanAgentName = (agentName) => {
+    if (!agentName) return agentName;
+    
+    // Remove Egyptian phone numbers in various formats
+    // Patterns: +20 XX XXXXXXXX, 01XXXXXXXXX, +201XXXXXXXXX, etc.
+    const phonePatterns = [
+      /\+?20\s*\d{2}\s*\d{8}/g,  // +20 XX XXXXXXXX
+      /\+?20\s*\d{10}/g,         // +20XXXXXXXXXX
+      /01\d{9}/g,                // 01XXXXXXXXX
+      /\+201\d{8}/g,             // +201XXXXXXXX
+      /\d{11}/g,                 // Any 11-digit number
+      /\+\d{12,}/g,              // Any international format
+      /\d{3}\s*\d{3}\s*\d{4}/g,  // XXX XXX XXXX format
+      /\d{4}\s*\d{3}\s*\d{4}/g   // XXXX XXX XXXX format
+    ];
+    
+    let cleanedName = agentName;
+    
+    // Remove all phone number patterns
+    phonePatterns.forEach(pattern => {
+      cleanedName = cleanedName.replace(pattern, '');
+    });
+    
+    // Clean up extra spaces and special characters
+    cleanedName = cleanedName
+      .replace(/[-\(\)\s]+/g, ' ')  // Replace dashes, parentheses, and multiple spaces
+      .trim()                       // Remove leading/trailing spaces
+      .replace(/\s+/g, ' ');        // Replace multiple spaces with single space
+    
+    return cleanedName || agentName; // Return original if cleaning results in empty string
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900" dir="ltr">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 font-roboto lang-english" dir="ltr" lang="en">
       {/* Header with Language Switcher */}
       <motion.header 
         className="bg-black/20 backdrop-blur-xl border-b border-white/10 sticky top-0 z-40"
@@ -252,12 +361,12 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold gradient-text">
-                  Smart Real Estate Platform
+                  Contaboo
                 </h1>
                 <div className="flex items-center space-x-2 mt-1">
                   <SparklesIcon className="h-4 w-4 text-purple-400" />
                   <CpuChipIcon className="h-4 w-4 text-purple-400 animate-pulse" />
-                  <p className="text-sm text-gray-300">AI-powered Advanced Search Technology</p>
+                  <p className="text-sm text-gray-300">Smart Real Estate Platform</p>
                 </div>
               </div>
             </motion.div>
@@ -356,7 +465,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
               </div>
             </div>
             <h2 className="text-xl font-bold mb-2">Welcome!</h2>
-            <p className="text-blue-100 text-sm leading-relaxed">To the Smart Real Estate Platform for WhatsApp Chat Analysis</p>
+            <p className="text-blue-100 text-sm leading-relaxed">To Contaboo - Smart Real Estate Platform for WhatsApp Chat Analysis</p>
           </motion.div>
 
           {/* Search Card */}
@@ -425,131 +534,6 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
               <span>Interactive</span>
             </div>
           </motion.button>
-        </div>
-
-        {/* Second Row - 4 Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-12">
-          
-          {/* Apartments Card */}
-          <motion.button
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            onClick={() => handleStatClick('apartment')}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className={`bg-gradient-to-br rounded-2xl p-6 text-white transition-all duration-300 shadow-xl hover:shadow-2xl border ${
-              selectedFilter === 'apartment' 
-                ? 'from-blue-500 to-blue-700 ring-2 ring-blue-300 shadow-blue-500/25 border-blue-400/50' 
-                : 'from-blue-600/80 to-blue-800/80 hover:from-blue-500 hover:to-blue-700 border-blue-600/50'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                <HomeModernIcon className="h-6 w-6" />
-              </div>
-              <span className="text-3xl font-bold">{stats.find(s => s.property_type === 'apartment')?.count || 0}</span>
-            </div>
-            <h3 className="text-lg font-bold mb-2">Apartments</h3>
-            <p className="text-sm opacity-80 leading-relaxed">Residential apartments for sale & rent</p>
-          </motion.button>
-
-          {/* Villas Card */}
-          <motion.button
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            onClick={() => handleStatClick('villa')}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className={`bg-gradient-to-br rounded-2xl p-6 text-white transition-all duration-300 shadow-xl hover:shadow-2xl border ${
-              selectedFilter === 'villa' 
-                ? 'from-green-500 to-green-700 ring-2 ring-green-300 shadow-green-500/25 border-green-400/50' 
-                : 'from-green-600/80 to-green-800/80 hover:from-green-500 hover:to-green-700 border-green-600/50'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                <HomeModernIcon className="h-6 w-6" />
-              </div>
-              <span className="text-3xl font-bold">{stats.find(s => s.property_type === 'villa')?.count || 0}</span>
-            </div>
-            <h3 className="text-lg font-bold mb-2">Villas</h3>
-            <p className="text-sm opacity-80 leading-relaxed">Independent villas and duplexes</p>
-          </motion.button>
-
-          {/* Land Card */}
-          <motion.button
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-            onClick={() => handleStatClick('land')}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className={`bg-gradient-to-br rounded-2xl p-6 text-white transition-all duration-300 shadow-xl hover:shadow-2xl border ${
-              selectedFilter === 'land' 
-                ? 'from-orange-500 to-orange-700 ring-2 ring-orange-300 shadow-orange-500/25 border-orange-400/50' 
-                : 'from-orange-600/80 to-orange-800/80 hover:from-orange-500 hover:to-orange-700 border-orange-600/50'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                <MapPinIcon className="h-6 w-6" />
-              </div>
-              <span className="text-3xl font-bold">{stats.find(s => s.property_type === 'land')?.count || 0}</span>
-            </div>
-            <h3 className="text-lg font-bold mb-2">Land</h3>
-            <p className="text-sm opacity-80 leading-relaxed">Residential and commercial land</p>
-          </motion.button>
-
-          {/* Commercial Properties Card */}
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="bg-gradient-to-br from-slate-700 via-slate-800 to-gray-900 rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border border-slate-600/50"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">Commercial Properties</h3>
-              <div className="bg-emerald-500 p-2 rounded-lg">
-                <BuildingStorefrontIcon className="h-4 w-4 text-white" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <motion.button
-                onClick={() => handleStatClick('office')}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`w-full flex justify-between items-center p-2 rounded-lg transition-all duration-300 text-sm ${
-                  selectedFilter === 'office' 
-                    ? 'bg-purple-600 text-white shadow-lg transform scale-105' 
-                    : 'hover:bg-gray-700 bg-gray-800/50 text-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-                  <span className="font-medium text-sm">Offices</span>
-                </div>
-                <span className="font-bold text-purple-400">{stats.find(s => s.property_type === 'office')?.count || 0}</span>
-              </motion.button>
-              <motion.button
-                onClick={() => handleStatClick('warehouse')}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className={`w-full flex justify-between items-center p-2 rounded-lg transition-all duration-300 text-sm ${
-                  selectedFilter === 'warehouse' 
-                    ? 'bg-red-600 text-white shadow-lg transform scale-105' 
-                    : 'hover:bg-gray-700 bg-gray-800/50 text-gray-300'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                  <span className="font-medium text-sm">Warehouses</span>
-                </div>
-                <span className="font-bold text-red-400">{stats.find(s => s.property_type === 'warehouse')?.count || 0}</span>
-              </motion.button>
-            </div>
-          </motion.div>
         </div>
 
         {/* Content based on active tab */}
@@ -670,7 +654,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
                           transition={{ duration: 0.3, delay: index * 0.05 }}
                           className="hover:bg-gray-800 transition-colors duration-200 group"
                         >
-                          <td className="py-4 px-6 font-semibold text-white w-36">{message.sender}</td>
+                          <td className="py-4 px-6 font-semibold text-white w-36">{cleanAgentName(message.sender)}</td>
                           <td className="py-4 px-6 w-32">
                             <span className="text-green-400 font-mono text-sm bg-green-400/10 px-2 py-1 rounded border border-green-400/30">
                               {message.agent_phone || 'N/A'}
@@ -860,6 +844,152 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'admin' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gradient-to-br from-red-900/30 via-gray-900 to-pink-900/30 rounded-2xl p-8 shadow-2xl border border-red-500/20"
+          >
+            <div className="flex items-center justify-between mb-8 pb-6 border-b border-red-500/20">
+              <div>
+                <h3 className="text-3xl font-bold text-red-400 flex items-center gap-3">
+                  <ShieldCheckIcon className="h-8 w-8" />
+                  System Administration
+                </h3>
+                <p className="text-gray-400 mt-2">Database maintenance and management tools</p>
+              </div>
+              <div className="bg-red-500/10 px-4 py-2 rounded-lg border border-red-500/30">
+                <span className="text-red-400 text-sm font-medium">Admin Area</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Remove Duplicates Section */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-orange-900/20 to-red-900/20 rounded-xl p-6 border border-orange-500/20"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <TrashIcon className="h-6 w-6 text-orange-400" />
+                  <h4 className="text-xl font-bold text-orange-400">Remove Duplicate Messages</h4>
+                </div>
+                
+                <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-black text-xs font-bold">!</span>
+                    </div>
+                    <div>
+                      <h5 className="text-yellow-400 font-semibold mb-1">Warning</h5>
+                      <p className="text-yellow-300 text-sm">
+                        This action is irreversible. Make sure to backup your data before proceeding.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <motion.button
+                  onClick={handleRemoveDuplicates}
+                  disabled={adminLoading}
+                  whileHover={{ scale: adminLoading ? 1 : 1.02 }}
+                  whileTap={{ scale: adminLoading ? 1 : 0.98 }}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white font-bold rounded-xl shadow-lg hover:from-orange-700 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-3"
+                >
+                  {adminLoading ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Removing duplicates...
+                    </>
+                  ) : (
+                    <>
+                      <TrashIcon className="h-5 w-5" />
+                      Remove Duplicate Messages
+                    </>
+                  )}
+                </motion.button>
+              </motion.div>
+
+              {/* Statistics Section */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 rounded-xl p-6 border border-blue-500/20"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <ChartBarIcon className="h-6 w-6 text-blue-400" />
+                  <h4 className="text-xl font-bold text-blue-400">System Statistics</h4>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center p-3 bg-gray-800/50 rounded-lg">
+                    <span className="text-gray-300">Total Messages</span>
+                    <span className="text-blue-400 font-bold">{messages.length.toLocaleString()}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-gray-800/50 rounded-lg">
+                    <span className="text-gray-300">Total Properties</span>
+                    <span className="text-green-400 font-bold">
+                      {stats.reduce((sum, stat) => sum + stat.count, 0).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 bg-gray-800/50 rounded-lg">
+                    <span className="text-gray-300">Property Types</span>
+                    <span className="text-purple-400 font-bold">{stats.length}</span>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Result Message */}
+            {adminResult && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className={`mt-8 p-6 rounded-xl border ${
+                  adminResult.success 
+                    ? 'bg-green-900/20 border-green-500/30' 
+                    : 'bg-red-900/20 border-red-500/30'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  {adminResult.success ? (
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                  <div>
+                    <h4 className={`font-bold mb-2 ${adminResult.success ? 'text-green-400' : 'text-red-400'}`}>
+                      {adminResult.success ? 'Operation Successful' : 'Operation Failed'}
+                    </h4>
+                    <p className="text-gray-300 mb-3">{adminResult.message}</p>
+                    {adminResult.success && adminResult.removed !== undefined && (
+                      <div className="text-sm text-gray-400 space-y-1">
+                        <p>• Removed {adminResult.removed} duplicate messages</p>
+                        <p>• Count before cleanup: {adminResult.totalBefore.toLocaleString()}</p>
+                        <p>• Count after cleanup: {adminResult.totalAfter.toLocaleString()}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         )}
 

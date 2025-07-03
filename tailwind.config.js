@@ -7,7 +7,10 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        arabic: ['Noto Sans Arabic', 'Arial', 'sans-serif'],
+        arabic: ['Cairo', 'Noto Sans Arabic', 'Arial', 'sans-serif'],
+        english: ['Roboto', 'Inter', 'system-ui', 'sans-serif'],
+        cairo: ['Cairo', 'sans-serif'],
+        roboto: ['Roboto', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

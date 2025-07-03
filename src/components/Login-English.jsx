@@ -79,7 +79,7 @@ const LoginEnglish = ({ onLogin, onLanguageSwitch }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center relative overflow-hidden" dir="ltr">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center relative overflow-hidden font-roboto lang-english" dir="ltr" lang="en">
       {/* Animated Background Icons */}
       {floatingIcons.map(({ Icon, delay, position }, index) => (
         <motion.div
@@ -137,10 +137,10 @@ const LoginEnglish = ({ onLogin, onLanguageSwitch }) => {
           </motion.div>
           
           <h1 className="text-4xl font-bold gradient-text mb-3">
-            Smart Real Estate
+            Contaboo
           </h1>
           <p className="text-gray-300 text-lg font-medium">
-            WhatsApp Chat Analysis Platform
+            Smart Real Estate Platform
           </p>
           <div className="flex items-center justify-center space-x-2 mt-3">
             <SparklesIcon className="h-4 w-4 text-purple-400" />

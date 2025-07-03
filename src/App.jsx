@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import HomePage from './components/HomePage';
 import Login from './components/Login';
 import LoginEnglish from './components/Login-English';
 import Dashboard from './components/Dashboard';
@@ -41,9 +42,14 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className={`min-h-screen bg-gray-900 ${language === 'arabic' ? 'font-cairo' : 'font-roboto'}`}>
       <Router>
         <Routes>
+          {/* Public Homepage - accessible to everyone */}
+          <Route 
+            path="/" 
+            element={<HomePage />} 
+          />
           <Route 
             path="/login" 
             element={
@@ -65,10 +71,6 @@ function App() {
                 ) : 
                 <Navigate to="/login" replace />
             } 
-          />
-          <Route 
-            path="/" 
-            element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} 
           />
         </Routes>
       </Router>

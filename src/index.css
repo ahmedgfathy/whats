@@ -1,4 +1,44 @@
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@100..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Language-specific font classes */
+@layer components {
+  .font-arabic {
+    font-family: 'Cairo', 'Noto Sans Arabic', 'Arial', sans-serif;
+    font-feature-settings: 'kern', 'liga', 'clig', 'calt';
+  }
+  
+  .font-english {
+    font-family: 'Roboto', 'Inter', 'system-ui', sans-serif;
+    font-feature-settings: 'kern', 'liga', 'clig', 'calt';
+  }
+
+  /* Language container classes */
+  .lang-arabic {
+    font-family: 'Cairo', 'Noto Sans Arabic', 'Arial', sans-serif;
+    direction: rtl;
+    text-align: right;
+  }
+  
+  .lang-english {
+    font-family: 'Roboto', 'Inter', 'system-ui', sans-serif;
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* Global font application based on content language */
+  [lang="ar"], [dir="rtl"] {
+    font-family: 'Cairo', 'Noto Sans Arabic', 'Arial', sans-serif !important;
+  }
+  
+  [lang="en"], [dir="ltr"] {
+    font-family: 'Roboto', 'Inter', 'system-ui', sans-serif !important;
+  }
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -86,6 +126,33 @@
     padding: 0;
     direction: rtl;
   }
+}
+
+/* Global body and root font settings */
+body {
+  font-family: 'Roboto', 'Inter', 'system-ui', sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Root font styles that can be overridden */
+#root {
+  font-family: inherit;
+}
+
+/* Arabic text styling improvements */
+.font-cairo, .lang-arabic {
+  font-feature-settings: 'kern', 'liga', 'clig', 'calt', 'rlig';
+  text-rendering: optimizeLegibility;
+  font-variant-ligatures: common-ligatures;
+}
+
+/* English text styling improvements */
+.font-roboto, .lang-english {
+  font-feature-settings: 'kern', 'liga', 'clig', 'calt';
+  text-rendering: optimizeLegibility;
+  font-variant-ligatures: common-ligatures;
 }
 
 /* Custom scrollbar */
