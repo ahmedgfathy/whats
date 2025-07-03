@@ -153,9 +153,13 @@ const HomePage = () => {
       setMessages(filteredMessages);
     } catch (error) {
       console.error('Error loading filtered data:', error);
-    }
+      }
     setLoading(false);
   };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    setFilteredMessages([]);
     setCurrentPage(1);
   };
 
@@ -354,28 +358,59 @@ const HomePage = () => {
         >
           <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl">
             <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={texts.search}
-                className="flex-1 px-4 md:px-6 py-3 md:py-4 bg-slate-600/50 text-white rounded-2xl border border-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 placeholder-slate-300 text-base md:text-lg w-full"
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSearch}
-                disabled={loading}
-                className="px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 flex items-center gap-2 font-medium shadow-lg text-base md:text-lg min-w-fit"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <MagnifyingGlassIcon className="h-5 w-5" />
+              <div className="flex-1 relative w-full">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={texts.search}
+                  className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-600/50 text-white rounded-2xl border border-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 placeholder-slate-300 text-base md:text-lg pr-12"
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      loadInitialData();
+                    }}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 )}
-                {texts.searchBtn}
-              </motion.button>
+              </div>
+              <div className="flex gap-2">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleSearch}
+                  disabled={loading || !searchTerm.trim()}
+                  className="px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-lg text-base md:text-lg min-w-fit"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <MagnifyingGlassIcon className="h-5 w-5" />
+                  )}
+                  {texts.searchBtn}
+                </motion.button>
+                {searchTerm && (
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedFilter('all');
+                      loadInitialData();
+                    }}
+                    className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-2xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 flex items-center gap-2 font-medium shadow-lg text-base md:text-lg"
+                  >
+                    {language === 'arabic' ? 'مسح' : 'Clear'}
+                  </motion.button>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>

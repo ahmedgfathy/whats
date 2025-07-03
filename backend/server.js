@@ -331,6 +331,73 @@ app.get('/api/messages/:id', (req, res) => {
   }
 });
 
+// CSV Import endpoint
+app.post('/api/import-csv', (req, res) => {
+  try {
+    const { tableName, headers, data } = req.body;
+    
+    if (!tableName || !headers || !data || !Array.isArray(data)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields: tableName, headers, data' 
+      });
+    }
+
+    console.log(`Starting CSV import to table: ${tableName}`);
+    console.log(`Headers: ${headers.join(', ')}`);
+    console.log(`Data rows: ${data.length}`);
+
+    // Create or update table based on CSV structure
+    const createTableSQL = `CREATE TABLE IF NOT EXISTS ${tableName} (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ${headers.map(header => `\`${header}\` TEXT`).join(', ')},
+      imported_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`;
+    
+    db.exec(createTableSQL);
+    console.log(`Table ${tableName} created/updated`);
+
+    // Prepare insert statement
+    const placeholders = headers.map(() => '?').join(', ');
+    const insertSQL = `INSERT INTO ${tableName} (${headers.map(h => `\`${h}\``).join(', ')}) VALUES (${placeholders})`;
+    const insertStmt = db.prepare(insertSQL);
+
+    // Insert data in transaction for better performance
+    const insertMany = db.transaction((rows) => {
+      let insertedCount = 0;
+      for (const row of rows) {
+        try {
+          const values = headers.map(header => row[header] || '');
+          insertStmt.run(values);
+          insertedCount++;
+        } catch (error) {
+          console.warn(`Failed to insert row:`, error.message, row);
+        }
+      }
+      return insertedCount;
+    });
+
+    const importedCount = insertMany(data);
+
+    console.log(`CSV import completed: ${importedCount}/${data.length} rows imported`);
+
+    res.json({
+      success: true,
+      message: `Successfully imported ${importedCount} rows to table ${tableName}`,
+      imported: importedCount,
+      total: data.length,
+      table: tableName
+    });
+
+  } catch (error) {
+    console.error('CSV import error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to import CSV data: ' + error.message
+    });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'API is running', database: 'SQLite connected' });

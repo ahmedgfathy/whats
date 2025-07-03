@@ -20,10 +20,12 @@ import {
   ChartBarIcon,
   LanguageIcon,
   ShieldCheckIcon,
-  TrashIcon
+  TrashIcon,
+  DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages } from '../services/apiService';
 import ChatImportEnglish from './ChatImport-English';
+import CSVImportEnglish from './CSVImport-English';
 
 // Virtual property image generator
 const getVirtualPropertyImage = (propertyType, messageId) => {
@@ -85,6 +87,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   const [sortDirection, setSortDirection] = useState('desc');
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminResult, setAdminResult] = useState(null);
+  const [showCSVImport, setShowCSVImport] = useState(false);
 
   const propertyFilters = [
     { id: 'all', label: 'All Properties', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -116,6 +119,13 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
       icon: ArrowUpTrayIcon, 
       gradient: 'from-green-500 to-emerald-500',
       description: 'Upload WhatsApp files'
+    },
+    { 
+      id: 'csv-import', 
+      label: 'Import CSV', 
+      icon: DocumentArrowUpIcon, 
+      gradient: 'from-purple-500 to-indigo-500',
+      description: 'Upload CSV & Excel files'
     },
     { 
       id: 'admin', 
@@ -215,6 +225,22 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
     } finally {
       setAdminLoading(false);
     }
+  };
+
+  // CSV Import handler
+  const handleCSVImportComplete = async (result) => {
+    console.log('CSV import completed:', result);
+    setShowCSVImport(false);
+    
+    // Refresh data after import
+    await loadInitialData();
+    
+    // Show success message
+    setAdminResult({
+      success: true,
+      message: `Successfully imported ${result.imported || result.total || 0} records from CSV file`,
+      imported: result.imported || result.total || 0
+    });
   };
 
   const handleSort = (field) => {
@@ -372,6 +398,18 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
             </motion.div>
             
             <div className="flex items-center gap-4">
+              {/* View Public Homepage Button */}
+              <motion.button
+                onClick={() => window.open('/', '_blank')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative overflow-hidden flex items-center px-6 py-3 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <EyeIcon className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
+                <span className="relative">Public Homepage</span>
+              </motion.button>
+
               {/* Language Switcher */}
               <motion.button
                 onClick={onLanguageSwitch}
@@ -775,6 +813,148 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
           <ChatImportEnglish onImportSuccess={loadInitialData} />
         )}
 
+        {activeTab === 'csv-import' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gradient-to-br from-purple-900/30 via-gray-900 to-indigo-900/30 rounded-2xl p-8 shadow-2xl border border-purple-500/20"
+          >
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-purple-500/20">
+              <div>
+                <h3 className="text-3xl font-bold text-purple-400 flex items-center gap-3">
+                  <DocumentArrowUpIcon className="h-8 w-8" />
+                  Import CSV Files
+                </h3>
+                <p className="text-gray-400 mt-2">Upload and convert CSV & Excel files to database</p>
+              </div>
+              <div className="bg-purple-500/10 px-4 py-2 rounded-lg border border-purple-500/30">
+                <span className="text-purple-400 text-sm font-medium">Data Files</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* CSV Import Instructions */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/20"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <DocumentArrowUpIcon className="h-6 w-6 text-blue-400" />
+                  <h4 className="text-xl font-bold text-blue-400">Import Instructions</h4>
+                </div>
+                
+                <div className="space-y-4 text-gray-300">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-semibold text-green-400">Supported Files:</span>
+                      <p className="text-sm mt-1">CSV, Excel (.xlsx)</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-semibold text-yellow-400">Data Structure:</span>
+                      <p className="text-sm mt-1">First row will be used as column headers</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-semibold text-purple-400">Preview:</span>
+                      <p className="text-sm mt-1">Preview first 5 rows before import</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-red-400 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-semibold text-red-400">Warning:</span>
+                      <p className="text-sm mt-1">Verify data accuracy before importing</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Import Action */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-xl p-6 border border-green-500/20"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <ArrowUpTrayIcon className="h-6 w-6 text-green-400" />
+                  <h4 className="text-xl font-bold text-green-400">Upload File</h4>
+                </div>
+
+                <div className="text-center">
+                  <motion.button
+                    onClick={() => setShowCSVImport(true)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full px-8 py-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-3"
+                  >
+                    <DocumentArrowUpIcon className="h-6 w-6" />
+                    <span>Choose CSV File to Import</span>
+                  </motion.button>
+                  
+                  <p className="text-gray-400 text-sm mt-4 leading-relaxed">
+                    Click to select CSV or Excel file from your device
+                    <br />
+                    Data will be previewed before final import
+                  </p>
+                </div>
+
+                {/* Sample CSV Format */}
+                <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
+                  <h5 className="text-sm font-bold text-gray-300 mb-2">Sample CSV Format:</h5>
+                  <code className="text-xs text-gray-400 font-mono">
+                    Property Name,Property Type,Price,Location,Description
+                    <br />
+                    120m Apartment,apartment,750000,Cairo,Premium apartment...
+                  </code>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* CSV Import Statistics */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mt-8 bg-gradient-to-r from-indigo-900/20 to-purple-900/20 rounded-xl p-6 border border-indigo-500/20"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <ChartBarIcon className="h-6 w-6 text-indigo-400" />
+                <h4 className="text-xl font-bold text-indigo-400">Import Statistics</h4>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-400">{messages.length.toLocaleString()}</div>
+                  <div className="text-sm text-gray-400">Current Total Properties</div>
+                </div>
+                
+                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-400">{stats.length}</div>
+                  <div className="text-sm text-gray-400">Property Types</div>
+                </div>
+                
+                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-400">21,049</div>
+                  <div className="text-sm text-gray-400">Records in Attached CSV</div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {activeTab === 'recent' && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -1103,6 +1283,13 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
           </motion.div>
         </div>
       )}
+
+      {/* CSV Import Modal */}
+      <CSVImportEnglish 
+        isOpen={showCSVImport}
+        onClose={() => setShowCSVImport(false)}
+        onImportComplete={handleCSVImportComplete}
+      />
     </div>
   );
 };

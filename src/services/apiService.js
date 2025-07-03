@@ -57,14 +57,82 @@ const generateFullDescription = (type, area, location) => {
   return baseDesc[type] || baseDesc.other;
 };
 
-// Authentication
+// Authentication with enhanced security
 export const authenticateUser = async (username, password) => {
-  const response = await apiCall('/auth/login', {
-    method: 'POST',
-    body: JSON.stringify({ username, password })
-  });
-  
-  return response.success;
+  try {
+    // For security, don't store credentials in the app
+    // The backend should handle password hashing and validation
+    const response = await apiCall('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password })
+    });
+    
+    if (response.success) {
+      // Store session token if provided by backend
+      if (response.token) {
+        localStorage.setItem('authToken', response.token);
+      }
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Authentication error:', error);
+    return false;
+  }
+};
+
+// Enhanced authentication functions
+export const logoutUser = async () => {
+  try {
+    await apiCall('/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+  } finally {
+    // Always clear local storage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('sessionTime');
+  }
+};
+
+export const validateSession = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    if (!token) return false;
+    
+    const response = await apiCall('/auth/validate', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    return response.valid;
+  } catch (error) {
+    console.error('Session validation error:', error);
+    return false;
+  }
+};
+
+// Remove duplicate messages with enhanced error handling
+export const removeDuplicateMessages = async () => {
+  try {
+    const response = await apiCall('/admin/remove-duplicates', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    return response;
+  } catch (error) {
+    console.error('Error removing duplicates:', error);
+    throw error;
+  }
 };
 
 // Get message by ID
@@ -168,6 +236,69 @@ export const importChatMessages = async (parsedMessages) => {
   return response;
 };
 
+// CSV Import functionality
+export const importCSVData = async (tableName, headers, data) => {
+  try {
+    console.log(`Starting CSV import to table: ${tableName}`);
+    console.log(`Headers: ${headers.join(', ')}`);
+    console.log(`Data rows: ${data.length}`);
+    
+    const response = await apiCall('/import-csv', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      },
+      body: JSON.stringify({
+        tableName,
+        headers,
+        data
+      })
+    });
+    
+    console.log('CSV import result:', response);
+    return response;
+  } catch (error) {
+    console.error('CSV import error:', error);
+    throw error;
+  }
+};
+
+// Get available database tables for CSV import
+export const getDatabaseTables = async () => {
+  try {
+    const response = await apiCall('/admin/tables', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      }
+    });
+    return response.tables || [];
+  } catch (error) {
+    console.error('Error fetching database tables:', error);
+    return [];
+  }
+};
+
+// Validate CSV data before import
+export const validateCSVData = async (tableName, headers, sampleData) => {
+  try {
+    const response = await apiCall('/validate-csv', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+      },
+      body: JSON.stringify({
+        tableName,
+        headers,
+        sampleData: sampleData.slice(0, 5) // Send only first 5 rows for validation
+      })
+    });
+    return response;
+  } catch (error) {
+    console.error('CSV validation error:', error);
+    throw error;
+  }
+};
+
 // Function to reset database to initial state (for testing)
 export const resetDatabase = async () => {
   // This would require a backend endpoint to reset/clear the database
@@ -200,23 +331,12 @@ export const checkBackendHealth = async () => {
   }
 };
 
-// Admin function: Remove duplicate messages
-export const removeDuplicateMessages = async () => {
-  try {
-    console.log('Removing duplicate messages...');
-    const response = await apiCall('/admin/remove-duplicates', {
-      method: 'POST'
-    });
-    console.log('Duplicate removal result:', response);
-    return response;
-  } catch (error) {
-    console.error('Error removing duplicates:', error);
-    throw error;
-  }
-};
+// Duplicate function removed - using the first declaration above
 
 export default {
   authenticateUser,
+  logoutUser,
+  validateSession,
   insertMessage,
   searchMessages,
   getAllMessages,
@@ -226,5 +346,8 @@ export default {
   resetDatabase,
   getDatabaseSize,
   checkBackendHealth,
-  removeDuplicateMessages
+  removeDuplicateMessages,
+  importCSVData,
+  getDatabaseTables,
+  validateCSVData
 };

@@ -20,10 +20,12 @@ import {
   ChartBarIcon,
   LanguageIcon,
   ShieldCheckIcon,
-  TrashIcon
+  TrashIcon,
+  DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages } from '../services/apiService';
 import ChatImport from './ChatImport';
+import CSVImport from './CSVImport';
 
 // Virtual property image generator
 const getVirtualPropertyImage = (propertyType, messageId) => {
@@ -85,6 +87,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const [sortDirection, setSortDirection] = useState('desc');
   const [adminLoading, setAdminLoading] = useState(false);
   const [adminResult, setAdminResult] = useState(null);
+  const [showCSVImport, setShowCSVImport] = useState(false);
 
   const propertyFilters = [
     { id: 'all', label: 'جميع العقارات', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -116,6 +119,13 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
       icon: ArrowUpTrayIcon, 
       gradient: 'from-green-500 to-emerald-500',
       description: 'رفع ملفات WhatsApp'
+    },
+    { 
+      id: 'csv-import', 
+      label: 'استيراد CSV', 
+      icon: DocumentArrowUpIcon, 
+      gradient: 'from-purple-500 to-indigo-500',
+      description: 'رفع ملفات CSV وExcel'
     },
     { 
       id: 'admin', 
@@ -205,6 +215,22 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
     } finally {
       setAdminLoading(false);
     }
+  };
+
+  // CSV Import handler
+  const handleCSVImportComplete = async (result) => {
+    console.log('CSV import completed:', result);
+    setShowCSVImport(false);
+    
+    // Refresh data after import
+    await loadInitialData();
+    
+    // Show success message
+    setAdminResult({
+      success: true,
+      message: `تم استيراد ${result.imported || result.total || 0} سجل بنجاح من ملف CSV`,
+      imported: result.imported || result.total || 0
+    });
   };
 
   const handleSearch = async () => {
@@ -395,6 +421,18 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
             </motion.div>
             
             <div className="flex items-center gap-8 mr-16">
+              {/* View Public Homepage Button */}
+              <motion.button
+                onClick={() => window.open('/', '_blank')}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative overflow-hidden flex items-center px-6 py-3 text-sm font-semibold text-gray-300 hover:text-white glass-light rounded-2xl border border-white/20 transition-all duration-300 shadow-lg"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <EyeIcon className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform duration-300" />
+                <span className="relative">الصفحة العامة</span>
+              </motion.button>
+
               {/* Language Switcher */}
               <motion.button
                 onClick={onLanguageSwitch}
@@ -799,6 +837,148 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
           <ChatImport onImportSuccess={loadInitialData} />
         )}
 
+        {activeTab === 'csv-import' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="bg-gradient-to-br from-purple-900/30 via-gray-900 to-indigo-900/30 rounded-2xl p-8 shadow-2xl border border-purple-500/20"
+          >
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-purple-500/20">
+              <div>
+                <h3 className="text-3xl font-bold text-purple-400 flex items-center gap-3">
+                  <DocumentArrowUpIcon className="h-8 w-8" />
+                  استيراد ملفات CSV
+                </h3>
+                <p className="text-gray-400 mt-2">رفع وتحويل ملفات CSV و Excel إلى قاعدة البيانات</p>
+              </div>
+              <div className="bg-purple-500/10 px-4 py-2 rounded-lg border border-purple-500/30">
+                <span className="text-purple-400 text-sm font-medium">ملفات البيانات</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* CSV Import Instructions */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 rounded-xl p-6 border border-blue-500/20"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <DocumentArrowUpIcon className="h-6 w-6 text-blue-400" />
+                  <h4 className="text-xl font-bold text-blue-400">تعليمات الاستيراد</h4>
+                </div>
+                
+                <div className="space-y-4 text-gray-300">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-semibold text-green-400">الملفات المدعومة:</span>
+                      <p className="text-sm mt-1">CSV, Excel (.xlsx)</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-semibold text-yellow-400">هيكل البيانات:</span>
+                      <p className="text-sm mt-1">سيتم تحليل الصف الأول كرؤوس الأعمدة</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-semibold text-purple-400">المعاينة:</span>
+                      <p className="text-sm mt-1">عرض أول 5 صفوف قبل الاستيراد</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-red-400 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-semibold text-red-400">تحذير:</span>
+                      <p className="text-sm mt-1">تأكد من صحة البيانات قبل الاستيراد</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Import Action */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 rounded-xl p-6 border border-green-500/20"
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <ArrowUpTrayIcon className="h-6 w-6 text-green-400" />
+                  <h4 className="text-xl font-bold text-green-400">رفع الملف</h4>
+                </div>
+
+                <div className="text-center">
+                  <motion.button
+                    onClick={() => setShowCSVImport(true)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full px-8 py-6 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-3"
+                  >
+                    <DocumentArrowUpIcon className="h-6 w-6" />
+                    <span>اختيار ملف CSV للاستيراد</span>
+                  </motion.button>
+                  
+                  <p className="text-gray-400 text-sm mt-4 leading-relaxed">
+                    انقر لاختيار ملف CSV أو Excel من جهازك
+                    <br />
+                    سيتم معاينة البيانات قبل الاستيراد النهائي
+                  </p>
+                </div>
+
+                {/* Sample CSV Format */}
+                <div className="mt-6 bg-gray-800/50 rounded-lg p-4">
+                  <h5 className="text-sm font-bold text-gray-300 mb-2">مثال على تنسيق CSV:</h5>
+                  <code className="text-xs text-gray-400 font-mono">
+                    Property Name,Property Type,Price,Location,Description
+                    <br />
+                    شقة 120 متر,apartment,750000,القاهرة,شقة مميزة...
+                  </code>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* CSV Import Statistics */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mt-8 bg-gradient-to-r from-indigo-900/20 to-purple-900/20 rounded-xl p-6 border border-indigo-500/20"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <ChartBarIcon className="h-6 w-6 text-indigo-400" />
+                <h4 className="text-xl font-bold text-indigo-400">إحصائيات الاستيراد</h4>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-400">{messages.length.toLocaleString()}</div>
+                  <div className="text-sm text-gray-400">إجمالي العقارات الحالية</div>
+                </div>
+                
+                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-green-400">{stats.length}</div>
+                  <div className="text-sm text-gray-400">أنواع العقارات</div>
+                </div>
+                
+                <div className="text-center p-4 bg-gray-800/50 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-400">21,049</div>
+                  <div className="text-sm text-gray-400">سجلات في ملف CSV المرفق</div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {activeTab === 'recent' && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -878,7 +1058,7 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
             transition={{ duration: 0.5 }}
             className="bg-gradient-to-br from-red-900/30 via-gray-900 to-pink-900/30 rounded-2xl p-8 shadow-2xl border border-red-500/20"
           >
-            <div className="flex items-center justify-between mb-8 pb-6 border-b border-red-500/20">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-red-500/20">
               <div>
                 <h3 className="text-3xl font-bold text-red-400 flex items-center gap-3">
                   <ShieldCheckIcon className="h-8 w-8" />
@@ -1128,6 +1308,13 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
           </motion.div>
         </div>
       )}
+
+      {/* CSV Import Modal */}
+      <CSVImport 
+        isOpen={showCSVImport}
+        onClose={() => setShowCSVImport(false)}
+        onImportComplete={handleCSVImportComplete}
+      />
     </div>
   );
 };
