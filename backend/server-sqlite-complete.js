@@ -888,196 +888,7 @@ app.post('/api/messages/import', (req, res) => {
   }
 });
 
-// Property type statistics (for frontend compatibility)
-app.get('/api/stats', (req, res) => {
-  try {
-    let stats = [];
-    
-    if (USE_SQLITE) {
-      const propertyStats = db.prepare(`
-        SELECT 
-          pt.code as property_type,
-          COUNT(p.id) as count
-        FROM property_types pt
-        LEFT JOIN properties p ON pt.id = p.property_type_id AND p.is_available = 1
-        GROUP BY pt.id, pt.code
-        ORDER BY count DESC
-      `).all();
-      
-      stats = propertyStats;
-      
-    } else {
-      const properties = readJSONFile(DB_FILES.properties).filter(p => p.is_available);
-      const propertyTypes = readJSONFile(DB_FILES.property_types).filter(pt => pt.is_active);
-      
-      stats = propertyTypes.map(pt => {
-        const count = properties.filter(p => p.property_type_id === pt.id).length;
-        return {
-          property_type: pt.type_code,
-          count: count
-        };
-      });
-    }
-    
-    console.log('API /stats response:', stats);
-    res.json({ success: true, stats });
-    
-  } catch (error) {
-    console.error('Error fetching property type stats:', error);
-    res.status(500).json({ success: false, message: 'Database error' });
-  }
-});
-
-// Admin: Remove duplicate messages
-app.post('/api/admin/remove-duplicates', (req, res) => {
-  try {
-    let removedCount = 0;
-    let totalBeforeCleanup = 0;
-    let totalAfterCleanup = 0;
-    
-    if (USE_SQLITE) {
-      // Get initial count
-      totalBeforeCleanup = db.prepare('SELECT COUNT(*) as count FROM chat_messages').get().count;
-      
-      // Find and remove duplicates based on message text and sender
-      const findDuplicatesStmt = db.prepare(`
-        SELECT id, message, sender_name, 
-               ROW_NUMBER() OVER (PARTITION BY message, sender_name ORDER BY created_at ASC) as row_num
-        FROM chat_messages
-      `);
-      
-      const duplicates = findDuplicatesStmt.all();
-      const duplicateIds = duplicates
-        .filter(row => row.row_num > 1)
-        .map(row => row.id);
-      
-      if (duplicateIds.length > 0) {
-        const deleteStmt = db.prepare('DELETE FROM chat_messages WHERE id = ?');
-        const deleteTransaction = db.transaction((ids) => {
-          for (const id of ids) {
-            deleteStmt.run(id);
-          }
-        });
-        
-        deleteTransaction(duplicateIds);
-        removedCount = duplicateIds.length;
-      }
-      
-      // Get final count
-      totalAfterCleanup = db.prepare('SELECT COUNT(*) as count FROM chat_messages').get().count;
-      
-    } else {
-      // JSON fallback
-      const messages = readJSONFile(DB_FILES.chat_messages);
-      totalBeforeCleanup = messages.length;
-      
-      const uniqueMessages = [];
-      const seen = new Set();
-      
-      messages.forEach(msg => {
-        const key = `${msg.message_text || msg.message}-${msg.sender_name || msg.sender}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          uniqueMessages.push(msg);
-        } else {
-          removedCount++;
-        }
-      });
-      
-      if (removedCount > 0) {
-        writeJSONFile(DB_FILES.chat_messages, uniqueMessages);
-      }
-      
-      totalAfterCleanup = uniqueMessages.length;
-    }
-    
-    console.log(`🧹 Duplicate cleanup: Removed ${removedCount} duplicates. Total: ${totalBeforeCleanup} → ${totalAfterCleanup}`);
-    
-    res.json({ 
-      success: true, 
-      message: `تم حذف ${removedCount} رسالة مكررة بنجاح`,
-      removed: removedCount,
-      totalBefore: totalBeforeCleanup,
-      totalAfter: totalAfterCleanup
-    });
-    
-  } catch (error) {
-    console.error('Error removing duplicates:', error);
-    res.status(500).json({ success: false, message: 'خطأ في حذف الرسائل المكررة' });
-  }
-});
-
-// Statistics
-app.get('/api/statistics', (req, res) => {
-  try {
-    let stats = {};
-    
-    if (USE_SQLITE) {
-      const totalMessages = db.prepare('SELECT COUNT(*) as count FROM chat_messages').get().count;
-      const totalAgents = db.prepare('SELECT COUNT(*) as count FROM agents').get().count;
-      const totalProperties = db.prepare('SELECT COUNT(*) as count FROM properties').get().count;
-      
-      const propertyTypes = db.prepare(`
-        SELECT pt.name_arabic, COUNT(p.id) as count
-        FROM property_types pt
-        LEFT JOIN properties p ON pt.id = p.property_type_id
-        GROUP BY pt.id, pt.name_arabic
-      `).all();
-      
-      const areas = db.prepare(`
-        SELECT ar.name_arabic, COUNT(p.id) as count
-        FROM areas ar
-        LEFT JOIN properties p ON ar.id = p.area_id
-        GROUP BY ar.id, ar.name_arabic
-        ORDER BY count DESC
-        LIMIT 10
-      `).all();
-      
-      stats = {
-        total_messages: totalMessages,
-        total_agents: totalAgents,
-        total_properties: totalProperties,
-        property_types: propertyTypes,
-        top_areas: areas
-      };
-      
-    } else {
-      const messages = readJSONFile(DB_FILES.chat_messages);
-      const agents = readJSONFile(DB_FILES.agents).filter(a => a.is_active);
-      const properties = readJSONFile(DB_FILES.properties).filter(p => p.is_available);
-      const propertyTypes = readJSONFile(DB_FILES.property_types).filter(pt => pt.is_active);
-      const areas = readJSONFile(DB_FILES.areas).filter(a => a.is_active);
-      
-      // Count properties by type
-      const propertyTypeCounts = propertyTypes.map(pt => ({
-        name_arabic: pt.name_arabic,
-        count: properties.filter(p => p.property_type_id === pt.id).length
-      }));
-      
-      // Count properties by area
-      const areaCounts = areas.map(area => ({
-        name_arabic: area.name_arabic,
-        count: properties.filter(p => p.area_id === area.id).length
-      })).sort((a, b) => b.count - a.count).slice(0, 10);
-      
-      stats = {
-        total_messages: messages.length,
-        total_agents: agents.length,
-        total_properties: properties.length,
-        property_types: propertyTypeCounts,
-        top_areas: areaCounts
-      };
-    }
-    
-    res.json({ success: true, stats });
-    
-  } catch (error) {
-    console.error('Error fetching statistics:', error);
-    res.status(500).json({ success: false, message: 'Database error' });
-  }
-});
-
-// Get message by ID
+// Get single message by ID
 app.get('/api/messages/:id', (req, res) => {
   const { id } = req.params;
   
@@ -1085,15 +896,19 @@ app.get('/api/messages/:id', (req, res) => {
     let message = null;
     
     if (USE_SQLITE) {
-      const stmt = db.prepare(`
+      const query = `
         SELECT 
           cm.*,
           a.name as agent_name,
           a.phone as agent_phone,
           a.description as agent_description,
           pt.name_arabic as property_type_name,
+          pt.code as property_type_code,
           ar.name_arabic as area_name,
           p.price_text,
+          p.area_size,
+          p.rooms,
+          p.bathrooms,
           cm.message as property_description
         FROM chat_messages cm
         LEFT JOIN agents a ON cm.agent_id = a.id
@@ -1101,59 +916,71 @@ app.get('/api/messages/:id', (req, res) => {
         LEFT JOIN property_types pt ON cm.property_type_id = pt.id
         LEFT JOIN areas ar ON cm.area_id = ar.id
         WHERE cm.id = ?
-      `);
-      message = stmt.get(parseInt(id));
+      `;
+      
+      const stmt = db.prepare(query);
+      const result = stmt.get(parseInt(id));
+      
+      if (result) {
+        message = {
+          id: result.id,
+          sender: result.agent_name || result.sender_name || 'مجهول',
+          message: result.message,
+          timestamp: new Date(result.timestamp || result.created_at).toLocaleString('ar-EG'),
+          property_type: result.property_type_code || 'other',
+          keywords: result.keywords || '',
+          location: result.area_name || '',
+          price: result.price_text || '',
+          agent_phone: result.agent_phone || '',
+          agent_description: result.agent_description || '',
+          full_description: result.property_description || result.message,
+          area_size: result.area_size,
+          rooms: result.rooms,
+          bathrooms: result.bathrooms
+        };
+      }
       
     } else {
-      const messages = readJSONFile(DB_FILES.chat_messages);
+      const chatMessages = readJSONFile(DB_FILES.chat_messages);
       const agents = readJSONFile(DB_FILES.agents);
       const properties = readJSONFile(DB_FILES.properties);
       const propertyTypes = readJSONFile(DB_FILES.property_types);
       const areas = readJSONFile(DB_FILES.areas);
       
-      message = messages.find(msg => msg.id === parseInt(id));
-      
-      if (message) {
-        const agent = agents.find(a => a.id === message.agent_id);
-        const property = properties.find(p => p.id === message.property_id);
+      const msg = chatMessages.find(m => m.id === parseInt(id));
+      if (msg) {
+        const agent = agents.find(a => a.id === msg.agent_id);
+        const property = properties.find(p => p.id === msg.property_id);
         const propertyType = property ? propertyTypes.find(pt => pt.id === property.property_type_id) : null;
         const area = property ? areas.find(a => a.id === property.area_id) : null;
         
         message = {
-          ...message,
-          agent_name: agent ? agent.name : 'مجهول',
+          id: msg.id,
+          sender: agent ? agent.name : msg.sender_name || 'مجهول',
+          message: msg.message_text || msg.message,
+          timestamp: new Date(msg.message_date || msg.created_at).toLocaleString('ar-EG'),
+          property_type: propertyType ? propertyType.type_code : 'other',
+          keywords: msg.keywords || '',
+          location: area ? area.name_arabic : '',
+          price: property ? property.price_text : '',
           agent_phone: agent ? agent.phone : '',
           agent_description: agent ? agent.description : '',
-          property_type_name: propertyType ? propertyType.name_arabic : '',
-          area_name: area ? area.name_arabic : '',
-          price_text: property ? property.price_text : '',
-          property_description: property ? property.description : ''
+          full_description: property ? property.description : msg.message_text || msg.message,
+          area_size: property ? property.area_size : null,
+          rooms: property ? property.rooms : null,
+          bathrooms: property ? property.bathrooms : null
         };
       }
     }
     
     if (message) {
-      const formattedMessage = {
-        id: message.id,
-        sender: message.agent_name || message.sender_name || 'مجهول',
-        message: message.message,
-        timestamp: new Date(message.timestamp || message.created_at).toLocaleString('ar-EG'),
-        property_type: message.property_type_name ? 'apartment' : 'other',
-        keywords: message.keywords || '',
-        location: message.area_name || '',
-        price: message.price_text || '',
-        agent_phone: message.agent_phone || '',
-        agent_description: message.agent_description || '',
-        full_description: message.property_description || message.message
-      };
-      
-      res.json({ success: true, message: formattedMessage });
+      res.json({ success: true, message });
     } else {
-      res.status(404).json({ success: false, message: 'Message not found' });
+      res.status(404).json({ success: false, message: 'Property not found' });
     }
     
   } catch (error) {
-    console.error('Error fetching message:', error);
+    console.error('Error fetching message by ID:', error);
     res.status(500).json({ success: false, message: 'Database error' });
   }
 });

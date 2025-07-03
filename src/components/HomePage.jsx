@@ -21,6 +21,7 @@ import {
   UserIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/apiService';
+import PropertyHeroSlider from './PropertyHeroSlider';
 
 // Virtual property image generator
 const getVirtualPropertyImage = (propertyType, messageId) => {
@@ -323,104 +324,118 @@ const HomePage = () => {
         </div>
       </motion.header>
 
-      <div className="relative max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Section */}
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <motion.h2 
-            className="text-3xl md:text-5xl font-bold text-white mb-6"
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            {texts.title}
-          </motion.h2>
-          <motion.p 
-            className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            {texts.subtitle}
-          </motion.p>
-        </motion.div>
+      {/* Hero Section with Background Slider */}
+      <div className="relative">
+        {/* Full-width Background Hero Slider */}
+        <div className="absolute inset-0 w-full h-[70vh] overflow-hidden">
+          <PropertyHeroSlider language={language} isBackground={true} />
+          <div className="absolute inset-0 bg-black/40"></div>
+        </div>
 
-        {/* Search Section */}
-        <motion.div 
-          className="mb-12"
-          initial={{ y: 50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl">
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <div className="flex-1 relative w-full">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={texts.search}
-                  className="w-full px-4 md:px-6 py-3 md:py-4 bg-slate-600/50 text-white rounded-2xl border border-slate-500 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 placeholder-slate-300 text-base md:text-lg pr-12"
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm('');
-                      loadInitialData();
-                    }}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
+        {/* Content Over Background */}
+        <div className="relative z-10 py-16 lg:py-24">
+          <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Hero Section */}
+            <motion.div 
+              className="text-center mb-16"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <motion.h2 
+                className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-2xl"
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                {texts.title}
+              </motion.h2>
+              <motion.p 
+                className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto drop-shadow-lg"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
+              >
+                {texts.subtitle}
+              </motion.p>
+            </motion.div>
+
+            {/* Search Section */}
+            <motion.div 
+              className="mb-12"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+            >
+              <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-xl rounded-3xl p-6 md:p-8 border border-white/20 shadow-2xl">
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                  <div className="flex-1 relative w-full">
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder={texts.search}
+                      className="w-full px-4 md:px-6 py-3 md:py-4 bg-white/20 text-white rounded-2xl border border-white/30 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/30 placeholder-white/70 text-base md:text-lg pr-12 backdrop-blur-sm"
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={() => {
+                          setSearchTerm('');
+                          loadInitialData();
+                        }}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 hover:text-white transition-colors duration-200"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleSearch}
+                      disabled={loading || !searchTerm.trim()}
+                      className="px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-lg text-base md:text-lg min-w-fit"
+                    >
+                      {loading ? (
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <MagnifyingGlassIcon className="h-5 w-5" />
+                      )}
+                      {texts.searchBtn}
+                    </motion.button>
+                    {searchTerm && (
+                      <motion.button 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setSearchTerm('');
+                          setSelectedFilter('all');
+                          loadInitialData();
+                        }}
+                        className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-gray-500/80 to-gray-600/80 text-white rounded-2xl hover:from-gray-600/80 hover:to-gray-700/80 transition-all duration-200 flex items-center gap-2 font-medium shadow-lg text-base md:text-lg backdrop-blur-sm"
+                      >
+                        {language === 'arabic' ? 'مسح' : 'Clear'}
+                      </motion.button>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <motion.button 
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleSearch}
-                  disabled={loading || !searchTerm.trim()}
-                  className="px-6 md:px-8 py-3 md:py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 font-medium shadow-lg text-base md:text-lg min-w-fit"
-                >
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <MagnifyingGlassIcon className="h-5 w-5" />
-                  )}
-                  {texts.searchBtn}
-                </motion.button>
-                {searchTerm && (
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedFilter('all');
-                      loadInitialData();
-                    }}
-                    className="px-4 md:px-6 py-3 md:py-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-2xl hover:from-gray-600 hover:to-gray-700 transition-all duration-200 flex items-center gap-2 font-medium shadow-lg text-base md:text-lg"
-                  >
-                    {language === 'arabic' ? 'مسح' : 'Clear'}
-                  </motion.button>
-                )}
-              </div>
-            </div>
+            </motion.div>
           </div>
-        </motion.div>
+        </div>
+      </div>
 
+      <div className="relative max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Statistics Cards */}
         <motion.div 
           className="mb-12"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {propertyFilters.map((filter, index) => {
@@ -464,7 +479,7 @@ const HomePage = () => {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
           className="bg-gradient-to-br from-gray-800 via-gray-900 to-slate-900 rounded-2xl p-8 shadow-2xl border border-gray-700"
         >
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8 pb-6 border-b border-gray-700">
@@ -513,7 +528,8 @@ const HomePage = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     whileHover={{ scale: 1.02, y: -5 }}
-                    className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl overflow-hidden hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg border border-gray-600"
+                    onClick={() => navigate(`/property/${message.id}`)}
+                    className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl overflow-hidden hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg border border-gray-600 cursor-pointer"
                   >
                     {/* Property Image */}
                     <div className="relative h-48 overflow-hidden">
@@ -561,9 +577,18 @@ const HomePage = () => {
                           </div>
                         )}
                         <div className="mt-3 pt-3 border-t border-gray-600">
-                          <p className="text-xs text-gray-400 text-center">
-                            {language === 'arabic' ? 'للمزيد من التفاصيل وبيانات الاتصال، يرجى تسجيل الدخول' : 'For more details and contact information, please login'}
-                          </p>
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/property/${message.id}`);
+                            }}
+                            className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-medium flex items-center justify-center gap-2"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                            {texts.viewDetails}
+                          </motion.button>
                         </div>
                       </div>
                     </div>

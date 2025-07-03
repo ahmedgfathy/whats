@@ -146,7 +146,7 @@ export const removeDuplicateMessages = async () => {
 // Get message by ID
 export const getMessageById = async (id) => {
   const response = await apiCall(`/messages/${id}`);
-  return response.message;
+  return response;
 };
 
 // Insert new message
