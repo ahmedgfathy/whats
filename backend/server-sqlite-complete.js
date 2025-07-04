@@ -1035,6 +1035,57 @@ app.get('/api/health', (req, res) => {
   }
 });
 
+// Get property type statistics
+app.get('/api/stats', (req, res) => {
+  try {
+    let stats = [];
+    
+    if (USE_SQLITE) {
+      // Get stats from SQLite database using property_type_id
+      const statsQuery = db.prepare(`
+        SELECT 
+          CASE pt.id
+            WHEN 1 THEN 'apartment'
+            WHEN 2 THEN 'villa'
+            WHEN 3 THEN 'land'
+            WHEN 4 THEN 'office'
+            WHEN 5 THEN 'warehouse'
+            ELSE 'other'
+          END as property_type,
+          COUNT(cm.id) as count
+        FROM property_types pt
+        LEFT JOIN chat_messages cm ON pt.id = cm.property_type_id
+        GROUP BY pt.id
+        ORDER BY count DESC
+      `);
+      
+      stats = statsQuery.all();
+      
+    } else {
+      // JSON fallback
+      const messages = readJSONFile(DB_FILES.chat_messages);
+      const statsMap = {};
+      
+      messages.forEach(msg => {
+        if (msg.property_type) {
+          statsMap[msg.property_type] = (statsMap[msg.property_type] || 0) + 1;
+        }
+      });
+      
+      stats = Object.entries(statsMap).map(([property_type, count]) => ({
+        property_type,
+        count
+      }));
+    }
+    
+    console.log('Property type statistics:', stats);
+    res.json({ success: true, stats });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ success: false, message: 'Database error' });
+  }
+});
+
 // Initialize and start server
 const startServer = () => {
   const initialized = initializeDatabase();

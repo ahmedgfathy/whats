@@ -102,11 +102,15 @@ const HomePage = () => {
     setLoading(true);
     try {
       const allMessages = await getAllMessages('all', 10000);
+      console.log('Loaded messages:', allMessages.length); // Debug log
       setMessages(allMessages);
+      
       const propertyStats = await getPropertyTypeStats();
-      setStats(propertyStats);
+      console.log('Property stats:', propertyStats); // Debug log
+      setStats(propertyStats || []); // Ensure stats is always an array
     } catch (error) {
       console.error('Error loading data:', error);
+      setStats([]); // Set empty array on error
     }
     setLoading(false);
   };
@@ -596,71 +600,186 @@ const HomePage = () => {
       <div id="properties-section" className="relative z-20 bg-gradient-to-b from-transparent to-slate-900/50">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
-        {/* Property Type Filter Cards - Circular Design */}
+        {/* Property Type Filter Cards - Enhanced Design */}
         <motion.div 
-          className="mb-12"
+          className="mb-6"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
+
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6">
             {propertyFilters.map((filter, index) => {
-              const IconComponent = filter.icon;
+              // Use BuildingOffice2Icon for all property types
+              const IconComponent = BuildingOffice2Icon;
               const count = filter.id === 'all' ? messages.length : stats.find(s => s.property_type === filter.id)?.count || 0;
               const isActive = selectedFilter === filter.id;
+              
+              // All cards use the same circular shape now
+              const shapeClass = 'rounded-full';
               
               return (
                 <motion.button
                   key={filter.id}
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.1 * index }}
+                  initial={{ scale: 0.8, opacity: 0, y: 30 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 0.6, 
+                    delay: 0.1 * index,
+                    type: "spring",
+                    stiffness: 100
+                  }}
                   onClick={() => handleStatClick(filter.id)}
-                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileHover={{ 
+                    scale: 1.08, 
+                    y: -8,
+                    transition: { duration: 0.2 }
+                  }}
                   whileTap={{ scale: 0.95 }}
-                  className={`relative group transition-all duration-300 ${
-                    isActive ? 'transform scale-105' : ''
+                  className={`relative group transition-all duration-500 ${
+                    isActive ? 'transform scale-110' : ''
                   }`}
                 >
-                  {/* Circular Background */}
+                  {/* Multi-layer glow effect */}
+                  <div className={`absolute inset-0 blur-2xl opacity-20 transition-opacity duration-300 ${
+                    isActive ? 'opacity-50' : 'group-hover:opacity-40'
+                  } bg-gradient-to-r ${filter.color} ${shapeClass}`}></div>
+                  
+                  <div className={`absolute inset-0 blur-xl opacity-30 transition-opacity duration-300 ${
+                    isActive ? 'opacity-60' : 'group-hover:opacity-50'
+                  } bg-gradient-to-r ${filter.color} ${shapeClass}`}></div>
+                  
+                  {/* Main Card - All circular now */}
                   <div className={`
-                    w-32 h-32 rounded-full flex flex-col items-center justify-center
-                    bg-gradient-to-br transition-all duration-300 shadow-xl hover:shadow-2xl
+                    relative w-32 h-32 flex flex-col items-center justify-center
+                    bg-gradient-to-br transition-all duration-500 shadow-2xl 
+                    border-4 border-white/10 group-hover:border-white/30 overflow-hidden
+                    ${shapeClass}
                     ${isActive 
-                      ? `${filter.color} ring-4 ring-white/30 shadow-lg` 
-                      : 'from-gray-600/80 to-gray-800/80 hover:from-gray-500 hover:to-gray-700'
+                      ? `${filter.color} ring-4 ring-white/40 shadow-3xl border-white/40` 
+                      : 'from-slate-700/90 to-slate-800/90 group-hover:from-slate-600/90 group-hover:to-slate-700/90'
                     }
                   `}>
-                    {/* Icon */}
-                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm mb-1">
-                      <IconComponent className="h-6 w-6 text-white" />
+                    
+                    {/* Background pattern overlay */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-black/20"></div>
+                      {/* Geometric pattern */}
+                      <div className="absolute top-2 right-2 w-8 h-8 border border-white/20 rounded-full"></div>
+                      <div className="absolute bottom-2 left-2 w-6 h-6 bg-white/10 rounded-full"></div>
                     </div>
                     
-                    {/* Count */}
-                    <span className="text-2xl font-bold text-white">{count}</span>
+                    {/* Content Container - Perfectly Centered */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      {/* Icon Container - centered and consistent */}
+                      <div className={`
+                        relative rounded-2xl backdrop-blur-sm transition-all duration-300 group-hover:scale-110
+                        flex items-center justify-center
+                        ${filter.id === 'all' ? 'p-3 mb-2' : 'p-2 mb-1'}
+                        ${isActive 
+                          ? 'bg-white/40 shadow-lg' 
+                          : 'bg-white/20 group-hover:bg-white/30'
+                        }
+                      `}>
+                        <IconComponent className={`text-white drop-shadow-lg ${
+                          filter.id === 'all' ? 'h-7 w-7' : 'h-5 w-5'
+                        }`} />
+                        
+                        {/* Pulse animation for active */}
+                        {isActive && (
+                          <div className="absolute inset-0 bg-white/20 rounded-2xl animate-ping"></div>
+                        )}
+                      </div>
+                      
+                      {/* Count Display - perfectly centered */}
+                      <div className="text-center">
+                        <motion.div 
+                          className="text-2xl font-black text-white drop-shadow-lg leading-none"
+                          initial={{ scale: 0.8 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.2 + index * 0.1 }}
+                        >
+                          {count?.toLocaleString() || '0'}
+                        </motion.div>
+                        <div className="text-xs text-white/90 font-semibold tracking-wide leading-tight">
+                          {language === 'arabic' ? 'عقار' : 'Units'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Animated Border Effects */}
+                    {isActive && (
+                      <>
+                        <motion.div
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          className={`absolute inset-0 border-2 border-white/50 ${shapeClass}`}
+                        >
+                          <div className={`absolute inset-0 border-2 border-white/30 animate-pulse ${shapeClass}`}></div>
+                        </motion.div>
+                        
+                        {/* Rotating ring effect for all circles */}
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                          className="absolute inset-2 border-2 border-dashed border-white/40 rounded-full"
+                        />
+                      </>
+                    )}
                   </div>
                   
-                  {/* Label below circle */}
-                  <div className="mt-3 text-center">
-                    <h3 className="text-sm font-bold text-white mb-1">
+                  {/* Enhanced Label */}
+                  <div className="mt-2 text-center">
+                    <h3 className="text-sm font-bold text-white mb-1 group-hover:text-blue-300 transition-colors duration-300">
                       {language === 'arabic' ? filter.label : filter.labelEn}
                     </h3>
-                    <div className="flex items-center justify-center text-xs text-gray-400">
-                      <SparklesIcon className="h-3 w-3 mr-1" />
-                      <span>{texts.viewDetails}</span>
+                    <div className="flex items-center justify-center text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <FireIcon className="h-3 w-3 mr-1" />
+                      </motion.div>
+                      <span>{language === 'arabic' ? 'انقر للعرض' : 'Click to View'}</span>
                     </div>
                   </div>
                   
-                  {/* Active indicator */}
+                  {/* Active indicator with enhanced design */}
                   {isActive && (
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      className="absolute -top-3 -right-3 w-10 h-10 bg-gradient-to-r from-emerald-400 via-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl ring-4 ring-white/30"
                     >
-                      <div className="w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                      <StarIcon className="w-5 h-5 text-white animate-pulse" />
                     </motion.div>
                   )}
+
+                  {/* Enhanced floating particles */}
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    {[...Array(5)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        className="absolute w-1.5 h-1.5 bg-white/60 rounded-full"
+                        style={{
+                          left: `${15 + i * 20}%`,
+                          top: `${25 + i * 12}%`,
+                        }}
+                        animate={{
+                          y: [-15, -30, -15],
+                          x: [0, 5, 0],
+                          opacity: [0, 1, 0],
+                          scale: [0.5, 1, 0.5],
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          delay: i * 0.4,
+                          ease: "easeInOut"
+                        }}
+                      />
+                    ))}
+                  </div>
                 </motion.button>
               );
             })}
