@@ -254,6 +254,16 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   };
 
   // Property viewing handlers
+  const showUnitDetails = (unit) => {
+    setSelectedUnit(unit);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedUnit(null);
+  };
+
   const showPropertyDetails = (property) => {
     setSelectedProperty(property);
     setShowPropertyModal(true);
@@ -816,7 +826,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => showPropertyDetails(message)}
+                                onClick={() => showUnitDetails(message)}
                                 className="flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-xs shadow-md hover:shadow-lg font-medium"
                               >
                                 <EyeIcon className="h-3 w-3 mr-1" />
@@ -1120,7 +1130,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => showPropertyDetails(message)}
+                      onClick={() => showUnitDetails(message)}
                       className="flex-1 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 text-sm font-medium flex items-center justify-center gap-1"
                     >
                       <EyeIcon className="h-4 w-4" />
@@ -1312,132 +1322,46 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
       </div>
 
       {/* Unit Details Modal */}
-      {showModal && selectedUnit && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-gradient-to-br from-slate-100 to-white rounded-2xl p-8 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200"
-          >
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                Property Details
-              </h3>
-              <button
-                onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full p-2 transition-all duration-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-              <div className="space-y-6">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <strong className="text-blue-700 block mb-2">Sender:</strong> 
-                  <span className="text-gray-800 font-medium">{selectedUnit.sender}</span>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <strong className="text-purple-700 block mb-2">Property Type:</strong> 
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    selectedUnit.property_type === 'apartment' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
-                    selectedUnit.property_type === 'villa' ? 'bg-green-100 text-green-800 border border-green-300' :
-                    selectedUnit.property_type === 'land' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
-                    selectedUnit.property_type === 'office' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
-                    'bg-red-100 text-red-800 border border-red-300'
-                  }`}>
-                    {getPropertyTypeLabel(selectedUnit.property_type)}
-                  </span>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <strong className="text-green-700 block mb-2">Location:</strong> 
-                  <span className="text-gray-800">{selectedUnit.location || 'Not specified'}</span>
-                </div>
-                <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-                  <strong className="text-emerald-700 block mb-2">Price:</strong> 
-                  <span className="text-emerald-600 font-bold text-lg">
-                    {selectedUnit.price || 'Not specified'}
-                  </span>
-                </div>
-                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                  <strong className="text-indigo-700 block mb-2">Date:</strong> 
-                  <span className="text-gray-800">{selectedUnit.timestamp}</span>
-                </div>
-                {selectedUnit.agent_phone && (
-                  <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
-                    <strong className="text-teal-700 block mb-2">Phone:</strong> 
-                    <a href={`tel:${selectedUnit.agent_phone}`} className="text-teal-600 hover:text-teal-800 font-medium hover:underline">
-                      {selectedUnit.agent_phone}
-                    </a>
-                  </div>
-                )}
-              </div>
-              <div className="space-y-6">
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                  <strong className="text-slate-700 block mb-3">Full Message:</strong>
-                  <p className="text-gray-800 bg-white p-4 rounded-lg border leading-relaxed">{selectedUnit.message}</p>
-                </div>
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <strong className="text-orange-700 block mb-2">Keywords:</strong>
-                  <p className="text-gray-800">{selectedUnit.keywords || 'None'}</p>
-                </div>
-                {selectedUnit.agent_description && (
-                  <div className="bg-rose-50 p-4 rounded-lg border border-rose-200">
-                    <strong className="text-rose-700 block mb-2">Agent Description:</strong>
-                    <p className="text-gray-800">{selectedUnit.agent_description}</p>
-                  </div>
-                )}
-                {selectedUnit.full_description && (
-                  <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
-                    <strong className="text-cyan-700 block mb-3">Full Description:</strong>
-                    <p className="text-gray-800 bg-white p-4 rounded-lg border leading-relaxed">{selectedUnit.full_description}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="mt-8 flex justify-center pt-6 border-t border-gray-200">
-              <button
-                onClick={closeModal}
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-              >
-                Close
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      <PropertyDetailsModal
+        property={selectedUnit}
+        isOpen={showModal}
+        onClose={closeModal}
+        isRTL={false}
+      />
 
-      {/* Property Details Modal */}
-      {showPropertyModal && selectedProperty && (
-        <PropertyDetailsModal
-          property={selectedProperty}
-          onClose={closePropertyModal}
-          isRTL={false}
-        />
-      )}
+      {/* Unit Details Modal */}
+      <PropertyDetailsModal
+        property={selectedUnit}
+        isOpen={showModal}
+        onClose={closeModal}
+        isRTL={false}
+      />
+
+      {/* CSV Property Details Modal */}
+      <PropertyDetailsModal
+        property={selectedProperty}
+        isOpen={showPropertyModal}
+        onClose={closePropertyModal}
+        isRTL={false}
+      />
 
       {/* Edit Property Modal */}
-      {showEditModal && selectedEditProperty && (
-        <EditPropertyModal
-          property={selectedEditProperty}
-          onClose={closeEditModal}
-          onSave={handleEditSave}
-          isRTL={false}
-        />
-      )}
+      <EditPropertyModal
+        property={selectedEditProperty}
+        isOpen={showEditModal}
+        onClose={closeEditModal}
+        onSave={handleEditSave}
+        isRTL={false}
+      />
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && selectedDeleteProperty && (
-        <DeleteConfirmationModal
-          property={selectedDeleteProperty}
-          onClose={closeDeleteModal}
-          onConfirm={confirmDeleteProperty}
-          isRTL={false}
-        />
-      )}
+      <DeleteConfirmationModal
+        property={selectedDeleteProperty}
+        isOpen={showDeleteModal}
+        onClose={closeDeleteModal}
+        onDelete={confirmDeleteProperty}
+        isRTL={false}
+      />
 
       {/* CSV Import Modal */}
       <CSVImportEnglish 

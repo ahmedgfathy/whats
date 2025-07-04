@@ -596,14 +596,14 @@ const HomePage = () => {
       <div id="properties-section" className="relative z-20 bg-gradient-to-b from-transparent to-slate-900/50">
         <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
-        {/* Property Filter Statistics */}
+        {/* Property Type Filter Cards - Circular Design */}
         <motion.div 
           className="mb-12"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6">
             {propertyFilters.map((filter, index) => {
               const IconComponent = filter.icon;
               const count = filter.id === 'all' ? messages.length : stats.find(s => s.property_type === filter.id)?.count || 0;
@@ -616,25 +616,51 @@ const HomePage = () => {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.1 * index }}
                   onClick={() => handleStatClick(filter.id)}
-                  whileHover={{ scale: 1.02, y: -5 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`bg-gradient-to-br rounded-2xl p-6 text-white transition-all duration-300 shadow-xl hover:shadow-2xl border ${
-                    isActive 
-                      ? `${filter.color} ring-2 ring-white/30 shadow-lg border-white/40` 
-                      : 'from-gray-600/80 to-gray-800/80 hover:from-gray-500 hover:to-gray-700 border-gray-600/50'
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative group transition-all duration-300 ${
+                    isActive ? 'transform scale-105' : ''
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
-                      <IconComponent className="h-6 w-6" />
+                  {/* Circular Background */}
+                  <div className={`
+                    w-32 h-32 rounded-full flex flex-col items-center justify-center
+                    bg-gradient-to-br transition-all duration-300 shadow-xl hover:shadow-2xl
+                    ${isActive 
+                      ? `${filter.color} ring-4 ring-white/30 shadow-lg` 
+                      : 'from-gray-600/80 to-gray-800/80 hover:from-gray-500 hover:to-gray-700'
+                    }
+                  `}>
+                    {/* Icon */}
+                    <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm mb-1">
+                      <IconComponent className="h-6 w-6 text-white" />
                     </div>
-                    <span className="text-3xl font-bold">{count}</span>
+                    
+                    {/* Count */}
+                    <span className="text-2xl font-bold text-white">{count}</span>
                   </div>
-                  <h3 className="text-lg font-bold mb-2">{language === 'arabic' ? filter.label : filter.labelEn}</h3>
-                  <div className="flex items-center text-xs opacity-70">
-                    <SparklesIcon className="h-3 w-3 mr-1" />
-                    <span>{texts.viewDetails}</span>
+                  
+                  {/* Label below circle */}
+                  <div className="mt-3 text-center">
+                    <h3 className="text-sm font-bold text-white mb-1">
+                      {language === 'arabic' ? filter.label : filter.labelEn}
+                    </h3>
+                    <div className="flex items-center justify-center text-xs text-gray-400">
+                      <SparklesIcon className="h-3 w-3 mr-1" />
+                      <span>{texts.viewDetails}</span>
+                    </div>
                   </div>
+                  
+                  {/* Active indicator */}
+                  {isActive && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center"
+                    >
+                      <div className="w-3 h-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                    </motion.div>
+                  )}
                 </motion.button>
               );
             })}
