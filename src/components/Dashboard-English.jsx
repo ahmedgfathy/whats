@@ -21,11 +21,15 @@ import {
   LanguageIcon,
   ShieldCheckIcon,
   TrashIcon,
-  DocumentArrowUpIcon
+  DocumentArrowUpIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
-import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages } from '../services/apiService';
+import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages, updateMessage, deleteMessage } from '../services/apiService';
 import ChatImportEnglish from './ChatImport-English';
 import CSVImportEnglish from './CSVImport-English';
+import PropertyDetailsModal from './PropertyDetailsModal';
+import EditPropertyModal from './EditPropertyModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 // Virtual property image generator
 const getVirtualPropertyImage = (propertyType, messageId) => {
@@ -76,6 +80,12 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
   const [messages, setMessages] = useState([]);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [showPropertyModal, setShowPropertyModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedEditProperty, setSelectedEditProperty] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedDeleteProperty, setSelectedDeleteProperty] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -243,6 +253,17 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
     });
   };
 
+  // Property viewing handlers
+  const showPropertyDetails = (property) => {
+    setSelectedProperty(property);
+    setShowPropertyModal(true);
+  };
+
+  const closePropertyModal = () => {
+    setShowPropertyModal(false);
+    setSelectedProperty(null);
+  };
+
   const handleSort = (field) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -259,14 +280,74 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
       <ChevronDownIcon className="h-4 w-4" />;
   };
 
-  const showUnitDetails = (unit) => {
-    setSelectedUnit(unit);
-    setShowModal(true);
+  // Edit property handlers
+  const showEditProperty = (property) => {
+    setSelectedEditProperty(property);
+    setShowEditModal(true);
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedUnit(null);
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedEditProperty(null);
+  };
+
+  const handleEditSave = async (updatedData) => {
+    try {
+      await updateMessage(selectedEditProperty.id, updatedData);
+      
+      // Refresh the data
+      await loadInitialData();
+      
+      // Close modal
+      closeEditModal();
+      
+      // Show success message
+      setAdminResult({
+        success: true,
+        message: 'Property updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating property:', error);
+      setAdminResult({
+        success: false,
+        message: 'Error updating property: ' + error.message
+      });
+    }
+  };
+
+  // Delete property handlers
+  const handleDeleteProperty = async (property) => {
+    setSelectedDeleteProperty(property);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setSelectedDeleteProperty(null);
+  };
+
+  const confirmDeleteProperty = async () => {
+    try {
+      await deleteMessage(selectedDeleteProperty.id);
+      
+      // Refresh the data
+      await loadInitialData();
+      
+      // Close modal
+      closeDeleteModal();
+      
+      // Show success message
+      setAdminResult({
+        success: true,
+        message: 'Property deleted successfully'
+      });
+    } catch (error) {
+      console.error('Error deleting property:', error);
+      setAdminResult({
+        success: false,
+        message: 'Error deleting property: ' + error.message
+      });
+    }
   };
 
   // Filter and sort messages
@@ -680,7 +761,7 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
                             {renderSortIcon('timestamp')}
                           </motion.button>
                         </th>
-                        <th className="py-4 px-6 text-left font-bold text-gray-200 w-32">Details</th>
+                        <th className="py-4 px-6 text-left font-bold text-gray-200 w-32">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
@@ -731,15 +812,37 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
                             </div>
                           </td>
                           <td className="py-4 px-6 text-left w-32">
-                            <motion.button
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => showUnitDetails(message)}
-                              className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-sm shadow-md hover:shadow-lg font-medium"
-                            >
-                              <EyeIcon className="h-4 w-4 mr-1" />
-                              View Details
-                            </motion.button>
+                            <div className="flex items-center gap-2">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => showPropertyDetails(message)}
+                                className="flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-xs shadow-md hover:shadow-lg font-medium"
+                              >
+                                <EyeIcon className="h-3 w-3 mr-1" />
+                                View
+                              </motion.button>
+                              
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => showEditProperty(message)}
+                                className="flex items-center px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-xs shadow-md hover:shadow-lg font-medium"
+                              >
+                                <PencilIcon className="h-3 w-3 mr-1" />
+                                Edit
+                              </motion.button>
+                              
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleDeleteProperty(message)}
+                                className="flex items-center px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-300 text-xs shadow-md hover:shadow-lg font-medium"
+                              >
+                                <TrashIcon className="h-3 w-3 mr-1" />
+                                Delete
+                              </motion.button>
+                            </div>
                           </td>
                         </motion.tr>
                       ))}
@@ -1013,14 +1116,37 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
                     )}
                   </div>
                   
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => showUnitDetails(message)}
-                    className="w-full mt-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm font-medium"
-                  >
-                    View Full Details
-                  </motion.button>
+                  <div className="flex items-center gap-2 mt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => showPropertyDetails(message)}
+                      className="flex-1 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 text-sm font-medium flex items-center justify-center gap-1"
+                    >
+                      <EyeIcon className="h-4 w-4" />
+                      View
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => showEditProperty(message)}
+                      className="flex-1 py-2 bg-gradient-to-r from-amber-600 to-orange-700 text-white rounded-lg hover:from-amber-700 hover:to-orange-800 transition-all duration-300 text-sm font-medium flex items-center justify-center gap-1"
+                    >
+                      <PencilIcon className="h-4 w-4" />
+                      Edit
+                    </motion.button>
+                    
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleDeleteProperty(message)}
+                      className="flex-1 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 text-sm font-medium flex items-center justify-center gap-1"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                      Delete
+                    </motion.button>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -1282,6 +1408,35 @@ const DashboardEnglish = ({ onLogout, onLanguageSwitch }) => {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {/* Property Details Modal */}
+      {showPropertyModal && selectedProperty && (
+        <PropertyDetailsModal
+          property={selectedProperty}
+          onClose={closePropertyModal}
+          isRTL={false}
+        />
+      )}
+
+      {/* Edit Property Modal */}
+      {showEditModal && selectedEditProperty && (
+        <EditPropertyModal
+          property={selectedEditProperty}
+          onClose={closeEditModal}
+          onSave={handleEditSave}
+          isRTL={false}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && selectedDeleteProperty && (
+        <DeleteConfirmationModal
+          property={selectedDeleteProperty}
+          onClose={closeDeleteModal}
+          onConfirm={confirmDeleteProperty}
+          isRTL={false}
+        />
       )}
 
       {/* CSV Import Modal */}

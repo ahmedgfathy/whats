@@ -22,7 +22,6 @@ import {
   ChartBarIcon,
   LanguageIcon,
   ShieldCheckIcon,
-  TrashIcon,
   DocumentArrowUpIcon
 } from '@heroicons/react/24/outline';
 import { getAllMessages, searchMessages, getPropertyTypeStats, removeDuplicateMessages, searchAll, searchProperties, updateMessage, deleteMessage } from '../services/apiService';
@@ -32,6 +31,8 @@ import SimpleCSVImport from './SimpleCSVImport';
 import CombinedSearchResults from './CombinedSearchResults';
 import CSVPropertyDetailsModal from './CSVPropertyDetailsModal';
 import EditPropertyModal from './EditPropertyModal';
+import PropertyDetailsModal from './PropertyDetailsModal';
+import DeleteConfirmationModal from './DeleteConfirmationModal';
 
 // Virtual property image generator
 const getVirtualPropertyImage = (propertyType, messageId) => {
@@ -86,6 +87,8 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEditProperty, setSelectedEditProperty] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedDeleteProperty, setSelectedDeleteProperty] = useState(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -339,12 +342,13 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
   };
 
   const handleDeleteProperty = async (property) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا العقار؟ هذا الإجراء غير قابل للتراجع.')) {
-      return;
-    }
+    setSelectedDeleteProperty(property);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDeleteProperty = async () => {
     try {
-      await deleteMessage(property.id);
+      await deleteMessage(selectedDeleteProperty.id);
       
       // Refresh the data
       await loadInitialData();
@@ -361,6 +365,11 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
         message: 'حدث خطأ أثناء حذف العقار: ' + error.message
       });
     }
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setSelectedDeleteProperty(null);
   };
 
   // Filter and sort messages
@@ -1414,103 +1423,11 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
       </div>
 
       {/* Unit Details Modal */}
-      {showModal && selectedUnit && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 backdrop-blur-sm">
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-gradient-to-br from-slate-100 to-white rounded-2xl p-8 max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200"
-          >
-            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                تفاصيل العقار
-              </h3>
-              <button
-                onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full p-2 transition-all duration-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-right" dir="rtl">
-              <div className="space-y-6">
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <strong className="text-blue-700 block mb-2">المرسل:</strong> 
-                  <span className="text-gray-800 font-medium">{selectedUnit.sender}</span>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                  <strong className="text-purple-700 block mb-2">نوع العقار:</strong> 
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    selectedUnit.property_type === 'apartment' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
-                    selectedUnit.property_type === 'villa' ? 'bg-green-100 text-green-800 border border-green-300' :
-                    selectedUnit.property_type === 'land' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
-                    selectedUnit.property_type === 'office' ? 'bg-purple-100 text-purple-800 border border-purple-300' :
-                    'bg-red-100 text-red-800 border border-red-300'
-                  }`}>
-                    {getPropertyTypeLabel(selectedUnit.property_type)}
-                  </span>
-                </div>
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <strong className="text-green-700 block mb-2">الموقع:</strong> 
-                  <span className="text-gray-800">{selectedUnit.location || 'غير محدد'}</span>
-                </div>
-                <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-                  <strong className="text-emerald-700 block mb-2">السعر:</strong> 
-                  <span className="text-emerald-600 font-bold text-lg">
-                    {selectedUnit.price || 'غير محدد'}
-                  </span>
-                </div>
-                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                  <strong className="text-indigo-700 block mb-2">التوقيت:</strong> 
-                  <span className="text-gray-800">{selectedUnit.timestamp}</span>
-                </div>
-                {selectedUnit.agent_phone && (
-                  <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
-                    <strong className="text-teal-700 block mb-2">الهاتف:</strong> 
-                    <a href={`tel:${selectedUnit.agent_phone}`} className="text-teal-600 hover:text-teal-800 font-medium hover:underline font-mono" dir="ltr">
-                      {selectedUnit.agent_phone}
-                    </a>
-                  </div>
-                )}
-              </div>
-              <div className="space-y-6">
-                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                  <strong className="text-slate-700 block mb-3">الرسالة الكاملة:</strong>
-                  <p className="text-gray-800 bg-white p-4 rounded-lg border leading-relaxed">{selectedUnit.message}</p>
-                </div>
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                  <strong className="text-orange-700 block mb-2">الكلمات المفتاحية:</strong>
-                  <p className="text-gray-800">{selectedUnit.keywords || 'لا توجد'}</p>
-                </div>
-                {selectedUnit.agent_description && (
-                  <div className="bg-rose-50 p-4 rounded-lg border border-rose-200">
-                    <strong className="text-rose-700 block mb-2">وصف السمسار:</strong>
-                    <p className="text-gray-800">{selectedUnit.agent_description}</p>
-                  </div>
-                )}
-                {selectedUnit.full_description && (
-                  <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
-                    <strong className="text-cyan-700 block mb-3">الوصف الكامل:</strong>
-                    <p className="text-gray-800 bg-white p-4 rounded-lg border leading-relaxed">{selectedUnit.full_description}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="mt-8 flex justify-center pt-6 border-t border-gray-200">
-              <button
-                onClick={closeModal}
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
-              >
-                إغلاق
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      <PropertyDetailsModal
+        property={selectedUnit}
+        isOpen={showModal}
+        onClose={closeModal}
+      />
 
       {/* CSV Import Modal */}
       <CSVImport 
@@ -1532,6 +1449,14 @@ const Dashboard = ({ onLogout, onLanguageSwitch }) => {
         isOpen={showEditModal}
         onClose={closeEditModal}
         onSave={handleEditSave}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        property={selectedDeleteProperty}
+        isOpen={showDeleteModal}
+        onClose={closeDeleteModal}
+        onDelete={confirmDeleteProperty}
       />
     </div>
   );

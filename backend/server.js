@@ -589,6 +589,64 @@ app.get('/api/search-all', (req, res) => {
   }
 });
 
+// Update message/property endpoint
+app.put('/api/messages/:id', (req, res) => {
+  const { id } = req.params;
+  const messageData = req.body;
+  
+  try {
+    const stmt = db.prepare(`
+      UPDATE chat_messages 
+      SET sender = ?, message = ?, timestamp = ?, property_type = ?, 
+          keywords = ?, location = ?, price = ?, agent_phone = ?, 
+          agent_description = ?, full_description = ?
+      WHERE id = ?
+    `);
+    
+    const result = stmt.run(
+      messageData.sender,
+      messageData.message,
+      messageData.timestamp,
+      messageData.property_type,
+      messageData.keywords,
+      messageData.location,
+      messageData.price,
+      messageData.agent_phone,
+      messageData.agent_description,
+      messageData.full_description,
+      id
+    );
+    
+    if (result.changes > 0) {
+      res.json({ success: true, message: 'Property updated successfully' });
+    } else {
+      res.status(404).json({ success: false, message: 'Property not found' });
+    }
+  } catch (error) {
+    console.error('Error updating message:', error);
+    res.status(500).json({ success: false, message: 'Database error' });
+  }
+});
+
+// Delete message/property endpoint
+app.delete('/api/messages/:id', (req, res) => {
+  const { id } = req.params;
+  
+  try {
+    const stmt = db.prepare('DELETE FROM chat_messages WHERE id = ?');
+    const result = stmt.run(id);
+    
+    if (result.changes > 0) {
+      res.json({ success: true, message: 'Property deleted successfully' });
+    } else {
+      res.status(404).json({ success: false, message: 'Property not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    res.status(500).json({ success: false, message: 'Database error' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'API is running', database: 'SQLite connected' });
