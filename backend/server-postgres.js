@@ -42,52 +42,53 @@ const initializeTables = async () => {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS properties (
         id SERIAL PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
+        property_name TEXT,
+        property_number TEXT,
+        property_category TEXT,
+        created_time TEXT,
+        regions TEXT,
+        modified_time TEXT,
+        floor_no TEXT,
+        property_type TEXT,
+        building TEXT,
+        bedroom TEXT,
+        land_garden TEXT,
+        bathroom TEXT,
+        finished TEXT,
+        last_modified_by TEXT,
+        update_unit TEXT,
+        property_offered_by TEXT,
+        name TEXT,
+        mobile_no TEXT,
+        tel TEXT,
+        unit_price TEXT,
+        payment_type TEXT,
+        deposit TEXT,
+        payment TEXT,
+        paid_every TEXT,
+        amount TEXT,
         description TEXT,
-        price DECIMAL(15,2),
-        location VARCHAR(255),
-        bedrooms INTEGER,
-        bathrooms INTEGER,
-        area_sqft INTEGER,
-        property_type VARCHAR(50),
-        listing_type VARCHAR(20),
-        agent_name VARCHAR(255),
-        agent_phone VARCHAR(20),
-        agent_email VARCHAR(255),
-        images TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        zain_house_sales_notes TEXT,
+        sales TEXT,
+        handler TEXT,
+        property_image TEXT,
+        imported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS conversations (
+      CREATE TABLE IF NOT EXISTS chat_messages (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        title VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS messages (
-        id SERIAL PRIMARY KEY,
-        conversation_id INTEGER REFERENCES conversations(id) ON DELETE CASCADE,
-        sender_type VARCHAR(20) NOT NULL,
-        content TEXT NOT NULL,
-        property_id INTEGER REFERENCES properties(id) ON DELETE SET NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS inquiries (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        property_id INTEGER REFERENCES properties(id) ON DELETE CASCADE,
+        sender TEXT NOT NULL,
         message TEXT NOT NULL,
-        status VARCHAR(20) DEFAULT 'pending',
+        timestamp TEXT,
+        property_type TEXT,
+        keywords TEXT,
+        location TEXT,
+        price TEXT,
+        agent_phone TEXT,
+        agent_description TEXT,
+        full_description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
