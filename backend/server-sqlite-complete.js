@@ -1041,25 +1041,35 @@ app.get('/api/stats', (req, res) => {
     let stats = [];
     
     if (USE_SQLITE) {
-      // Get stats from SQLite database using property_type_id
+      // Get stats from SQLite database using property_type_id with proper mapping
       const statsQuery = db.prepare(`
         SELECT 
-          CASE pt.id
-            WHEN 1 THEN 'apartment'
-            WHEN 2 THEN 'villa'
-            WHEN 3 THEN 'land'
-            WHEN 4 THEN 'office'
-            WHEN 5 THEN 'warehouse'
+          CASE 
+            WHEN cm.property_type_id = 1 THEN 'apartment'
+            WHEN cm.property_type_id = 2 THEN 'villa'
+            WHEN cm.property_type_id = 3 THEN 'land'
+            WHEN cm.property_type_id = 4 THEN 'office'
+            WHEN cm.property_type_id = 5 THEN 'warehouse'
             ELSE 'other'
           END as property_type,
-          COUNT(cm.id) as count
-        FROM property_types pt
-        LEFT JOIN chat_messages cm ON pt.id = cm.property_type_id
-        GROUP BY pt.id
+          COUNT(*) as count
+        FROM chat_messages cm
+        WHERE cm.property_type_id IS NOT NULL
+        GROUP BY cm.property_type_id
         ORDER BY count DESC
       `);
       
       stats = statsQuery.all();
+      
+      // Ensure all property types are represented with 0 if not found
+      const allPropertyTypes = ['apartment', 'villa', 'land', 'office', 'warehouse'];
+      const existingTypes = stats.map(s => s.property_type);
+      
+      allPropertyTypes.forEach(type => {
+        if (!existingTypes.includes(type)) {
+          stats.push({ property_type: type, count: 0 });
+        }
+      });
       
     } else {
       // JSON fallback
@@ -1082,7 +1092,7 @@ app.get('/api/stats', (req, res) => {
     res.json({ success: true, stats });
   } catch (error) {
     console.error('Error fetching stats:', error);
-    res.status(500).json({ success: false, message: 'Database error' });
+    res.status(500).json({ success: false, message: 'Database error: ' + error.message });
   }
 });
 

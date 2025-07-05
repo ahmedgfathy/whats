@@ -102,14 +102,21 @@ const HomePage = () => {
     setLoading(true);
     try {
       const allMessages = await getAllMessages('all', 10000);
-      console.log('Loaded messages:', allMessages.length); // Debug log
+      console.log('✅ Loaded messages:', allMessages.length); // Debug log
       setMessages(allMessages);
       
       const propertyStats = await getPropertyTypeStats();
-      console.log('Property stats:', propertyStats); // Debug log
+      console.log('✅ Property stats received:', propertyStats); // Debug log
+      console.log('✅ Stats array length:', propertyStats?.length); // Debug log
+      if (propertyStats && propertyStats.length > 0) {
+        console.log('✅ First stat item:', propertyStats[0]); // Debug log
+        propertyStats.forEach(stat => {
+          console.log(`✅ Property type: ${stat.property_type}, Count: ${stat.count}`);
+        });
+      }
       setStats(propertyStats || []); // Ensure stats is always an array
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('❌ Error loading data:', error);
       setStats([]); // Set empty array on error
     }
     setLoading(false);
@@ -607,6 +614,33 @@ const HomePage = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
+          {/* Temporary Debug Info - Very Prominent */}
+          <div className="mb-4 p-4 bg-yellow-200 border-2 border-yellow-400 rounded-lg text-black text-lg">
+            <div className="font-bold text-xl">🐛 DEBUG INFORMATION</div>
+            <div className="mt-2">
+              <div>✅ Stats loaded: <strong>{stats.length}</strong> items</div>
+              <div>✅ Messages loaded: <strong>{messages.length}</strong> items</div>
+              <div>⏳ Loading state: <strong>{loading ? 'YES' : 'NO'}</strong></div>
+              <div>🎯 Selected filter: <strong>{selectedFilter}</strong></div>
+            </div>
+            {stats.length > 0 && (
+              <div className="mt-3">
+                <div className="font-semibold text-lg">📊 Stats breakdown:</div>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {stats.map(stat => (
+                    <div key={stat.property_type} className="bg-white p-2 rounded">
+                      <strong>{stat.property_type}</strong>: {stat.count}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {stats.length === 0 && !loading && (
+              <div className="mt-3 text-red-600 font-bold">
+                ❌ NO STATS LOADED - Check API connection!
+              </div>
+            )}
+          </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6">
             {propertyFilters.map((filter, index) => {
@@ -614,6 +648,13 @@ const HomePage = () => {
               const IconComponent = BuildingOffice2Icon;
               const count = filter.id === 'all' ? messages.length : stats.find(s => s.property_type === filter.id)?.count || 0;
               const isActive = selectedFilter === filter.id;
+              
+              // Debug logging for each filter
+              console.log(`🔍 Filter: ${filter.id}, Count: ${count}, Stats available: ${stats.length}, Messages: ${messages.length}`);
+              if (filter.id !== 'all') {
+                const statFound = stats.find(s => s.property_type === filter.id);
+                console.log(`🔍 Stat found for ${filter.id}:`, statFound);
+              }
               
               // All cards use the same circular shape now
               const shapeClass = 'rounded-full';
