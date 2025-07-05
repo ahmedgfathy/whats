@@ -18,10 +18,32 @@ async function migrateToPostgres() {
   console.log('🔄 Starting migration from SQLite to PostgreSQL...');
   
   // Initialize SQLite database
-  const dbPath = path.join(__dirname, '../database/real_estate.db');
+  let dbPath = path.join(__dirname, '../data/real_estate_chat.db');
   if (!fs.existsSync(dbPath)) {
     console.error('❌ SQLite database not found at:', dbPath);
-    process.exit(1);
+    console.log('📍 Looking for database files...');
+    
+    // Try alternative locations
+    const altPaths = [
+      path.join(__dirname, '../database/real_estate.db'),
+      path.join(__dirname, '../backend/database.db')
+    ];
+    
+    let foundPath = null;
+    for (const altPath of altPaths) {
+      if (fs.existsSync(altPath)) {
+        foundPath = altPath;
+        break;
+      }
+    }
+    
+    if (!foundPath) {
+      console.error('❌ No SQLite database found');
+      process.exit(1);
+    }
+    
+    console.log('✅ Using database at:', foundPath);
+    dbPath = foundPath;
   }
   
   const sqlite = new Database(dbPath);
