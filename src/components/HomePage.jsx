@@ -433,8 +433,8 @@ const HomePage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
                 >
-                  <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6">
-                    <span className="block gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3 lg:mb-4">{texts.brandName}</span>
+                  <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4">
+                    <span className="block gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4 lg:mb-6">{texts.brandName}</span>
                     <span className="gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                       {texts.brandSubtitle}
                     </span>
@@ -443,7 +443,7 @@ const HomePage = () => {
 
                 {/* Subtitle */}
                 <motion.p 
-                  className="text-xl md:text-2xl text-gray-700 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+                  className="text-xl md:text-2xl text-white max-w-2xl mx-auto lg:mx-0 leading-relaxed"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
@@ -795,12 +795,12 @@ const HomePage = () => {
           </div>
         </motion.div>
 
-        {/* Properties Grid */}
+        {/* Properties Grid - Centered and Aligned */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
-          className="bg-gradient-to-br from-gray-800 via-gray-900 to-slate-900 rounded-2xl p-8 shadow-2xl border border-gray-700"
+          className="max-w-7xl mx-auto bg-gradient-to-br from-gray-800 via-gray-900 to-slate-900 rounded-2xl p-8 shadow-2xl border border-gray-700"
         >
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8 pb-6 border-b border-gray-700">
               <div>
