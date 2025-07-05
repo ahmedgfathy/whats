@@ -204,19 +204,19 @@ app.get('/api/properties/search', async (req, res) => {
   }
 });
 
-// Get statistics
+// Get statistics for dashboard
 app.get('/api/stats', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
         COUNT(*) as total_properties,
-        COUNT(CASE WHEN property_type = 'villa' THEN 1 END) as villas,
-        COUNT(CASE WHEN property_type = 'apartment' THEN 1 END) as apartments,
-        COUNT(CASE WHEN property_type = 'penthouse' THEN 1 END) as penthouses,
-        COUNT(CASE WHEN property_type = 'townhouse' THEN 1 END) as townhouses,
-        COUNT(CASE WHEN property_type = 'office' THEN 1 END) as offices,
-        COUNT(CASE WHEN listing_type = 'rent' THEN 1 END) as for_rent,
-        COUNT(CASE WHEN listing_type = 'sale' THEN 1 END) as for_sale
+        COUNT(CASE WHEN property_type ILIKE '%villa%' THEN 1 END) as villas,
+        COUNT(CASE WHEN property_type ILIKE '%apartment%' THEN 1 END) as apartments,
+        COUNT(CASE WHEN property_type ILIKE '%penthouse%' THEN 1 END) as penthouses,
+        COUNT(CASE WHEN property_type ILIKE '%townhouse%' THEN 1 END) as townhouses,
+        COUNT(CASE WHEN property_type ILIKE '%office%' THEN 1 END) as offices,
+        COUNT(CASE WHEN payment_type ILIKE '%rent%' THEN 1 END) as for_rent,
+        COUNT(CASE WHEN payment_type ILIKE '%sale%' THEN 1 END) as for_sale
       FROM properties
     `);
     
