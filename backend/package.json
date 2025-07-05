@@ -7,12 +7,15 @@
     "start": "node server-sqlite-complete.js",
     "dev": "nodemon server-sqlite-complete.js",
     "start-json": "node server-json.js",
-    "start-sqlite": "node server-sqlite.js"
+    "start-sqlite": "node server-sqlite.js",
+    "start-postgres": "node server-postgres.js",
+    "migrate": "node migrate-to-postgres.js"
   },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "better-sqlite3": "^8.7.0"
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
