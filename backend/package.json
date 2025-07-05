@@ -1,7 +1,7 @@
 {
-  "name": "real-estate-chat-backend",
+  "name": "contaboo-backend",
   "version": "2.0.0",
-  "description": "Backend API for Real Estate Chat Search Application with SQLite Relations",
+  "description": "Backend API for Contaboo Real Estate Platform with SQLite Relations",
   "main": "server-sqlite-complete.js",
   "scripts": {
     "start": "node server-sqlite-complete.js",

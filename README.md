@@ -1,4 +1,4 @@
-# Real Estate Chat Search Application
+# Contaboo - Real Estate Chat Search Application
 
 A comprehensive React-based web application for searching and analyzing Arabic real estate WhatsApp chat messages with SQLite database backend.
 
@@ -111,7 +111,7 @@ properties -> agents (agent_id)
 ## 📁 Project Structure
 
 ```
-whats/
+Contaboo/
 ├── 📁 frontend/
 │   ├── 📁 src/
 │   │   ├── 📁 components/          # React components
@@ -151,7 +151,7 @@ whats/
 ### Step 1: Clone Repository
 ```bash
 git clone <repository-url>
-cd whats
+cd Contaboo
 ```
 
 ### Step 2: Install Frontend Dependencies
@@ -419,7 +419,7 @@ For technical support or questions about this project:
 ## Project Structure
 
 ```
-whats/
+Contaboo/
 ├── src/                    # React frontend
 ├── backend/               # Node.js backend with SQLite
 ├── data/                  # SQLite database files
