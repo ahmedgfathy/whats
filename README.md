@@ -1,102 +1,61 @@
-# Contaboo - Real Estate Chat Search Application
+# 🏢 Contaboo - Real Estate CRM Platform
 
-A comprehensive React-based web application for searching and analyzing Arabic real estate WhatsApp chat messages with SQLite database backend.
+<div align="center">
 
-## 🏗️ Project Status
+![Contaboo Logo](https://img.icons8.com/color/96/real-estate.png)
 
-**Current Stage**: Backend API working, Frontend property count display debugging in progress
+**A modern, multilingual Customer Relationship Management system for real estate professionals**
 
-**Last Updated**: July 5, 2025
+[![React](https://img.shields.io/badge/React-19.1.0-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791?logo=postgresql&logoColor=white)](https://neon.tech/)
+[![SQLite](https://img.shields.io/badge/SQLite-3.x-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
-## 📋 Table of Contents
+[🚀 Live Demo](https://contaboo-demo.vercel.app) • [📖 Documentation](https://github.com/your-username/contaboo/wiki) • [� Report Bug](https://github.com/your-username/contaboo/issues) • [💡 Request Feature](https://github.com/your-username/contaboo/issues)
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Database Schema](#database-schema)
-- [Project Structure](#project-structure)
-- [Installation & Setup](#installation--setup)
-- [API Documentation](#api-documentation)
-- [Frontend Components](#frontend-components)
-- [Current Issues](#current-issues)
-- [Development Progress](#development-progress)
-- [Deployment Guide](#deployment-guide)
-- [Contributing](#contributing)
+</div>
 
-## 🔍 Overview
+---
 
-This application processes and analyzes Arabic real estate WhatsApp chat messages, providing intelligent search capabilities and property classification. It supports both SQLite database and JSON fallback systems for maximum reliability.
+## 🌟 Features
 
-### Key Capabilities:
-- **Arabic Language Processing**: Native support for Arabic real estate terminology
-- **WhatsApp Chat Import**: Bulk import from WhatsApp chat exports
-- **Property Classification**: Automatic categorization of properties (apartment, villa, land, office, warehouse)
-- **Advanced Search**: Keyword-based search with Arabic text processing
-- **Agent Management**: Track real estate agents and their property listings
-- **Area-based Filtering**: Location-based property organization
-- **Responsive Design**: Modern UI with Tailwind CSS and Framer Motion
-
-## ✨ Features
-
-### Core Features
-- ✅ **Multi-language Support**: Arabic and English interface
-- ✅ **Authentication System**: Secure login with hardcoded credentials (xinreal/zerocall)
-- ✅ **Property Type Classification**: Automatic categorization using Arabic keywords
-- ✅ **Advanced Search**: Full-text search with property type and area filtering
-- ✅ **Agent Management**: Track real estate agents and their contact information
-- ✅ **Area Management**: 27 pre-configured Egyptian areas/neighborhoods
-- ✅ **Data Import**: WhatsApp chat import with automatic phone number extraction
-- ✅ **Property Statistics**: Real-time property distribution analytics
-
-### UI/UX Features
-- ✅ **Modern Design**: Clean, responsive interface with dark/light themes
-- ✅ **Animated Components**: Smooth transitions using Framer Motion
-- ✅ **Property Cards**: Visual property listings with images and details
-- ✅ **Circular Filter Icons**: Enhanced property type filters with glow effects
-- ✅ **Hero Slider**: Dynamic property showcase carousel
-- ✅ **Mobile Responsive**: Optimized for all device sizes
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **React 19.1.0**: Modern React with hooks and functional components
-- **Vite**: Fast build tool and development server
-- **React Router DOM 7.6.3**: Client-side routing
-- **Tailwind CSS**: Utility-first CSS framework
-- **Framer Motion 12.22.0**: Animation library
-- **Heroicons**: Beautiful SVG icons
-- **Radix UI**: Accessible component primitives
-
-### Backend
-- **Node.js**: JavaScript runtime
-- **Express 4.18.2**: Web application framework
-- **Better SQLite3**: High-performance SQLite database
-- **CORS**: Cross-origin resource sharing
-
-### Database
-- **SQLite**: Primary database (production-ready)
-- **JSON Files**: Fallback system for reliability
-
-## 🗃️ Database Schema
-
-### Tables Overview
-| Table | Records | Description |
-|-------|---------|-------------|
-| `chat_messages` | 2,916 | Main chat messages with property classifications |
-| `property_types` | 5 | Property type definitions (apartment, villa, land, office, warehouse) |
-| `areas` | 27 | Egyptian neighborhoods and areas |
-| `agents` | 9 | Real estate agents with contact information |
-| `users` | 1 | Application users and authentication |
-| `properties` | - | Detailed property listings |
-| `property_images` | - | Property photos and media |
-| `search_logs` | - | Search analytics and logging |
-
-### Property Distribution
-- **Apartments**: 838 messages (28.7%)
-- **Land**: 565 messages (19.4%)
-- **Villas**: 222 messages (7.6%)
-- **Offices**: 97 messages (3.3%)
-- **Warehouses**: 19 messages (0.7%)
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/color/48/property.png" alt="Property Management"/>
+      <h3>🏠 Property Management</h3>
+      <p>Comprehensive property listing system with advanced search and filtering capabilities</p>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/color/48/whatsapp.png" alt="WhatsApp Integration"/>
+      <h3>💬 WhatsApp Integration</h3>
+      <p>Import and analyze WhatsApp chat messages for property leads and agent management</p>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/color/48/dashboard.png" alt="Analytics Dashboard"/>
+      <h3>📊 Analytics Dashboard</h3>
+      <p>Real-time insights and performance metrics for your real estate business</p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/color/48/language.png" alt="Multilingual"/>
+      <h3>🌐 Arabic & English Support</h3>
+      <p>Full Arabic and English support with RTL layout for Arabic users</p>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/color/48/mobile-phone.png" alt="Responsive"/>
+      <h3>📱 Responsive Design</h3>
+      <p>Optimized for desktop, tablet, and mobile devices with modern UI/UX</p>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/color/48/artificial-intelligence.png" alt="AI Classification"/>
+      <h3>🤖 AI Classification</h3>
+      <p>Intelligent property type detection using Arabic keyword recognition</p>
+    </td>
+  </tr>
+</table>
 
 ### Key Relationships
 ```sql

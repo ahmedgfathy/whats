@@ -432,6 +432,7 @@ const HomePage = () => {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
+                  className="-mt-8"
                 >
                   <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4">
                     <span className="block gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4 lg:mb-6">{texts.brandName}</span>
