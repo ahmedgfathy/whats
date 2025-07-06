@@ -78,8 +78,10 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [stats, setStats] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [messagesPerPage] = useState(51);
+  const [displayedMessages, setDisplayedMessages] = useState([]);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [itemsToShow, setItemsToShow] = useState(10); // Initial load: 10 properties (2 rows of 5)
   const [language, setLanguage] = useState('arabic');
 
   const propertyFilters = [
@@ -144,8 +146,7 @@ const HomePage = () => {
   };
 
   const handleStatClick = (filterType) => {
-    setSelectedFilter(filterType);
-    setCurrentPage(1);
+    handleFilterChange(filterType);
     
     // If there's an active search, re-run it with the new filter
     if (searchTerm.trim()) {
@@ -208,10 +209,49 @@ const HomePage = () => {
   // No need to filter again since API already handles filtering
   const filteredMessages = messages; // Use messages directly from API
 
-  const indexOfLastMessage = currentPage * messagesPerPage;
-  const indexOfFirstMessage = indexOfLastMessage - messagesPerPage;
-  const currentMessages = filteredMessages.slice(indexOfFirstMessage, indexOfLastMessage);
-  const totalPages = Math.ceil(filteredMessages.length / messagesPerPage);
+  // Update displayed messages when filter changes
+  useEffect(() => {
+    const messagesToShow = filteredMessages.slice(0, itemsToShow);
+    setDisplayedMessages(messagesToShow);
+    setHasMore(messagesToShow.length < filteredMessages.length);
+  }, [filteredMessages, itemsToShow]);
+
+  // Infinite scroll handler
+  const handleScroll = () => {
+    if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000 && hasMore && !loadingMore) {
+      loadMoreProperties();
+    }
+  };
+
+  // Load more properties
+  const loadMoreProperties = () => {
+    if (loadingMore || !hasMore) return;
+    
+    setLoadingMore(true);
+    
+    setTimeout(() => {
+      const newItemsToShow = itemsToShow + 5; // Load 5 more properties (1 row)
+      setItemsToShow(newItemsToShow);
+      setLoadingMore(false);
+    }, 500); // Small delay for smooth loading animation
+  };
+
+  // Add scroll event listener
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, loadingMore]);
+
+  // Reset when search or filter changes
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setItemsToShow(10);
+  };
+
+  const handleFilterChange = (filter) => {
+    setSelectedFilter(filter);
+    setItemsToShow(10);
+  };
 
   const texts = language === 'arabic' ? {
     title: 'كونتابو',
@@ -529,7 +569,7 @@ const HomePage = () => {
                       <input
                         type="text"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleSearchChange}
                         placeholder={texts.search}
                         className="w-full px-6 py-4 bg-gray-50 text-gray-800 rounded-2xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-400/20 placeholder-gray-500 text-lg pr-14"
                         onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -811,7 +851,7 @@ const HomePage = () => {
                 </h3>
                 <p className="text-gray-400 flex items-center gap-2 text-sm md:text-base">
                   <BuildingOffice2Icon className="h-5 w-5" />
-                  {filteredMessages.length} {texts.totalProperties} • {texts.page} {currentPage} {texts.of} {totalPages}
+                  {filteredMessages.length} {texts.totalProperties} • {language === 'arabic' ? 'عرض' : 'Showing'} {displayedMessages.length}
                 </p>
               </div>
               
@@ -840,9 +880,9 @@ const HomePage = () => {
             </div>
           ) : (
             <>
-              {/* Properties Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {currentMessages.map((message, index) => (
+              {/* Properties Grid - 5 per row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 mb-8">
+                {displayedMessages.map((message, index) => (
                   <motion.div 
                     key={message.id} 
                     initial={{ opacity: 0, scale: 0.9 }}
@@ -850,10 +890,10 @@ const HomePage = () => {
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     whileHover={{ scale: 1.02, y: -5 }}
                     onClick={() => navigate(`/property/${message.id}`)}
-                    className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl overflow-hidden hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg border border-gray-600 cursor-pointer"
+                    className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl overflow-hidden hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-xl border border-gray-600 cursor-pointer min-h-[400px]"
                   >
                     {/* Property Image */}
-                    <div className="relative h-48 overflow-hidden">
+                    <div className="relative h-56 overflow-hidden">
                       <img 
                         src={getVirtualPropertyImage(message.property_type, message.id)}
                         alt={getPropertyTypeLabel(message.property_type)}
@@ -876,13 +916,13 @@ const HomePage = () => {
                     </div>
 
                     {/* Property Content */}
-                    <div className="p-6">
-                      <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+                    <div className="p-7">
+                      <h4 className="font-semibold text-white mb-3 flex items-center gap-2 text-lg">
                         <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                        {getPropertyTypeLabel(message.property_type)} - {texts.propertyListing}
+                        {getPropertyTypeLabel(message.property_type)} - {message.location || texts.notSpecified}
                       </h4>
                       
-                      <p className="text-gray-300 text-sm line-clamp-3 mb-4 leading-relaxed">
+                      <p className="text-gray-300 text-sm line-clamp-3 mb-4 leading-relaxed min-h-[60px]">
                         {message.message}
                       </p>
                       
@@ -917,58 +957,37 @@ const HomePage = () => {
                 ))}
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
+              {/* Loading More Indicator */}
+              {loadingMore && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center justify-center py-8"
+                >
+                  <div className="relative">
+                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-600"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="w-3 h-3 bg-purple-600 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  <span className="mr-4 text-gray-300 text-lg font-medium">
+                    {language === 'arabic' ? 'جاري تحميل المزيد...' : 'Loading more...'}
+                  </span>
+                </motion.div>
+              )}
+
+              {/* End of Results Indicator */}
+              {!hasMore && displayedMessages.length > 0 && (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="flex items-center justify-between mt-8 bg-gray-750 rounded-lg p-4"
+                  className="text-center py-8"
                 >
-                  <div className="text-gray-400 text-sm">
-                    {texts.showingProperties} <span className="text-purple-400 font-semibold">{indexOfFirstMessage + 1}</span> {texts.to} <span className="text-purple-400 font-semibold">{Math.min(indexOfLastMessage, filteredMessages.length)}</span> {texts.of} <span className="text-purple-400 font-semibold">{filteredMessages.length}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                      className="flex items-center px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg"
-                    >
-                      {language === 'arabic' ? 'السابق' : 'Previous'}
-                    </motion.button>
-                    
-                    <div className="flex items-center gap-2">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        const pageNumber = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                        return (
-                          <motion.button
-                            key={pageNumber}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setCurrentPage(pageNumber)}
-                            className={`px-4 py-2 rounded-lg transition-all duration-300 font-semibold ${
-                              currentPage === pageNumber
-                                ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg transform scale-110'
-                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
-                            }`}
-                          >
-                            {pageNumber}
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                      disabled={currentPage === totalPages}
-                      className="flex items-center px-4 py-2 bg-gradient-to-r from-gray-700 to-gray-600 text-white rounded-lg hover:from-gray-600 hover:to-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg"
-                    >
-                      {language === 'arabic' ? 'التالي' : 'Next'}
-                    </motion.button>
+                  <div className="inline-flex items-center px-6 py-3 bg-gray-800 rounded-full border border-gray-700">
+                    <SparklesIcon className="w-5 h-5 text-purple-400 mr-2" />
+                    <span className="text-gray-300 font-medium">
+                      {language === 'arabic' ? 'تم عرض جميع العقارات المتاحة' : 'All properties displayed'}
+                    </span>
                   </div>
                 </motion.div>
               )}
