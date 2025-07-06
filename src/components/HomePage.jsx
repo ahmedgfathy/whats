@@ -435,7 +435,7 @@ const HomePage = () => {
                   className="-mt-8"
                 >
                   <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4">
-                    <span className="block gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4 lg:mb-6 relative -top-3">{texts.brandName}</span>
+                    <span className="block gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-8 lg:mb-10 relative -top-1 pb-2">{texts.brandName}</span>
                     <span className="gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                       {texts.brandSubtitle}
                     </span>
