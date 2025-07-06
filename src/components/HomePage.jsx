@@ -549,11 +549,161 @@ const HomePage = () => {
 
               {/* Right Side - Search Section */}
               <motion.div 
-                className="lg:order-last"
+                className="lg:order-last relative"
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
               >
+                {/* Floating Offer Banner - NEW OFFER Style */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0, rotate: -10 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ duration: 1, delay: 0.5 }}
+                  className="absolute -top-20 -right-16 z-20 cursor-pointer"
+                  onClick={() => navigate('/register')}
+                >
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.05, 1],
+                      opacity: [0.95, 1, 0.95]
+                    }}
+                    transition={{ 
+                      duration: 1.2, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="relative"
+                  >
+                    {/* Main Offer Banner */}
+                    <div className="relative w-72 h-40 bg-red-600 rounded-2xl transform rotate-3 hover:rotate-0 transition-transform duration-300">
+                      {/* Animated background pulse */}
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          opacity: [0.3, 0.1, 0.3]
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                        className="absolute inset-0 bg-white rounded-2xl"
+                      />
+                      
+                      {/* Content */}
+                      <div className="relative z-10 p-6 text-white h-full flex items-center justify-between">
+                        {/* Left side - Megaphone */}
+                        <div className="flex-shrink-0">
+                          <motion.div
+                            animate={{ 
+                              rotate: [0, 10, -10, 0],
+                              scale: [1, 1.1, 1]
+                            }}
+                            transition={{ 
+                              duration: 2, 
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                            className="w-16 h-16 bg-white rounded-full flex items-center justify-center"
+                          >
+                            <svg className="w-10 h-10 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.894A1 1 0 0018 16V3z" clipRule="evenodd" />
+                            </svg>
+                          </motion.div>
+                        </div>
+                        
+                        {/* Right side - Text */}
+                        <div className="flex-1 text-right pr-3">
+                          <motion.div
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                            className="text-3xl font-bold leading-tight"
+                          >
+                            {language === 'arabic' ? 'عرض جديد' : 'NEW OFFER'}
+                          </motion.div>
+                          <div className="text-lg font-semibold text-yellow-200 mt-2">
+                            {language === 'arabic' ? 'للسماسرة والوكلاء' : 'FOR BROKERS & AGENTS'}
+                          </div>
+                          <div className="text-2xl font-bold text-yellow-300 mt-2">
+                            {language === 'arabic' ? '99 جنيه/شهر' : '99 L.E/Month'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Decorative triangular elements */}
+                      <motion.div
+                        animate={{ 
+                          rotate: [0, 360],
+                          scale: [1, 1.2, 1]
+                        }}
+                        transition={{ duration: 4, repeat: Infinity }}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 transform rotate-45"
+                      />
+                      <motion.div
+                        animate={{ 
+                          rotate: [360, 0],
+                          scale: [1.2, 1, 1.2]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                        className="absolute -bottom-1 -left-1 w-4 h-4 bg-red-500 transform rotate-45"
+                      />
+                      
+                      {/* Sparkle effects */}
+                      <motion.div
+                        animate={{
+                          opacity: [0, 1, 0],
+                          scale: [0.5, 1, 0.5]
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          repeatDelay: 0.5
+                        }}
+                        className="absolute top-6 right-6 w-3 h-3 bg-yellow-300 rounded-full"
+                      />
+                      <motion.div
+                        animate={{
+                          opacity: [0, 1, 0],
+                          scale: [0.5, 1, 0.5]
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          repeatDelay: 1
+                        }}
+                        className="absolute bottom-6 left-12 w-2 h-2 bg-yellow-300 rounded-full"
+                      />
+                    </div>
+                    
+                    {/* Outer glow rings */}
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.4, 0.1, 0.4]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="absolute inset-0 border-2 border-red-400 rounded-2xl -m-2 transform rotate-3"
+                    />
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.4, 1],
+                        opacity: [0.3, 0.05, 0.3]
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.5
+                      }}
+                      className="absolute inset-0 border border-red-400 rounded-2xl -m-4 transform rotate-3"
+                    />
+                  </motion.div>
+                </motion.div>
+
                 <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/50">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
