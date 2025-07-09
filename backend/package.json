@@ -1,16 +1,17 @@
 {
   "name": "contaboo-backend",
   "version": "2.0.0",
-  "description": "Backend API for Contaboo Real Estate Platform with SQLite Relations",
-  "main": "server-sqlite-complete.js",
+  "description": "Backend API for Contaboo Real Estate Platform with PostgreSQL/Neon",
+  "main": "server-production.js",
   "scripts": {
-    "start": "node server-sqlite-complete.js",
+    "start": "node server-production.js",
     "start-production": "node server-production.js",
     "migrate": "node manual-step-by-step.js",
     "migrate-production": "./migrate-production.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server-sqlite-complete.js",
-    "start-postgres": "node server-postgres.js"
+    "dev": "nodemon server-production.js",
+    "start-postgres": "node server-postgres.js",
+    "start-sqlite": "node server-sqlite-complete.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
