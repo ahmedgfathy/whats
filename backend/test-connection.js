@@ -1,45 +1,39 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-async function testConnection() {
-  console.log('🔍 Testing PostgreSQL connection to Neon...');
-  console.log('Database URL:', process.env.DATABASE_URL ? 'Configured' : 'Not configured');
-  
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
+async function testConnection() {
   try {
+    console.log('Testing connection to:', process.env.DATABASE_URL?.replace(/\/\/.*@/, '//***@'));
+    
     const client = await pool.connect();
-    console.log('✅ Connected to Neon PostgreSQL database');
+    console.log('✅ Successfully connected to database');
     
-    const result = await client.query('SELECT NOW()');
-    console.log('⏰ Current database time:', result.rows[0].now);
-    
-    // Test basic query
-    const versionResult = await client.query('SELECT version()');
-    console.log('📊 PostgreSQL version:', versionResult.rows[0].version.split(' ')[0]);
-    
-    // Check if any tables exist
-    const tablesResult = await client.query(`
+    // Test if tables exist
+    const result = await client.query(`
       SELECT table_name 
       FROM information_schema.tables 
-      WHERE table_schema = 'public'
+      WHERE table_schema = 'public';
     `);
-    console.log('📋 Existing tables:', tablesResult.rows.length);
+    
+    console.log('Available tables:', result.rows.map(r => r.table_name));
+    
+    // Test properties table
+    const propertiesCount = await client.query('SELECT COUNT(*) FROM properties');
+    console.log('Properties count:', propertiesCount.rows[0].count);
     
     client.release();
-    await pool.end();
-    console.log('✅ Connection test successful!');
-    return true;
+    
   } catch (error) {
-    console.error('❌ Connection test failed:', error.message);
+    console.error('❌ Database connection error:', error.message);
+    console.error('Error details:', error);
+  } finally {
     await pool.end();
-    return false;
   }
 }
 
-testConnection().then(success => {
-  process.exit(success ? 0 : 1);
-});
+testConnection();

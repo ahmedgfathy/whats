@@ -94,10 +94,9 @@ const initializeTables = async () => {
     `);
     
     // Create indexes
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_conversation ON messages(conversation_id)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_messages_property ON messages(property_id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation ON chat_messages(id)`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_messages_property ON chat_messages(property_type)`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_properties_type ON properties(property_type)`);
-    await pool.query(`CREATE INDEX IF NOT EXISTS idx_properties_listing ON properties(listing_type)`);
     
     console.log('✅ Database tables initialized');
   } catch (error) {

@@ -5,17 +5,18 @@
   "main": "server-sqlite-complete.js",
   "scripts": {
     "start": "node server-sqlite-complete.js",
+    "start-production": "node server-production.js",
+    "migrate": "node manual-step-by-step.js",
+    "migrate-production": "./migrate-production.sh",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server-sqlite-complete.js",
-    "start-json": "node server-json.js",
-    "start-sqlite": "node server-sqlite.js",
-    "start-postgres": "node server-postgres.js",
-    "migrate": "node migrate-to-postgres.js"
+    "start-postgres": "node server-postgres.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
-    "pg": "^8.11.3"
+    "pg": "^8.16.3"
   },
   "devDependencies": {
     "better-sqlite3": "^12.2.0",
