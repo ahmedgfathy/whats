@@ -100,6 +100,12 @@
                 
                 const data = await response.json();
                 log(`${name} Success: Received ${JSON.stringify(data).length} characters`, 'success');
+                
+                // Special handling for stats API to show data source
+                if (endpoint.includes('/stats') && data.dataSource) {
+                    log(`📊 Data Source: ${data.dataSource} | Migration: ${data.migrationProgress || 'unknown'}`, 'info');
+                }
+                
                 logJSON(data, `${name} Data`);
                 
                 return data;

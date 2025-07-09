@@ -819,19 +819,27 @@ const HomePage = () => {
               } else {
                 // Map English property category names to filter types (from normalized API)
                 const categoryMappings = {
-                  apartment: ['Compound Apartments', 'Local Apartments', 'Local Duplex', 'Local Roof'],
-                  villa: ['Independent Villas', 'Land & Local Villas', 'Townhouse', 'Twin House'],
-                  land: ['Land & Local Villas'],
-                  office: ['Commercial & Administrative'],
-                  warehouse: ['Commercial & Administrative']
+                  apartment: ['Compound Apartments', 'Local Apartments', 'Duplex', 'Roof'],
+                  villa: ['Independent Villas', 'Townhouse', 'Twin House'],
+                  land: ['Land & Local Villas', 'Land', 'Plots'],
+                  office: ['Commercial & Administrative', 'Office', 'Administrative'],
+                  warehouse: ['Commercial & Administrative', 'Warehouse', 'Storage']
                 };
                 
+                // Also check for exact category name match and partial matches
                 const mappedCategories = categoryMappings[filter.id] || [];
-                count = stats.filter(stat => 
-                  mappedCategories.some(category => 
-                    stat.property_type && stat.property_type.includes(category)
-                  )
-                ).reduce((sum, stat) => sum + parseInt(stat.count), 0);
+                count = stats.filter(stat => {
+                  if (!stat.property_type) return false;
+                  
+                  // Direct match
+                  if (mappedCategories.includes(stat.property_type)) return true;
+                  
+                  // Partial match for flexibility
+                  return mappedCategories.some(category => 
+                    stat.property_type.toLowerCase().includes(category.toLowerCase()) ||
+                    category.toLowerCase().includes(stat.property_type.toLowerCase())
+                  );
+                }).reduce((sum, stat) => sum + parseInt(stat.count || 0), 0);
               }
               
               const isActive = selectedFilter === filter.id;
