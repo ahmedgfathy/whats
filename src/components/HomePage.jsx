@@ -811,7 +811,29 @@ const HomePage = () => {
             {propertyFilters.map((filter, index) => {
               // Use BuildingOffice2Icon for all property types
               const IconComponent = BuildingOffice2Icon;
-              const count = filter.id === 'all' ? messages.length : stats.find(s => s.property_type === filter.id)?.count || 0;
+              
+              // Calculate count based on filter type by mapping Arabic categories to filter types
+              let count = 0;
+              if (filter.id === 'all') {
+                count = messages.length;
+              } else {
+                // Map Arabic property categories to filter types
+                const categoryMappings = {
+                  apartment: ['شقق كمبوند', 'شقق اهالي', 'دوبلكس اهالي', 'روف اهالي'],
+                  villa: ['فيلات مستقلة', 'اراضي وفيلات اهالي', 'تاون هاوس', 'توين هاوس', 'Twin House'],
+                  land: ['أرض', 'اراضي'],
+                  office: ['محلات واداري', 'مكتب'],
+                  warehouse: ['مخزن', 'warehouse']
+                };
+                
+                const mappedCategories = categoryMappings[filter.id] || [];
+                count = stats.filter(stat => 
+                  mappedCategories.some(category => 
+                    stat.property_type && stat.property_type.includes(category)
+                  )
+                ).reduce((sum, stat) => sum + parseInt(stat.count), 0);
+              }
+              
               const isActive = selectedFilter === filter.id;
               
               // All cards use the same circular shape now
