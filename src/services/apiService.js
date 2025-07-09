@@ -410,7 +410,16 @@ export const searchAll = async (searchTerm = '', filter = '', limit = 50) => {
   return response.data;
 };
 
-// Duplicate function removed - using the first declaration above
+// Get dropdown data for forms
+export const getDropdownData = async () => {
+  try {
+    const data = await apiCall('/dropdowns');
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching dropdown data:', error);
+    throw error;
+  }
+};
 
 export default {
   authenticateUser,
@@ -432,5 +441,6 @@ export default {
   getDatabaseTables,
   validateCSVData,
   searchProperties,
-  searchAll
+  searchAll,
+  getDropdownData
 };

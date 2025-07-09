@@ -20,45 +20,67 @@ module.exports = async (req, res) => {
       const { page = 1, limit = 50, search, type } = req.query;
       const offset = (page - 1) * limit;
       
-      let query = 'SELECT * FROM properties WHERE 1=1';
+      let query = `
+        SELECT 
+          pn.*,
+          pc.name_ar as category_ar,
+          pc.name_en as category_en,
+          r.name as region_name,
+          lt.name as listing_type_name,
+          ft.name as floor_type_name,
+          finst.name as finish_type_name
+        FROM properties_normalized pn
+        LEFT JOIN property_categories pc ON pn.property_category_id = pc.id
+        LEFT JOIN regions r ON pn.region_id = r.id
+        LEFT JOIN listing_types lt ON pn.listing_type_id = lt.id
+        LEFT JOIN floor_types ft ON pn.floor_type_id = ft.id
+        LEFT JOIN finish_types finst ON pn.finish_type_id = finst.id
+        WHERE 1=1
+      `;
       let params = [];
       let paramCount = 0;
 
       // Add search filter
       if (search) {
         paramCount++;
-        query += ` AND (property_name ILIKE $${paramCount} OR property_category ILIKE $${paramCount} OR regions ILIKE $${paramCount})`;
+        query += ` AND (pn.property_name ILIKE $${paramCount} OR pc.name_ar ILIKE $${paramCount} OR pc.name_en ILIKE $${paramCount} OR r.name ILIKE $${paramCount})`;
         params.push(`%${search}%`);
       }
 
       // Add type filter
       if (type && type !== 'all') {
         paramCount++;
-        query += ` AND property_category ILIKE $${paramCount}`;
+        query += ` AND pc.name_en ILIKE $${paramCount}`;
         params.push(`%${type}%`);
       }
 
       // Add pagination
-      query += ` ORDER BY created_time DESC`;
+      query += ` ORDER BY pn.imported_at DESC`;
       query += ` LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`;
       params.push(limit, offset);
 
       const result = await pool.query(query, params);
       
       // Get total count
-      let countQuery = 'SELECT COUNT(*) FROM properties WHERE 1=1';
+      let countQuery = `
+        SELECT COUNT(*) 
+        FROM properties_normalized pn
+        LEFT JOIN property_categories pc ON pn.property_category_id = pc.id
+        LEFT JOIN regions r ON pn.region_id = r.id
+        WHERE 1=1
+      `;
       let countParams = [];
       let countParamCount = 0;
       
       if (search) {
         countParamCount++;
-        countQuery += ` AND (property_name ILIKE $${countParamCount} OR property_category ILIKE $${countParamCount} OR regions ILIKE $${countParamCount})`;
+        countQuery += ` AND (pn.property_name ILIKE $${countParamCount} OR pc.name_ar ILIKE $${countParamCount} OR pc.name_en ILIKE $${countParamCount} OR r.name ILIKE $${countParamCount})`;
         countParams.push(`%${search}%`);
       }
       
       if (type && type !== 'all') {
         countParamCount++;
-        countQuery += ` AND property_category ILIKE $${countParamCount}`;
+        countQuery += ` AND pc.name_en ILIKE $${countParamCount}`;
         countParams.push(`%${type}%`);
       }
       

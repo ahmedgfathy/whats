@@ -817,13 +817,13 @@ const HomePage = () => {
               if (filter.id === 'all') {
                 count = messages.length;
               } else {
-                // Map Arabic property categories to filter types
+                // Map English property category names to filter types (from normalized API)
                 const categoryMappings = {
-                  apartment: ['شقق كمبوند', 'شقق اهالي', 'دوبلكس اهالي', 'روف اهالي'],
-                  villa: ['فيلات مستقلة', 'اراضي وفيلات اهالي', 'تاون هاوس', 'توين هاوس', 'Twin House'],
-                  land: ['أرض', 'اراضي'],
-                  office: ['محلات واداري', 'مكتب'],
-                  warehouse: ['مخزن', 'warehouse']
+                  apartment: ['Compound Apartments', 'Local Apartments', 'Local Duplex', 'Local Roof'],
+                  villa: ['Independent Villas', 'Land & Local Villas', 'Townhouse', 'Twin House'],
+                  land: ['Land & Local Villas'],
+                  office: ['Commercial & Administrative'],
+                  warehouse: ['Commercial & Administrative']
                 };
                 
                 const mappedCategories = categoryMappings[filter.id] || [];

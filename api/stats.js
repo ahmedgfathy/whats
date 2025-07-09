@@ -19,11 +19,12 @@ module.exports = async (req, res) => {
     try {
       const result = await pool.query(`
         SELECT 
-          property_category as property_type,
+          pc.name_en as property_type,
           COUNT(*) as count
-        FROM properties 
-        WHERE property_category IS NOT NULL 
-        GROUP BY property_category
+        FROM properties_normalized pn
+        LEFT JOIN property_categories pc ON pn.property_category_id = pc.id
+        WHERE pc.name_en IS NOT NULL 
+        GROUP BY pc.name_en
         ORDER BY count DESC
       `);
 
