@@ -1,7 +1,10 @@
 // Real API service for backend communication
 // This replaces the mock database with actual HTTP calls to the SQLite backend
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.MODE === 'production' 
+    ? '/api' 
+    : 'http://localhost:3001/api');
 
 // Helper function to handle API calls
 const apiCall = async (endpoint, options = {}) => {

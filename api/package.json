@@ -1,0 +1,8 @@
+{
+  "name": "contaboo-api",
+  "version": "1.0.0",
+  "description": "Contaboo Real Estate API - Vercel Serverless Functions",
+  "dependencies": {
+    "pg": "^8.8.0"
+  }
+}
