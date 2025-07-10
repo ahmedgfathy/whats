@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -83,6 +83,7 @@ const HomePage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [itemsToShow, setItemsToShow] = useState(10); // Initial load: 10 properties (2 rows of 5)
   const [language, setLanguage] = useState('arabic');
+  const [isInitialized, setIsInitialized] = useState(false); // Prevent multiple initializations
 
   const propertyFilters = [
     { id: 'all', label: 'جميع العقارات', labelEn: 'All Properties', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -94,34 +95,55 @@ const HomePage = () => {
   ];
 
   useEffect(() => {
-    loadInitialData();
+    if (!isInitialized) {
+      loadInitialData();
+      setIsInitialized(true);
+    }
     // Check saved language preference
     const savedLanguage = localStorage.getItem('publicLanguage') || 'arabic';
     setLanguage(savedLanguage);
-  }, []);
+  }, [isInitialized]);
 
   const loadInitialData = async () => {
+    if (loading) return; // Prevent multiple simultaneous calls
+    
     setLoading(true);
     try {
-      const allMessages = await getAllMessages('all', 10000);
-      console.log('✅ Loaded messages:', allMessages.length); // Debug log
-      setMessages(allMessages);
+      console.log('🔄 Starting to load initial data...');
       
+      // Load property stats first
       const propertyStats = await getPropertyTypeStats();
-      console.log('✅ Property stats received:', propertyStats); // Debug log
-      console.log('✅ Stats array length:', propertyStats?.length); // Debug log
+      console.log('✅ Property stats received:', propertyStats);
       if (propertyStats && propertyStats.length > 0) {
-        console.log('✅ First stat item:', propertyStats[0]); // Debug log
+        console.log('✅ Stats array length:', propertyStats.length);
+        console.log('✅ First stat item:', propertyStats[0]);
         propertyStats.forEach(stat => {
           console.log(`✅ Property type: ${stat.property_type}, Count: ${stat.count}`);
         });
+        setStats(propertyStats);
+      } else {
+        console.warn('⚠️ No property stats received');
+        setStats([]);
       }
-      setStats(propertyStats || []); // Ensure stats is always an array
+      
+      // Load messages
+      const allMessages = await getAllMessages('all', 10000);
+      console.log('✅ Loaded messages:', allMessages?.length || 0);
+      if (allMessages && allMessages.length > 0) {
+        setMessages(allMessages);
+        console.log('✅ Messages set successfully');
+      } else {
+        console.warn('⚠️ No messages received');
+        setMessages([]);
+      }
+      
     } catch (error) {
       console.error('❌ Error loading data:', error);
       setStats([]); // Set empty array on error
+      setMessages([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleSearch = async () => {
@@ -206,15 +228,20 @@ const HomePage = () => {
     return colors[type] || 'bg-gray-500/20 text-gray-300 border-gray-500/30';
   };
 
-  // No need to filter again since API already handles filtering
-  const filteredMessages = messages; // Use messages directly from API
+  // Use messages directly from API without unnecessary filtering
 
-  // Update displayed messages when filter changes
+  // Update displayed messages when messages or itemsToShow changes
   useEffect(() => {
-    const messagesToShow = filteredMessages.slice(0, itemsToShow);
-    setDisplayedMessages(messagesToShow);
-    setHasMore(messagesToShow.length < filteredMessages.length);
-  }, [filteredMessages, itemsToShow]);
+    if (messages && messages.length > 0) {
+      const messagesToShow = messages.slice(0, itemsToShow);
+      setDisplayedMessages(messagesToShow);
+      setHasMore(messagesToShow.length < messages.length);
+      console.log(`📊 Displaying ${messagesToShow.length} of ${messages.length} messages`);
+    } else {
+      setDisplayedMessages([]);
+      setHasMore(false);
+    }
+  }, [messages, itemsToShow]);
 
   // Infinite scroll handler
   const handleScroll = () => {
@@ -236,11 +263,17 @@ const HomePage = () => {
     }, 500); // Small delay for smooth loading animation
   };
 
-  // Add scroll event listener
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+  // Add scroll event listener - use useCallback to prevent recreating the function
+  const handleScrollCallback = React.useCallback(() => {
+    if (window.innerHeight + document.documentElement.scrollTop >= document.documentElement.offsetHeight - 1000 && hasMore && !loadingMore) {
+      loadMoreProperties();
+    }
   }, [hasMore, loadingMore]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScrollCallback);
+    return () => window.removeEventListener('scroll', handleScrollCallback);
+  }, [handleScrollCallback]);
 
   // Reset when search or filter changes
   const handleSearchChange = (e) => {
@@ -812,21 +845,21 @@ const HomePage = () => {
               // Use BuildingOffice2Icon for all property types
               const IconComponent = BuildingOffice2Icon;
               
-              // Calculate count based on filter type by mapping Arabic categories to filter types
+              // Calculate count based on filter type by mapping API categories to filter types
               let count = 0;
               if (filter.id === 'all') {
-                count = messages.length;
+                count = stats.reduce((sum, stat) => sum + parseInt(stat.count || 0), 0);
               } else {
-                // Map English property category names to filter types (from normalized API)
+                // Map API property category names to filter types
                 const categoryMappings = {
-                  apartment: ['Compound Apartments', 'Local Apartments', 'Duplex', 'Roof'],
-                  villa: ['Independent Villas', 'Townhouse', 'Twin House'],
-                  land: ['Land & Local Villas', 'Land', 'Plots'],
-                  office: ['Commercial & Administrative', 'Office', 'Administrative'],
-                  warehouse: ['Commercial & Administrative', 'Warehouse', 'Storage']
+                  apartment: ['Compound Apartments', 'Local Apartments', 'Local Duplex', 'Local Roof'],
+                  villa: ['Independent Villas', 'Townhouse', 'Twin House', 'Land & Local Villas'],
+                  land: ['Land & Local Villas', 'Various Areas'],
+                  office: ['Commercial & Administrative'],
+                  warehouse: ['Commercial & Administrative']
                 };
                 
-                // Also check for exact category name match and partial matches
+                // Get mapped categories for this filter
                 const mappedCategories = categoryMappings[filter.id] || [];
                 count = stats.filter(stat => {
                   if (!stat.property_type) return false;
@@ -1031,7 +1064,8 @@ const HomePage = () => {
                 </h3>
                 <p className="text-gray-400 flex items-center gap-2 text-sm md:text-base">
                   <BuildingOffice2Icon className="h-5 w-5" />
-                  {filteredMessages.length} {texts.totalProperties} • {language === 'arabic' ? 'عرض' : 'Showing'} {displayedMessages.length}
+                  {/* Show total from stats if available, otherwise from messages */}
+                  {stats.length > 0 ? stats.reduce((sum, stat) => sum + parseInt(stat.count || 0), 0) : messages.length} {texts.totalProperties} • {language === 'arabic' ? 'عرض' : 'Showing'} {displayedMessages.length}
                 </p>
               </div>
               
