@@ -6,6 +6,7 @@ import Login from './components/Login';
 import LoginEnglish from './components/Login-English';
 import Dashboard from './components/Dashboard';
 import DashboardEnglish from './components/Dashboard-English';
+import DebugAPITest from './components/DebugAPITest';
 import { logoutUser, validateSession } from './services/apiService';
 import './App.css';
 
@@ -115,6 +116,11 @@ function App() {
           <Route 
             path="/property/:id" 
             element={<PropertyDetailPage />} 
+          />
+          {/* Debug API Test Page */}
+          <Route 
+            path="/debug-api" 
+            element={<DebugAPITest />} 
           />
           <Route 
             path="/login" 
