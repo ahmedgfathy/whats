@@ -204,6 +204,45 @@ app.get('/api/properties/search', async (req, res) => {
   }
 });
 
+// Search properties endpoint
+app.get('/api/search-properties', async (req, res) => {
+  try {
+    const { q, filter, limit = 100 } = req.query;
+    
+    let query = 'SELECT * FROM properties WHERE 1=1';
+    const params = [];
+    let paramIndex = 1;
+    
+    // Add search filters
+    if (q) {
+      query += ` AND (property_name ILIKE $${paramIndex} OR property_category ILIKE $${paramIndex} OR regions ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+      params.push(`%${q}%`);
+      paramIndex++;
+    }
+    
+    if (filter && filter !== 'all') {
+      query += ` AND property_category ILIKE $${paramIndex}`;
+      params.push(`%${filter}%`);
+      paramIndex++;
+    }
+    
+    query += ` ORDER BY imported_at DESC LIMIT $${paramIndex}`;
+    params.push(parseInt(limit));
+    
+    const result = await pool.query(query, params);
+    
+    res.json({
+      success: true,
+      data: result.rows,
+      count: result.rows.length
+    });
+    
+  } catch (error) {
+    console.error('Error searching properties:', error);
+    res.status(500).json({ error: 'Failed to search properties' });
+  }
+});
+
 // Get statistics for dashboard
 app.get('/api/stats', async (req, res) => {
   try {

@@ -20,7 +20,7 @@ import {
   FireIcon,
   UserIcon
 } from '@heroicons/react/24/outline';
-import { getAllMessages, searchMessages, getPropertyTypeStats } from '../services/apiService';
+import { getAllProperties, searchProperties, getPropertyTypeStats } from '../services/apiService';
 import PropertyHeroSlider from './PropertyHeroSlider';
 
 // Virtual property image generator
@@ -126,14 +126,14 @@ const HomePage = () => {
         setStats([]);
       }
       
-      // Load messages
-      const allMessages = await getAllMessages('all', 10000);
-      console.log('✅ Loaded messages:', allMessages?.length || 0);
-      if (allMessages && allMessages.length > 0) {
-        setMessages(allMessages);
-        console.log('✅ Messages set successfully');
+      // Load properties
+      const allProperties = await getAllProperties(10000);
+      console.log('✅ Loaded properties:', allProperties?.length || 0);
+      if (allProperties && allProperties.length > 0) {
+        setMessages(allProperties);
+        console.log('✅ Properties set successfully');
       } else {
-        console.warn('⚠️ No messages received');
+        console.warn('⚠️ No properties received');
         setMessages([]);
       }
       
@@ -156,7 +156,7 @@ const HomePage = () => {
     try {
       // Use the selectedFilter for more accurate search
       const filterType = selectedFilter === 'all' ? null : selectedFilter;
-      const searchResults = await searchMessages(searchTerm, filterType, 10000);
+      const searchResults = await searchProperties(searchTerm, filterType, 10000);
       setMessages(searchResults);
       setCurrentPage(1);
     } catch (error) {
