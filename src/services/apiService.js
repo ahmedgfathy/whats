@@ -1,8 +1,10 @@
 // Real API service for backend communication
 // This replaces the mock database with actual HTTP calls to the SQLite backend
 
-// For now, use production API endpoints for all environments since we're deployed on Vercel
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// For production, always use /api. For development, use localhost
+const API_BASE_URL = import.meta.env.PROD 
+  ? '/api' 
+  : (import.meta.env.VITE_API_URL || 'http://localhost:3001/api');
 
 // Helper function to handle API calls
 const apiCall = async (endpoint, options = {}) => {
