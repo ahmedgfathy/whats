@@ -1494,7 +1494,44 @@ const HomePage = () => {
                   <BuildingOffice2Icon className="h-5 w-5" />
                   {/* Show total from stats if available, otherwise from messages */}
                   {stats.length > 0 ? stats.reduce((sum, stat) => sum + parseInt(stat.count || 0), 0) : messages.length} {texts.totalProperties} • {language === 'arabic' ? 'عرض' : 'Showing'} {displayedMessages.length}
+                  {userLocation && sortByProximity && (
+                    <span className="text-green-400 text-xs">
+                      • {language === 'arabic' ? 'مرتب حسب القرب' : 'Sorted by proximity'}
+                    </span>
+                  )}
                 </p>
+              </div>
+              
+              {/* Geolocation and Filter Controls */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                {/* Geolocation Toggle Button */}
+                <motion.button
+                  onClick={requestGeolocation}
+                  disabled={locationPermission === 'granted'}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 text-sm font-medium ${
+                    locationPermission === 'granted'
+                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                      : 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {locationPermission === 'granted' 
+                    ? (language === 'arabic' ? 'تم تفعيل الموقع' : 'Location Enabled')
+                    : (language === 'arabic' ? 'ترتيب حسب الموقع' : 'Sort by Location')
+                  }
+                </motion.button>
+                
+                {/* Show location error if any */}
+                {geoError && (
+                  <div className="text-red-400 text-xs max-w-xs">
+                    {geoError}
+                  </div>
+                )}
               </div>
               
               {/* Filter Reset Button */}
@@ -1551,9 +1588,19 @@ const HomePage = () => {
                       >
                         {getPropertyTypeLabel(message.property_type)}
                       </motion.span>
-                      <div className="absolute top-3 right-3 flex items-center gap-1 text-xs text-white bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                        <ClockIcon className="h-3 w-3" />
-                        {message.timestamp}
+                      <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-1 text-xs text-white bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                          <ClockIcon className="h-3 w-3" />
+                          {message.timestamp}
+                        </div>
+                        {userLocation && sortByProximity && getDistanceToProperty(message) && (
+                          <div className="flex items-center gap-1 text-xs text-green-300 bg-green-500/20 backdrop-blur-sm px-2 py-1 rounded-full border border-green-500/30">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                            </svg>
+                            {getDistanceToProperty(message)}
+                          </div>
+                        )}
                       </div>
                     </div>
 

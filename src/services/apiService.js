@@ -297,11 +297,24 @@ export const getAllProperties = async (limit = 1000) => {
   }
 };
 
-// Get property by ID
+// Get property by ID (using messages endpoint since that's what we have)
 export const getPropertyById = async (id) => {
   try {
-    const response = await apiCall(`/properties/${id}`);
-    return response;
+    const response = await apiCall(`/messages/${id}`);
+    console.log('Raw API response for message ID', id, ':', response);
+    
+    // Handle both the wrapped and direct response formats
+    if (response && response.success && response.message) {
+      console.log('✅ Extracted message data:', response.message);
+      return response.message;
+    } else if (response && response.id) {
+      // Direct message object (fallback)
+      console.log('✅ Using direct message data:', response);
+      return response;
+    }
+    
+    console.error('❌ Unexpected response format:', response);
+    throw new Error('Property/message not found');
   } catch (error) {
     console.error('Error fetching property by ID:', error);
     throw error;
