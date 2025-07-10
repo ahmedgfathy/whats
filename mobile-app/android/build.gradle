@@ -7,6 +7,11 @@ buildscript {
         ndkVersion = "23.1.7779620"
         kotlinVersion = "1.8.0"
     }
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://www.jitpack.io" }
+    }
     dependencies {
         classpath("com.android.tools.build:gradle:8.1.1")
         classpath("com.facebook.react:react-native-gradle-plugin")

@@ -19,7 +19,33 @@ module.exports = async (req, res) => {
 
   if (req.method === 'GET') {
     try {
-      const { page = 1, limit = 50, search, type } = req.query;
+      const { id, page = 1, limit = 50, search, type } = req.query;
+      
+      // If ID is provided, return single message
+      if (id) {
+        const result = await pool.query(`
+          SELECT 
+            cm.*,
+            p.property_name,
+            p.property_category,
+            p.regions,
+            p.unit_price,
+            p.bedroom,
+            p.bathroom,
+            p.building
+          FROM chat_messages cm
+          LEFT JOIN properties p ON cm.property_id = p.id
+          WHERE cm.id = $1
+        `, [id]);
+        
+        if (result.rows.length === 0) {
+          return res.status(404).json({ error: 'Message not found' });
+        }
+        
+        return res.json(result.rows[0]);
+      }
+      
+      // Otherwise, return list of messages
       const offset = (page - 1) * limit;
       
       // Try normalized table first, fallback to original if needed

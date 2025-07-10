@@ -484,18 +484,18 @@ const HomePage = () => {
       </motion.header>
 
       {/* Hero Section - New Design */}
-      <div className="relative z-10 min-h-[80vh] sm:min-h-[70vh] flex items-center">
+      <div className="relative z-10 min-h-screen flex items-center">
         <div className="absolute inset-0">
           <PropertyHeroSlider language={language} isBackground={true} />
         </div>
         
         <div className="relative z-20 w-full">
           <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 items-center min-h-[60vh] sm:min-h-[50vh]">
+            <div className="grid lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
               
               {/* Left Side - Hero Content */}
               <motion.div 
-                className="text-center lg:text-right space-y-6 sm:space-y-8 order-2 lg:order-1"
+                className="text-center lg:text-right space-y-8"
                 initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
@@ -505,11 +505,11 @@ const HomePage = () => {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.3 }}
-                  className="-mt-4 sm:-mt-8"
+                  className="-mt-8"
                 >
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4">
-                    <span className="block gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-4 sm:mb-6 lg:mb-8 xl:mb-10 relative -top-1 pb-2">{texts.brandName}</span>
-                    <span className="gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl">
+                  <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4">
+                    <span className="block gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent mb-8 lg:mb-10 relative -top-1 pb-2">{texts.brandName}</span>
+                    <span className="gradient-text bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
                       {texts.brandSubtitle}
                     </span>
                   </h1>
@@ -517,7 +517,7 @@ const HomePage = () => {
 
                 {/* Subtitle */}
                 <motion.p 
-                  className="text-lg sm:text-xl md:text-2xl text-white max-w-2xl mx-auto lg:mx-0 leading-relaxed px-4 sm:px-0"
+                  className="text-xl md:text-2xl text-white max-w-2xl mx-auto lg:mx-0 leading-relaxed"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.4 }}
@@ -530,7 +530,7 @@ const HomePage = () => {
 
                 {/* Features */}
                 <motion.div 
-                  className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-4 px-4 sm:px-0"
+                  className="flex flex-wrap justify-center lg:justify-start gap-4"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.5 }}
@@ -543,9 +543,9 @@ const HomePage = () => {
                     <motion.div
                       key={index}
                       whileHover={{ scale: 1.05 }}
-                      className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 shadow-lg text-sm sm:text-base"
+                      className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200 shadow-lg"
                     >
-                      <feature.icon className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                      <feature.icon className="h-5 w-5 text-purple-600" />
                       <span className="text-gray-700 font-medium">{feature.text}</span>
                     </motion.div>
                   ))}
@@ -553,7 +553,7 @@ const HomePage = () => {
 
                 {/* CTA Buttons */}
                 <motion.div 
-                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start px-4 sm:px-0"
+                  className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.6 }}
@@ -562,9 +562,9 @@ const HomePage = () => {
                     onClick={() => navigate('/login')}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-3 justify-center text-sm sm:text-base"
+                    className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-3 justify-center"
                   >
-                    <UserIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <UserIcon className="h-5 w-5" />
                     {texts.login}
                   </motion.button>
                   
@@ -572,9 +572,9 @@ const HomePage = () => {
                     onClick={() => document.getElementById('properties-section').scrollIntoView({ behavior: 'smooth' })}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="px-6 sm:px-8 py-3 sm:py-4 bg-white/90 backdrop-blur-sm text-gray-800 font-bold rounded-2xl border-2 border-gray-300 hover:border-purple-400 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 justify-center text-sm sm:text-base"
+                    className="px-8 py-4 bg-white/90 backdrop-blur-sm text-gray-800 font-bold rounded-2xl border-2 border-gray-300 hover:border-purple-400 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3 justify-center"
                   >
-                    <EyeIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <EyeIcon className="h-5 w-5" />
                     {language === 'arabic' ? 'استكشف العقارات' : 'Explore Properties'}
                   </motion.button>
                 </motion.div>
@@ -582,7 +582,7 @@ const HomePage = () => {
 
               {/* Right Side - Search Section */}
               <motion.div 
-                className="lg:order-last relative order-1 lg:order-2"
+                className="lg:order-last relative"
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8, delay: 0.4 }}
@@ -592,7 +592,7 @@ const HomePage = () => {
                   initial={{ opacity: 0, scale: 0, rotate: -10 }}
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   transition={{ duration: 1, delay: 0.5 }}
-                  className="absolute -top-12 sm:-top-16 -right-8 sm:-right-12 z-20 cursor-pointer"
+                  className="absolute -top-20 -right-16 z-20 cursor-pointer"
                   onClick={() => navigate('/register')}
                 >
                   <motion.div
@@ -607,8 +607,8 @@ const HomePage = () => {
                     }}
                     className="relative"
                   >
-                    {/* Main Offer Banner - Made Even Smaller */}
-                    <div className="relative w-36 h-20 bg-red-600 rounded-lg transform rotate-3 hover:rotate-0 transition-transform duration-300">
+                    {/* Main Offer Banner */}
+                    <div className="relative w-72 h-40 bg-red-600 rounded-2xl transform rotate-3 hover:rotate-0 transition-transform duration-300">
                       {/* Animated background pulse */}
                       <motion.div
                         animate={{
@@ -620,12 +620,12 @@ const HomePage = () => {
                           repeat: Infinity,
                           ease: "easeInOut"
                         }}
-                        className="absolute inset-0 bg-white rounded-lg"
+                        className="absolute inset-0 bg-white rounded-2xl"
                       />
                       
-                      {/* Content - More Compact Layout */}
-                      <div className="relative z-10 p-2 text-white h-full flex items-center justify-between">
-                        {/* Left side - Smaller Megaphone */}
+                      {/* Content */}
+                      <div className="relative z-10 p-6 text-white h-full flex items-center justify-between">
+                        {/* Left side - Megaphone */}
                         <div className="flex-shrink-0">
                           <motion.div
                             animate={{ 
@@ -637,40 +637,40 @@ const HomePage = () => {
                               repeat: Infinity,
                               ease: "easeInOut"
                             }}
-                            className="w-8 h-8 bg-white rounded-full flex items-center justify-center"
+                            className="w-16 h-16 bg-white rounded-full flex items-center justify-center"
                           >
-                            <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-10 h-10 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 3a1 1 0 00-1.447-.894L8.763 6H5a3 3 0 000 6h.28l1.771 5.316A1 1 0 008 18h1a1 1 0 001-1v-4.382l6.553 3.894A1 1 0 0018 16V3z" clipRule="evenodd" />
                             </svg>
                           </motion.div>
                         </div>
                         
-                        {/* Right side - More Compact Text */}
-                        <div className="flex-1 text-right pr-1">
+                        {/* Right side - Text */}
+                        <div className="flex-1 text-right pr-3">
                           <motion.div
                             animate={{ scale: [1, 1.05, 1] }}
                             transition={{ duration: 1.5, repeat: Infinity }}
-                            className="text-sm font-bold leading-tight"
+                            className="text-3xl font-bold leading-tight"
                           >
                             {language === 'arabic' ? 'عرض جديد' : 'NEW OFFER'}
                           </motion.div>
-                          <div className="text-xs font-semibold text-yellow-200">
-                            {language === 'arabic' ? 'للسماسرة' : 'FOR BROKERS'}
+                          <div className="text-lg font-semibold text-yellow-200 mt-2">
+                            {language === 'arabic' ? 'للسماسرة والوكلاء' : 'FOR BROKERS & AGENTS'}
                           </div>
-                          <div className="text-xs font-bold text-yellow-300">
-                            {language === 'arabic' ? '199 جنيه/شهر' : '199 L.E/Mo'}
+                          <div className="text-2xl font-bold text-yellow-300 mt-2">
+                            {language === 'arabic' ? '99 جنيه/شهر' : '99 L.E/Month'}
                           </div>
                         </div>
                       </div>
                       
-                      {/* Decorative triangular elements - Even Smaller */}
+                      {/* Decorative triangular elements */}
                       <motion.div
                         animate={{ 
                           rotate: [0, 360],
                           scale: [1, 1.2, 1]
                         }}
                         transition={{ duration: 4, repeat: Infinity }}
-                        className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 transform rotate-45"
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 transform rotate-45"
                       />
                       <motion.div
                         animate={{ 
@@ -678,10 +678,10 @@ const HomePage = () => {
                           scale: [1.2, 1, 1.2]
                         }}
                         transition={{ duration: 3, repeat: Infinity }}
-                        className="absolute -bottom-0.5 -left-0.5 w-1.5 h-1.5 bg-red-500 transform rotate-45"
+                        className="absolute -bottom-1 -left-1 w-4 h-4 bg-red-500 transform rotate-45"
                       />
                       
-                      {/* Sparkle effects - Much Smaller */}
+                      {/* Sparkle effects */}
                       <motion.div
                         animate={{
                           opacity: [0, 1, 0],
@@ -692,7 +692,7 @@ const HomePage = () => {
                           repeat: Infinity,
                           repeatDelay: 0.5
                         }}
-                        className="absolute top-2 right-2 w-1.5 h-1.5 bg-yellow-300 rounded-full"
+                        className="absolute top-6 right-6 w-3 h-3 bg-yellow-300 rounded-full"
                       />
                       <motion.div
                         animate={{
@@ -704,11 +704,11 @@ const HomePage = () => {
                           repeat: Infinity,
                           repeatDelay: 1
                         }}
-                        className="absolute bottom-2 left-4 w-1 h-1 bg-yellow-300 rounded-full"
+                        className="absolute bottom-6 left-12 w-2 h-2 bg-yellow-300 rounded-full"
                       />
                     </div>
                     
-                    {/* Outer glow rings - Adjusted for smaller card */}
+                    {/* Outer glow rings */}
                     <motion.div
                       animate={{
                         scale: [1, 1.2, 1],
@@ -719,7 +719,7 @@ const HomePage = () => {
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
-                      className="absolute inset-0 border-2 border-red-400 rounded-xl -m-2 transform rotate-3"
+                      className="absolute inset-0 border-2 border-red-400 rounded-2xl -m-2 transform rotate-3"
                     />
                     <motion.div
                       animate={{
@@ -732,29 +732,29 @@ const HomePage = () => {
                         ease: "easeInOut",
                         delay: 0.5
                       }}
-                      className="absolute inset-0 border border-red-400 rounded-xl -m-3 transform rotate-3"
+                      className="absolute inset-0 border border-red-400 rounded-2xl -m-4 transform rotate-3"
                     />
                   </motion.div>
                 </motion.div>
 
-                <div className="bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/50">
+                <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/50">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 }}
                   >
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6 text-center">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
                       {language === 'arabic' ? 'ابحث عن عقارك المثالي' : 'Find Your Perfect Property'}
                     </h3>
                     
                     {/* Search Input */}
-                    <div className="relative mb-4 sm:mb-6">
+                    <div className="relative mb-6">
                       <input
                         type="text"
                         value={searchTerm}
                         onChange={handleSearchChange}
                         placeholder={texts.search}
-                        className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 text-gray-800 rounded-xl sm:rounded-2xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-400/20 placeholder-gray-500 text-base sm:text-lg pr-12 sm:pr-14"
+                        className="w-full px-6 py-4 bg-gray-50 text-gray-800 rounded-2xl border-2 border-gray-200 focus:border-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-400/20 placeholder-gray-500 text-lg pr-14"
                         onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                       />
                       {searchTerm && (
@@ -763,9 +763,9 @@ const HomePage = () => {
                             setSearchTerm('');
                             loadInitialData();
                           }}
-                          className="absolute right-3 sm:right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors duration-200"
                         >
-                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
@@ -773,18 +773,18 @@ const HomePage = () => {
                     </div>
 
                     {/* Search Buttons */}
-                    <div className="flex gap-2 sm:gap-3">
+                    <div className="flex gap-3">
                       <motion.button 
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleSearch}
                         disabled={loading || !searchTerm.trim()}
-                        className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl sm:rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium shadow-lg text-sm sm:text-base"
+                        className="flex-1 px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium shadow-lg text-base"
                       >
                         {loading ? (
-                          <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         ) : (
-                          <MagnifyingGlassIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <MagnifyingGlassIcon className="h-5 w-5" />
                         )}
                         {texts.searchBtn}
                       </motion.button>
@@ -798,7 +798,7 @@ const HomePage = () => {
                             setSelectedFilter('all');
                             loadInitialData();
                           }}
-                          className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl sm:rounded-2xl hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium shadow-lg text-sm sm:text-base"
+                          className="px-6 py-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl hover:from-red-600 hover:to-red-700 transition-all duration-200 font-medium shadow-lg text-base"
                         >
                           {language === 'arabic' ? 'مسح' : 'Clear'}
                         </motion.button>
@@ -807,14 +807,14 @@ const HomePage = () => {
 
                     {/* Quick Stats */}
                     <motion.div 
-                      className="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4"
+                      className="mt-6 grid grid-cols-3 gap-4"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: 0.7 }}
                     >
                       {stats.slice(0, 3).map((stat, index) => (
-                        <div key={index} className="text-center p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl">
-                          <div className="text-base sm:text-lg font-bold text-purple-600">{stat.count?.toLocaleString() || '0'}</div>
+                        <div key={index} className="text-center p-3 bg-gray-50 rounded-xl">
+                          <div className="text-lg font-bold text-purple-600">{stat.count?.toLocaleString() || '0'}</div>
                           <div className="text-xs text-gray-600">{stat.property_type === 'apartment' ? (language === 'arabic' ? 'شقق' : 'Apartments') : stat.property_type === 'villa' ? (language === 'arabic' ? 'فيلل' : 'Villas') : (language === 'arabic' ? 'أراضي' : 'Land')}</div>
                         </div>
                       ))}
@@ -824,213 +824,6 @@ const HomePage = () => {
               </motion.div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Animated Featured Units Slide Bar - Moved Below Hero */}
-      <div className="relative z-20 overflow-hidden h-48 sm:h-56 bg-gradient-to-r from-purple-900/90 via-blue-900/90 to-indigo-900/90 backdrop-blur-sm">
-        {/* Animated Sliding Container */}
-        <motion.div 
-          className="flex gap-3 sm:gap-6 items-center h-full px-3 sm:px-0"
-          animate={{ 
-            x: [0, -100 * 6] // Move left by 6 card widths
-          }}
-          transition={{ 
-            duration: 30, // 30 seconds for full cycle
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          style={{ width: 'calc(100% + 600px)' }} // Extra width for seamless loop
-        >
-          {/* Repeat the units twice for seamless infinite scroll */}
-          {[...displayedMessages.slice(0, 6), ...displayedMessages.slice(0, 6)].map((unit, index) => (
-            <motion.div 
-              key={`${unit.id}-${index}`}
-              whileHover={{ 
-                scale: 1.05, 
-                y: -10,
-                transition: { duration: 0.3 }
-              }}
-              onClick={() => navigate(`/property/${unit.id}`)}
-              className="flex-shrink-0 w-72 sm:w-80 h-48 sm:h-56 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 backdrop-blur-lg border border-yellow-400/30 rounded-2xl overflow-hidden hover:from-yellow-400/30 hover:to-orange-400/30 transition-all duration-300 shadow-2xl cursor-pointer mx-2 sm:mx-3"
-            >
-              {/* Featured Badge */}
-              <div className="relative h-full">
-                <div className="absolute top-3 left-3 z-10">
-                  <motion.div 
-                    className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-full text-sm font-bold shadow-lg"
-                    animate={{ 
-                      boxShadow: [
-                        "0 0 20px rgba(251, 191, 36, 0.5)",
-                        "0 0 40px rgba(251, 191, 36, 0.8)",
-                        "0 0 20px rgba(251, 191, 36, 0.5)"
-                      ]
-                    }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <StarIcon className="h-4 w-4" />
-                    {language === 'arabic' ? 'مميز' : 'FEATURED'}
-                  </motion.div>
-                </div>
-                
-                {/* Split Layout: Image + Content */}
-                <div className="flex h-full">
-                  {/* Left: Image */}
-                  <div className="relative w-1/2 h-full overflow-hidden">
-                    <img 
-                      src={getVirtualPropertyImage(unit.property_type, unit.id)}
-                      alt={getPropertyTypeLabel(unit.property_type)}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=250&fit=crop&auto=format';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/60"></div>
-                    
-                    {/* Property Type Badge */}
-                    <div className="absolute bottom-3 left-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border backdrop-blur-sm ${getPropertyTypeColorClass(unit.property_type)}`}>
-                        {getPropertyTypeLabel(unit.property_type)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Right: Content */}
-                  <div className="w-1/2 p-4 flex flex-col justify-between bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-sm">
-                    <div>
-                      <h3 className="font-bold text-white mb-2 text-lg leading-tight">
-                        {getPropertyTypeLabel(unit.property_type)}
-                      </h3>
-                      
-                      <p className="text-gray-200 text-sm line-clamp-2 mb-3 leading-relaxed">
-                        {unit.message?.substring(0, 80)}...
-                      </p>
-                      
-                      {/* Location */}
-                      <div className="flex items-center mb-2">
-                        <MapPinIcon className="h-4 w-4 text-gray-300 mr-1" />
-                        <span className="text-gray-300 text-xs">{unit.location || texts.notSpecified}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {/* Price */}
-                      <div className="text-center">
-                        <span className="text-yellow-400 font-bold text-lg">199</span>
-                      </div>
-                      
-                      {/* CTA Button - Made Smaller */}
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/property/${unit.id}`);
-                        }}
-                        className="w-full px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-md hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 font-medium text-xs flex items-center justify-center gap-1 shadow-md"
-                      >
-                        <EyeIcon className="h-3 w-3" />
-                        {language === 'arabic' ? 'عرض' : 'View'}
-                      </motion.button>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Floating Icons */}
-                <div className="absolute top-3 right-3 flex gap-1">
-                  <motion.div
-                    animate={{ 
-                      rotate: [0, 360],
-                      scale: [1, 1.2, 1]
-                    }}
-                    transition={{ 
-                      duration: 3, 
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <FireIcon className="h-5 w-5 text-yellow-400" />
-                  </motion.div>
-                  <motion.div
-                    animate={{ 
-                      y: [0, -5, 0],
-                      opacity: [0.7, 1, 0.7]
-                    }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: 0.5
-                    }}
-                  >
-                    <SparklesIcon className="h-5 w-5 text-yellow-400" />
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-          
-          {/* Add CRM Placeholder Card in the sliding sequence */}
-          <motion.div 
-            whileHover={{ 
-              scale: 1.05, 
-              y: -10,
-              transition: { duration: 0.3 }
-            }}
-            onClick={() => navigate('/login')}
-            className="flex-shrink-0 w-80 h-56 bg-gradient-to-br from-purple-600/30 to-blue-600/30 backdrop-blur-lg border-2 border-dashed border-purple-400/50 rounded-2xl overflow-hidden hover:from-purple-500/40 hover:to-blue-500/40 transition-all duration-300 shadow-2xl cursor-pointer mx-3 flex items-center justify-center"
-          >
-            <div className="text-center p-6">
-              <motion.div
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  rotate: [0, 5, -5, 0]
-                }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-3"
-              >
-                <UserIcon className="h-6 w-6 text-white" />
-              </motion.div>
-              <h3 className="text-lg font-bold text-white mb-2">
-                {language === 'arabic' ? 'أضف وحدتك المميزة' : 'Add Your Featured Unit'}
-              </h3>
-              <p className="text-gray-300 text-xs mb-3">
-                {language === 'arabic' 
-                  ? 'انضم إلى منصتنا' 
-                  : 'Join our platform'
-                }
-              </p>
-              <div className="px-3 py-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg text-xs font-medium">
-                {language === 'arabic' ? 'ابدأ الآن' : 'Get Started'}
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-        
-        {/* Gradient Fade Edges */}
-        <div className="absolute top-0 left-0 w-20 h-full bg-gradient-to-r from-purple-900/90 to-transparent pointer-events-none z-30"></div>
-        <div className="absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-purple-900/90 to-transparent pointer-events-none z-30"></div>
-        
-        {/* Subtle Grid Pattern Overlay */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none" 
-             style={{
-               backgroundImage: `
-                 linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-                 linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-                 linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
-                 linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%)
-               `,
-               backgroundSize: '20px 20px',
-               backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
-             }}>
         </div>
       </div>
 
@@ -1047,7 +840,7 @@ const HomePage = () => {
         >
           {/* Centered Grid Container */}
           <div className="flex justify-center">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 lg:gap-6 justify-items-center max-w-7xl">
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6 justify-items-center max-w-7xl">
             {propertyFilters.map((filter, index) => {
               // Use BuildingOffice2Icon for all property types
               const IconComponent = BuildingOffice2Icon;
@@ -1302,7 +1095,7 @@ const HomePage = () => {
           ) : (
             <>
               {/* Properties Grid - 5 per row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8 mb-8">
                 {displayedMessages.map((message, index) => (
                   <motion.div 
                     key={message.id} 

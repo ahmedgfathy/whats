@@ -14,7 +14,7 @@ import {
   ShareIcon,
   HeartIcon
 } from '@heroicons/react/24/outline';
-import { getMessageById } from '../services/apiService';
+import { getPropertyById } from '../services/apiService';
 
 const PropertyDetailPage = () => {
   const { id } = useParams();
@@ -28,15 +28,16 @@ const PropertyDetailPage = () => {
     loadPropertyDetails();
     // Check saved language preference
     const savedLanguage = localStorage.getItem('publicLanguage') || 'arabic';
+    
     setLanguage(savedLanguage);
   }, [id]);
 
   const loadPropertyDetails = async () => {
     try {
       setLoading(true);
-      const response = await getMessageById(id);
+      const response = await getPropertyById(id);
       console.log('API Response:', response); // Debug log
-      setProperty(response.message || response);
+      setProperty(response);
     } catch (err) {
       setError('Failed to load property details');
       console.error('Error loading property:', err);

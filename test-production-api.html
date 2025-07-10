@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏢 Contaboo Real Estate - Production Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container { 
+            background: white; 
+            border-radius: 15px; 
+            padding: 30px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 10px; 
+            background: #f8f9fa;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { 
+            padding: 12px 24px; 
+            margin: 8px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); }
+        .result { 
+            margin-top: 15px; 
+            padding: 15px; 
+            background: white; 
+            border-radius: 8px; 
+            white-space: pre-wrap; 
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        h1 { 
+            color: #333; 
+            text-align: center; 
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        h3 { color: #555; }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background-color: #28a745; }
+        .status-offline { background-color: #dc3545; }
+        .status-checking { background-color: #ffc107; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏢 Contaboo Real Estate - Production API Test</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Testing production API endpoints for the real estate application deployed on Vercel.
+        </p>
+        
+        <div class="test-section" id="health-test">
+            <h3><span id="health-status" class="status-indicator status-checking"></span>Health Check</h3>
+            <button onclick="testHealth()">Test Health Endpoint</button>
+            <div id="health-result" class="result"></div>
+        </div>
+        
+        <div class="test-section" id="properties-test">
+            <h3><span id="properties-status" class="status-indicator status-checking"></span>Properties API</h3>
+            <button onclick="testProperties()">Test Properties Endpoint</button>
+            <div id="properties-result" class="result"></div>
+        </div>
+        
+        <div class="test-section" id="stats-test">
+            <h3><span id="stats-status" class="status-indicator status-checking"></span>Statistics API</h3>
+            <button onclick="testStats()">Test Stats Endpoint</button>
+            <div id="stats-result" class="result"></div>
+            <div id="stats-display" class="stats-grid"></div>
+        </div>
+        
+        <div class="test-section" id="all-test">
+            <h3>🚀 Run All Tests</h3>
+            <button onclick="runAllTests()">Run All Tests</button>
+            <button onclick="testProduction()">Test Production Domain</button>
+        </div>
+    </div>
+
+    <script>
+        // Production API URL (will be relative paths)
+        const PRODUCTION_DOMAIN = 'https://contaboo-real-estate.vercel.app';
+        
+        function setResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = content;
+            const section = element.closest('.test-section');
+            section.className = 'test-section ' + type;
+            
+            // Update status indicator
+            const statusId = elementId.replace('-result', '-status');
+            const statusElement = document.getElementById(statusId);
+            if (statusElement) {
+                statusElement.className = `status-indicator ${type === 'success' ? 'status-online' : type === 'error' ? 'status-offline' : 'status-checking'}`;
+            }
+        }
+
+        async function testEndpoint(endpoint, resultId, baseUrl = '/api') {
+            setResult(resultId, 'Testing...', 'loading');
+            
+            try {
+                const url = `${baseUrl}${endpoint}`;
+                console.log(`Testing: ${url}`);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                setResult(resultId, `✅ SUCCESS\n${JSON.stringify(data, null, 2)}`, 'success');
+                return data;
+            } catch (error) {
+                console.error(`Failed ${baseUrl}${endpoint}:`, error);
+                setResult(resultId, `❌ FAILED\nError: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function testHealth() {
+            await testEndpoint('/health', 'health-result');
+        }
+
+        async function testProperties() {
+            const data = await testEndpoint('/properties?limit=5', 'properties-result');
+            if (data && Array.isArray(data)) {
+                const resultElement = document.getElementById('properties-result');
+                resultElement.textContent = `✅ SUCCESS\nFound ${data.length} properties\n\nSample properties:\n${JSON.stringify(data.slice(0, 2), null, 2)}`;
+            }
+        }
+
+        async function testStats() {
+            const data = await testEndpoint('/stats', 'stats-result');
+            if (data) {
+                displayStats(data);
+            }
+        }
+
+        function displayStats(stats) {
+            const statsDisplay = document.getElementById('stats-display');
+            const propertyTypes = [
+                { key: 'apartments', label: 'شقق', icon: '🏠' },
+                { key: 'villas', label: 'فيلل', icon: '🏰' },
+                { key: 'land', label: 'أراضي', icon: '🏞️' },
+                { key: 'offices', label: 'مكاتب', icon: '🏢' },
+                { key: 'penthouses', label: 'دوبلكس', icon: '🏙️' },
+                { key: 'townhouses', label: 'تاون هاوس', icon: '🏘️' }
+            ];
+            
+            statsDisplay.innerHTML = propertyTypes.map(type => `
+                <div class="stat-card">
+                    <div class="stat-number">${stats[type.key] || 0}</div>
+                    <div class="stat-label">${type.icon} ${type.label}</div>
+                </div>
+            `).join('');
+        }
+
+        async function testProduction() {
+            console.log('🔄 Testing production domain...');
+            
+            // Test production endpoints
+            await testEndpoint('/health', 'health-result', PRODUCTION_DOMAIN + '/api');
+            await testEndpoint('/properties?limit=3', 'properties-result', PRODUCTION_DOMAIN + '/api');
+            await testEndpoint('/stats', 'stats-result', PRODUCTION_DOMAIN + '/api');
+        }
+
+        async function runAllTests() {
+            console.log('🔄 Running all tests...');
+            await testHealth();
+            await testProperties();  
+            await testStats();
+            console.log('✅ All tests completed');
+        }
+
+        // Auto-run tests on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Page loaded, running initial tests...');
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

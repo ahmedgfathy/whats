@@ -1,39 +1,65 @@
 // Real API service for backend communication
 // This replaces the mock database with actual HTTP calls to the Neon database
 
-// Use localhost:3001 for development - production deployment needs to be updated
-const API_BASE_URL = 'http://localhost:3001/api';
+// Use environment variable or fallback to localhost for development
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? '/api' 
+  : (import.meta.env.VITE_API_URL || 'http://localhost:3001/api');
 
-// Helper function to handle API calls
+// Fallback URLs for development (in case primary server is down)
+const FALLBACK_URLS = [
+  'http://localhost:3001/api',
+  'http://localhost:3002/api'
+];
+
+// Helper function to handle API calls with fallback
 const apiCall = async (endpoint, options = {}) => {
-  try {
-    const url = `${API_BASE_URL}${endpoint}`;
-    const requestOptions = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
-    };
-    
-    console.log(`Making API call to: ${url}`);
-    console.log('Request options:', requestOptions);
-    
-    const response = await fetch(url, requestOptions);
-    
-    console.log(`Response status: ${response.status}`);
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+  const urlsToTry = process.env.NODE_ENV === 'production' 
+    ? [API_BASE_URL]
+    : [API_BASE_URL, ...FALLBACK_URLS.filter(url => url !== API_BASE_URL)];
+
+  let lastError;
+  
+  for (const baseUrl of urlsToTry) {
+    try {
+      const url = `${baseUrl}${endpoint}`;
+      const requestOptions = {
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers
+        },
+        ...options
+      };
+      
+      console.log(`Making API call to: ${url}`);
+      
+      const response = await fetch(url, requestOptions);
+      
+      console.log(`Response status: ${response.status}`);
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error(`API call failed for ${baseUrl}${endpoint}:`, error);
+      lastError = error;
+      
+      // If this is the last URL to try, or we're in production, throw the error
+      if (baseUrl === urlsToTry[urlsToTry.length - 1] || process.env.NODE_ENV === 'production') {
+        throw error;
+      }
+      
+      // Otherwise, continue to the next URL
+      console.log(`Trying next fallback URL...`);
     }
-    
-    return data;
-  } catch (error) {
-    console.error(`API call failed for ${endpoint}:`, error);
-    throw error;
   }
+  
+  // This should never be reached, but just in case
+  throw lastError || new Error('All API endpoints failed');
 };
 
 // Helper functions for generating missing data (for backward compatibility)
@@ -179,20 +205,48 @@ export const insertMessage = async (messageData) => {
 
 // Search messages
 export const searchMessages = async (searchTerm = '', propertyType = 'all', limit = 10000) => {
-  const params = new URLSearchParams();
-  
-  if (searchTerm.trim()) {
-    params.append('search', searchTerm);
+  try {
+    const params = new URLSearchParams();
+    
+    if (searchTerm.trim()) {
+      params.append('search', searchTerm);
+    }
+    
+    if (propertyType && propertyType !== 'all') {
+      params.append('property_type', propertyType);
+    }
+    
+    params.append('limit', limit.toString());
+    
+    console.log('🔍 Searching messages with params:', params.toString());
+    const response = await apiCall(`/messages?${params.toString()}`);
+    console.log('✅ Search response:', response);
+    
+    // The backend returns { success: true, messages: [...] }
+    if (response && response.success && response.messages) {
+      // Transform the data to match what HomePage expects
+      const transformedProperties = response.messages.map(item => ({
+        id: item.id,
+        message: item.property_name || item.description || 'عقار متاح للبيع',
+        property_type: item.property_type || 'apartment',
+        location: item.regions || 'غير محدد',
+        price: item.unit_price || item.amount || null,
+        timestamp: item.imported_at ? new Date(item.imported_at).toLocaleDateString('ar-EG') : new Date().toLocaleDateString('ar-EG'),
+        agent_phone: item.mobile_no || item.tel || null,
+        agent_description: item.name || null,
+        full_description: item.description || item.zain_house_sales_notes || null
+      }));
+      
+      console.log('✅ Transformed', transformedProperties.length, 'search results');
+      return transformedProperties;
+    } else {
+      console.warn('⚠️ Unexpected search API response format:', response);
+      return [];
+    }
+  } catch (error) {
+    console.error('❌ Error searching messages:', error);
+    return [];
   }
-  
-  if (propertyType && propertyType !== 'all') {
-    params.append('property_type', propertyType);
-  }
-  
-  params.append('limit', limit.toString());
-  
-  const response = await apiCall(`/messages?${params.toString()}`);
-  return response.messages;
 };
 
 // Get all messages
@@ -206,10 +260,39 @@ export const getAllProperties = async (limit = 1000) => {
     const params = new URLSearchParams();
     params.append('limit', limit.toString());
     
-    const response = await apiCall(`/properties?${params.toString()}`);
-    return response;
+    console.log('🔍 Fetching properties from:', `${API_BASE_URL}/messages?${params.toString()}`);
+    const response = await apiCall(`/messages?${params.toString()}`);
+    console.log('✅ Properties API response received:', response);
+    
+    // The backend returns { success: true, messages: [...] }
+    if (response && response.success && response.messages) {
+      console.log('✅ Found', response.messages.length, 'properties');
+      
+      // Transform the data to match what HomePage expects
+      const transformedProperties = response.messages.map(item => ({
+        id: item.id,
+        message: item.property_name || item.description || 'عقار متاح للبيع',
+        property_type: item.property_type || 'apartment',
+        location: item.regions || 'غير محدد',
+        price: item.unit_price || item.amount || null,
+        timestamp: item.imported_at ? new Date(item.imported_at).toLocaleDateString('ar-EG') : new Date().toLocaleDateString('ar-EG'),
+        agent_phone: item.mobile_no || item.tel || null,
+        agent_description: item.name || null,
+        full_description: item.description || item.zain_house_sales_notes || null
+      }));
+      
+      console.log('✅ Transformed', transformedProperties.length, 'properties');
+      return transformedProperties;
+    } else {
+      console.warn('⚠️ Unexpected API response format:', response);
+      return [];
+    }
   } catch (error) {
-    console.error('Error fetching all properties:', error);
+    console.error('❌ Error fetching all properties:', error);
+    // Try to provide more details about the error
+    if (error.message.includes('Failed to fetch')) {
+      console.error('❌ Network error - is the backend server running on localhost:3001?');
+    }
     throw error;
   }
 };
@@ -217,7 +300,7 @@ export const getAllProperties = async (limit = 1000) => {
 // Get property by ID
 export const getPropertyById = async (id) => {
   try {
-    const response = await apiCall(`/property?id=${id}`);
+    const response = await apiCall(`/properties/${id}`);
     return response;
   } catch (error) {
     console.error('Error fetching property by ID:', error);
@@ -227,9 +310,25 @@ export const getPropertyById = async (id) => {
 
 // Get property type statistics
 export const getPropertyTypeStats = async () => {
-  const response = await apiCall('/stats');
-  console.log('Property type breakdown from API:', response.stats);
-  return response.stats;
+  try {
+    const response = await apiCall('/stats');
+    console.log('Property type breakdown from API:', response);
+    
+    // The backend returns { success: true, stats: [{ property_type: 'apartment', count: 123 }] }
+    if (response && response.success && response.stats) {
+      console.log('✅ Found stats for', response.stats.length, 'property types');
+      return response.stats;
+    } else {
+      console.warn('⚠️ Unexpected stats API response format:', response);
+      return [];
+    }
+    
+  } catch (error) {
+    console.error('❌ Error fetching property type stats:', error);
+    
+    // Return empty array as fallback so the app doesn't crash
+    return [];
+  }
 };
 
 // Import messages from WhatsApp chat file (bulk import)

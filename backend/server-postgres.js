@@ -112,7 +112,39 @@ initializeTables();
 // Get all properties
 app.get('/api/properties', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM properties ORDER BY imported_at DESC LIMIT 1000');
+    const { limit = 1000 } = req.query;
+    
+    // Check if we have relationships set up
+    const hasRelationships = await pool.query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_name = 'properties' AND column_name = 'property_type_id'
+    `);
+    
+    let query;
+    if (hasRelationships.rows[0].count > 0) {
+      // Use relationship-based query for better data
+      query = `
+        SELECT 
+          p.*,
+          pt.name_arabic as property_type_name_ar,
+          pt.name_english as property_type_name_en,
+          a.name_arabic as area_name_ar,
+          a.name_english as area_name_en,
+          ag.name as agent_name,
+          ag.phone as agent_phone
+        FROM properties p
+        LEFT JOIN property_types pt ON p.property_type_id = pt.id
+        LEFT JOIN areas a ON p.area_id = a.id
+        LEFT JOIN agents ag ON p.agent_id = ag.id
+        ORDER BY p.imported_at DESC 
+        LIMIT $1
+      `;
+    } else {
+      // Fallback to basic query
+      query = 'SELECT * FROM properties ORDER BY imported_at DESC LIMIT $1';
+    }
+    
+    const result = await pool.query(query, [parseInt(limit)]);
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching properties:', error);
@@ -120,20 +152,79 @@ app.get('/api/properties', async (req, res) => {
   }
 });
 
-// Get property by ID
+// Get property by ID with related data
 app.get('/api/properties/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM properties WHERE id = $1', [id]);
+    
+    // Get property with related data
+    const result = await pool.query(`
+      SELECT 
+        p.*,
+        pt.name_arabic as property_type_name_ar,
+        pt.name_english as property_type_name_en,
+        a.name_arabic as area_name_ar,
+        a.name_english as area_name_en,
+        ag.name as agent_name,
+        ag.phone as agent_phone,
+        ag.description as agent_description
+      FROM properties p
+      LEFT JOIN property_types pt ON p.property_type_id = pt.id
+      LEFT JOIN areas a ON p.area_id = a.id
+      LEFT JOIN agents ag ON p.agent_id = ag.id
+      WHERE p.id = $1
+    `, [id]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Property not found' });
     }
     
-    res.json(result.rows[0]);
+    const property = result.rows[0];
+    
+    // Also get related chat messages for this property
+    const messagesResult = await pool.query(`
+      SELECT * FROM chat_messages 
+      WHERE property_id = $1 
+      ORDER BY created_at DESC 
+      LIMIT 10
+    `, [id]);
+    
+    // Add related messages to property data
+    property.related_messages = messagesResult.rows;
+    
+    res.json(property);
   } catch (error) {
     console.error('Error fetching property:', error);
     res.status(500).json({ error: 'Failed to fetch property' });
+  }
+});
+
+// Get message by ID (for backward compatibility)
+app.get('/api/messages/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(`
+      SELECT 
+        cm.*,
+        p.property_name,
+        p.property_category,
+        p.regions,
+        p.unit_price,
+        p.bedroom,
+        p.bathroom
+      FROM chat_messages cm
+      LEFT JOIN properties p ON cm.property_id = p.id
+      WHERE cm.id = $1
+    `, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching message:', error);
+    res.status(500).json({ error: 'Failed to fetch message' });
   }
 });
 
@@ -246,16 +337,52 @@ app.get('/api/search-properties', async (req, res) => {
 // Get statistics for dashboard
 app.get('/api/stats', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT 
-        COUNT(*) as total_properties,
-        COUNT(CASE WHEN property_category ILIKE '%فيلات%' THEN 1 END) as villas,
-        COUNT(CASE WHEN property_category ILIKE '%شقق%' THEN 1 END) as apartments,
-        COUNT(CASE WHEN property_category ILIKE '%دوبلكس%' THEN 1 END) as penthouses,
-        COUNT(CASE WHEN property_category ILIKE '%تاون%' THEN 1 END) as townhouses,
-        COUNT(CASE WHEN property_category ILIKE '%محلات%' OR property_category ILIKE '%اداري%' THEN 1 END) as offices,
-        COUNT(CASE WHEN property_category ILIKE '%اراضي%' THEN 1 END) as land
-      FROM properties
+    // Check if we have the new relationship structure
+    const hasRelationships = await pool.query(`
+      SELECT COUNT(*) as count FROM information_schema.columns 
+      WHERE table_name = 'properties' AND column_name = 'property_type_id'
+    `);
+    
+    let result;
+    if (hasRelationships.rows[0].count > 0) {
+      // Use new relationship-based query
+      console.log('Using relationship-based stats');
+      result = await pool.query(`
+        SELECT 
+          COUNT(*) as total_properties,
+          COUNT(CASE WHEN pt.type_code = 'villa' THEN 1 END) as villas,
+          COUNT(CASE WHEN pt.type_code = 'apartment' THEN 1 END) as apartments,
+          COUNT(CASE WHEN pt.type_code = 'penthouse' THEN 1 END) as penthouses,
+          COUNT(CASE WHEN pt.type_code = 'townhouse' THEN 1 END) as townhouses,
+          COUNT(CASE WHEN pt.type_code = 'office' THEN 1 END) as offices,
+          COUNT(CASE WHEN pt.type_code = 'land' THEN 1 END) as land
+        FROM properties p
+        LEFT JOIN property_types pt ON p.property_type_id = pt.id
+      `);
+    } else {
+      // Fallback to category-based query
+      console.log('Using category-based stats (fallback)');
+      result = await pool.query(`
+        SELECT 
+          COUNT(*) as total_properties,
+          COUNT(CASE WHEN property_category ILIKE '%فيلات%' OR property_category ILIKE '%فيلا%' OR property_category ILIKE '%villa%' THEN 1 END) as villas,
+          COUNT(CASE WHEN property_category ILIKE '%شقق%' OR property_category ILIKE '%شقة%' OR property_category ILIKE '%apartment%' THEN 1 END) as apartments,
+          COUNT(CASE WHEN property_category ILIKE '%دوبلكس%' OR property_category ILIKE '%duplex%' OR property_category ILIKE '%penthouse%' THEN 1 END) as penthouses,
+          COUNT(CASE WHEN property_category ILIKE '%تاون%' OR property_category ILIKE '%townhouse%' THEN 1 END) as townhouses,
+          COUNT(CASE WHEN property_category ILIKE '%محلات%' OR property_category ILIKE '%اداري%' OR property_category ILIKE '%مكتب%' OR property_category ILIKE '%office%' OR property_category ILIKE '%commercial%' THEN 1 END) as offices,
+          COUNT(CASE WHEN property_category ILIKE '%اراضي%' OR property_category ILIKE '%أرض%' OR property_category ILIKE '%land%' THEN 1 END) as land
+        FROM properties
+      `);
+    }
+    
+    // Also get category breakdown for debugging
+    const categoriesResult = await pool.query(`
+      SELECT property_category, COUNT(*) as count 
+      FROM properties 
+      WHERE property_category IS NOT NULL 
+      GROUP BY property_category 
+      ORDER BY count DESC
+      LIMIT 10
     `);
     
     const stats = result.rows[0];
@@ -267,7 +394,9 @@ app.get('/api/stats', async (req, res) => {
       penthouses: parseInt(stats.penthouses),
       townhouses: parseInt(stats.townhouses),
       offices: parseInt(stats.offices),
-      land: parseInt(stats.land)
+      land: parseInt(stats.land),
+      categories: categoriesResult.rows, // Include actual categories for debugging
+      usingRelationships: hasRelationships.rows[0].count > 0
     });
   } catch (error) {
     console.error('Error fetching statistics:', error);

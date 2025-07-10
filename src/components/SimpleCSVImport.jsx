@@ -115,8 +115,11 @@ const SimpleCSVImport = ({ onImportComplete }) => {
       
       console.log('Parsed CSV:', { headers, dataCount: data.length });
 
+      // Get API URL from environment or use relative path in production
+      const apiUrl = import.meta.env.VITE_API_URL || '/api';
+      
       // Send to backend
-      const response = await fetch('http://localhost:3001/api/import-csv', {
+      const response = await fetch(`${apiUrl}/import-csv`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

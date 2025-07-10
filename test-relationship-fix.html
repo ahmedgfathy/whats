@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Database Relationship Fix - Verification</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 12px 24px; margin: 8px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 15px; padding: 15px; background: white; border-radius: 5px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
+        .stat-card { background: linear-gradient(45deg, #007bff, #28a745); color: white; padding: 15px; border-radius: 8px; text-align: center; }
+        .stat-number { font-size: 24px; font-weight: bold; }
+        .stat-label { font-size: 12px; margin-top: 5px; }
+        h1 { color: #333; text-align: center; }
+        h3 { color: #555; margin-bottom: 10px; }
+        .step { margin: 20px 0; padding: 15px; background: #e7f3ff; border-left: 4px solid #007bff; }
+        .step h4 { margin: 0 0 10px 0; color: #007bff; }
+        .issue { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .fix { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Database Relationship Fix Verification</h1>
+        <p style="text-align: center; color: #666;">
+            This page tests the database relationship fixes and verifies all API endpoints work correctly.
+        </p>
+
+        <div class="step issue">
+            <h4>❌ Issues Identified:</h4>
+            <ul>
+                <li>No foreign key relationships between tables</li>
+                <li>Property stats showing 0 due to missing relationships</li>
+                <li>Property detail pages failing with 404 errors</li>
+                <li>Frontend calling wrong API endpoints</li>
+            </ul>
+        </div>
+
+        <div class="step fix">
+            <h4>🔧 Fixes Applied:</h4>
+            <ul>
+                <li>Created property_types, areas, and agents master tables</li>
+                <li>Added foreign key columns to properties table</li>
+                <li>Populated master tables with existing data</li>
+                <li>Updated backend APIs to use relationships</li>
+                <li>Added missing /api/messages/:id endpoint</li>
+                <li>Enhanced stats calculation with relationships</li>
+            </ul>
+        </div>
+
+        <div class="test-section" id="step1">
+            <h3>📊 Step 1: Database Stats</h3>
+            <button onclick="testStats()">Test Stats API</button>
+            <div id="stats-result" class="result"></div>
+            <div id="stats-display" class="stats-grid"></div>
+        </div>
+
+        <div class="test-section" id="step2">
+            <h3>🏠 Step 2: Properties List</h3>
+            <button onclick="testPropertiesList()">Test Properties List</button>
+            <div id="properties-list-result" class="result"></div>
+        </div>
+
+        <div class="test-section" id="step3">
+            <h3>🔍 Step 3: Property Detail</h3>
+            <button onclick="testPropertyDetail()">Test Property by ID</button>
+            <div id="property-detail-result" class="result"></div>
+        </div>
+
+        <div class="test-section" id="step4">
+            <h3>💬 Step 4: Message Detail</h3>
+            <button onclick="testMessageDetail()">Test Message by ID</button>
+            <div id="message-detail-result" class="result"></div>
+        </div>
+
+        <div class="test-section" id="step5">
+            <h3>🚀 Step 5: Run All Tests</h3>
+            <button onclick="runAllTests()">Run Complete Test Suite</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3001/api';
+
+        function setResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = content;
+            const section = element.closest('.test-section');
+            section.className = 'test-section ' + type;
+        }
+
+        async function testEndpoint(endpoint, resultId, description) {
+            setResult(resultId, `Testing ${description}...`, 'loading');
+            
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                setResult(resultId, `✅ SUCCESS - ${description}\n${JSON.stringify(data, null, 2)}`, 'success');
+                return data;
+            } catch (error) {
+                setResult(resultId, `❌ FAILED - ${description}\nError: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        async function testStats() {
+            const data = await testEndpoint('/stats', 'stats-result', 'Statistics API');
+            if (data) {
+                displayStats(data);
+            }
+        }
+
+        function displayStats(stats) {
+            const statsDisplay = document.getElementById('stats-display');
+            const propertyTypes = [
+                { key: 'apartments', label: 'شقق', icon: '🏠' },
+                { key: 'villas', label: 'فيلل', icon: '🏰' },
+                { key: 'land', label: 'أراضي', icon: '🏞️' },
+                { key: 'offices', label: 'مكاتب', icon: '🏢' },
+                { key: 'penthouses', label: 'دوبلكس', icon: '🏙️' },
+                { key: 'townhouses', label: 'تاون هاوس', icon: '🏘️' }
+            ];
+            
+            statsDisplay.innerHTML = propertyTypes.map(type => `
+                <div class="stat-card">
+                    <div class="stat-number">${stats[type.key] || 0}</div>
+                    <div class="stat-label">${type.icon} ${type.label}</div>
+                </div>
+            `).join('') + `
+                <div class="stat-card" style="background: linear-gradient(45deg, #6c757d, #495057);">
+                    <div class="stat-number">${stats.totalProperties || 0}</div>
+                    <div class="stat-label">📊 Total</div>
+                </div>
+            `;
+        }
+
+        async function testPropertiesList() {
+            await testEndpoint('/properties?limit=3', 'properties-list-result', 'Properties List');
+        }
+
+        async function testPropertyDetail() {
+            await testEndpoint('/properties/1', 'property-detail-result', 'Property Detail');
+        }
+
+        async function testMessageDetail() {
+            await testEndpoint('/messages/1', 'message-detail-result', 'Message Detail');
+        }
+
+        async function runAllTests() {
+            console.log('🔄 Running complete test suite...');
+            
+            await testStats();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testPropertiesList();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testPropertyDetail();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testMessageDetail();
+            
+            console.log('✅ Complete test suite finished');
+        }
+
+        // Auto-run tests on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Page loaded, running initial tests...');
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>
