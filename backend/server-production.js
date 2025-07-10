@@ -19,10 +19,10 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // PostgreSQL connection (Production Database)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: { rejectUnauthorized: false },
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 15000, // Increased timeout for Neon connections
 });
 
 // Test database connection on startup
