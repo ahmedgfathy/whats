@@ -18,7 +18,9 @@ import {
   PhoneIcon,
   StarIcon,
   FireIcon,
-  UserIcon
+  UserIcon,
+  GlobeAltIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
 import { getAllProperties, searchProperties, getPropertyTypeStats } from '../services/apiService';
 import PropertyHeroSlider from './PropertyHeroSlider';
@@ -71,6 +73,96 @@ const getVirtualPropertyImage = (propertyType, messageId) => {
   return images[imageIndex];
 };
 
+// Egyptian areas coordinates for proximity calculation (mock data)
+const EGYPTIAN_AREAS_COORDINATES = {
+  // Cairo areas
+  'القاهرة': { lat: 30.0444, lng: 31.2357 },
+  'مدينة نصر': { lat: 30.0626, lng: 31.3219 },
+  'مصر الجديدة': { lat: 30.0938, lng: 31.3235 },
+  'الزمالك': { lat: 30.0618, lng: 31.2194 },
+  'وسط البلد': { lat: 30.0459, lng: 31.2414 },
+  'المعادي': { lat: 29.9601, lng: 31.2568 },
+  'حدائق الأهرام': { lat: 29.9897, lng: 31.1684 },
+  'مدينة الشيخ زايد': { lat: 30.0255, lng: 30.9696 },
+  'مدينة 6 أكتوبر': { lat: 29.9097, lng: 30.9746 },
+  'التجمع الخامس': { lat: 30.0131, lng: 31.4286 },
+  'العاشر من رمضان': { lat: 30.3119, lng: 31.7430 },
+  
+  // Giza areas
+  'الجيزة': { lat: 30.0131, lng: 31.2089 },
+  'الهرم': { lat: 29.9721, lng: 31.1859 },
+  'فيصل': { lat: 29.9840, lng: 31.1656 },
+  'الدقي': { lat: 30.0488, lng: 31.2122 },
+  'المهندسين': { lat: 30.0620, lng: 31.2000 },
+  'إمبابة': { lat: 30.0766, lng: 31.2067 },
+  
+  // Alexandria
+  'الإسكندرية': { lat: 31.2001, lng: 29.9187 },
+  'العجمي': { lat: 31.1048, lng: 29.7818 },
+  'المنتزه': { lat: 31.2848, lng: 30.0171 },
+  'سيدي جابر': { lat: 31.2420, lng: 29.9737 },
+  
+  // Other major cities
+  'أسوان': { lat: 24.0889, lng: 32.8998 },
+  'الأقصر': { lat: 25.6872, lng: 32.6396 },
+  'أسيوط': { lat: 27.1809, lng: 31.1837 },
+  'المنيا': { lat: 28.0871, lng: 30.7618 },
+  'بني سويف': { lat: 29.0661, lng: 31.0994 },
+  'الفيوم': { lat: 29.3084, lng: 30.8428 },
+  'طنطا': { lat: 30.7865, lng: 31.0004 },
+  'المنصورة': { lat: 31.0364, lng: 31.3807 },
+  'الزقازيق': { lat: 30.5877, lng: 31.5022 },
+  'بورسعيد': { lat: 31.2653, lng: 32.3020 },
+  'السويس': { lat: 29.9668, lng: 32.5498 },
+  'الإسماعيلية': { lat: 30.5965, lng: 32.2715 },
+  'دمياط': { lat: 31.4165, lng: 31.8133 },
+  'كفر الشيخ': { lat: 31.1107, lng: 30.9388 },
+  'قنا': { lat: 26.1551, lng: 32.7160 },
+  'سوهاج': { lat: 26.5569, lng: 31.6948 },
+  'البحر الأحمر': { lat: 26.0975, lng: 33.8116 },
+  'الغردقة': { lat: 27.2574, lng: 33.8129 },
+  'شرم الشيخ': { lat: 27.9158, lng: 34.3299 },
+  'دهب': { lat: 28.5069, lng: 34.5130 },
+  'مرسى علم': { lat: 25.0629, lng: 34.8837 }
+};
+
+// Calculate distance between two coordinates using Haversine formula
+const calculateDistance = (lat1, lng1, lat2, lng2) => {
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c;
+  return distance;
+};
+
+// Extract area name from property location/message text
+const extractAreaFromProperty = (property) => {
+  const text = property?.location || property?.message || '';
+  
+  // Check for exact area matches first
+  for (const area of Object.keys(EGYPTIAN_AREAS_COORDINATES)) {
+    if (text.includes(area)) {
+      return area;
+    }
+  }
+  
+  // Check for partial matches (e.g., looking for "مدينة نصر" in "في مدينة نصر الجديدة")
+  for (const area of Object.keys(EGYPTIAN_AREAS_COORDINATES)) {
+    const words = area.split(' ');
+    const textMatches = words.every(word => text.includes(word));
+    if (textMatches) {
+      return area;
+    }
+  }
+  
+  return null; // No area found
+};
+
 const HomePage = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
@@ -84,6 +176,12 @@ const HomePage = () => {
   const [itemsToShow, setItemsToShow] = useState(10); // Initial load: 10 properties (2 rows of 5)
   const [language, setLanguage] = useState('arabic');
   const [isInitialized, setIsInitialized] = useState(false); // Prevent multiple initializations
+  
+  // Geolocation states
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationPermission, setLocationPermission] = useState('prompt'); // 'granted', 'denied', 'prompt'
+  const [sortByProximity, setSortByProximity] = useState(false);
+  const [geoError, setGeoError] = useState(null);
 
   const propertyFilters = [
     { id: 'all', label: 'جميع العقارات', labelEn: 'All Properties', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -103,6 +201,127 @@ const HomePage = () => {
     const savedLanguage = localStorage.getItem('publicLanguage') || 'arabic';
     setLanguage(savedLanguage);
   }, [isInitialized]);
+
+  // Geolocation functions
+  const requestGeolocation = async () => {
+    if (!navigator.geolocation) {
+      setGeoError('Geolocation is not supported by this browser');
+      return;
+    }
+
+    try {
+      setGeoError(null);
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+          resolve,
+          reject,
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 300000 // 5 minutes cache
+          }
+        );
+      });
+
+      const coords = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+
+      setUserLocation(coords);
+      setLocationPermission('granted');
+      setSortByProximity(true);
+      
+      console.log('📍 User location obtained:', coords);
+      
+      // Show success message
+      if (language === 'arabic') {
+        alert('تم الحصول على موقعك بنجاح! سيتم ترتيب العقارات حسب القرب منك.');
+      } else {
+        alert('Location obtained successfully! Properties will be sorted by proximity to you.');
+      }
+
+    } catch (error) {
+      console.error('Geolocation error:', error);
+      setLocationPermission('denied');
+      
+      let errorMessage = '';
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          errorMessage = language === 'arabic' 
+            ? 'تم رفض الإذن للوصول للموقع. يرجى تفعيل خدمات الموقع في المتصفح.'
+            : 'Location permission denied. Please enable location services in your browser.';
+          break;
+        case error.POSITION_UNAVAILABLE:
+          errorMessage = language === 'arabic'
+            ? 'الموقع غير متاح. يرجى التأكد من تفعيل GPS.'
+            : 'Location unavailable. Please make sure GPS is enabled.';
+          break;
+        case error.TIMEOUT:
+          errorMessage = language === 'arabic'
+            ? 'انتهت مهلة الحصول على الموقع. يرجى المحاولة مرة أخرى.'
+            : 'Location request timed out. Please try again.';
+          break;
+        default:
+          errorMessage = language === 'arabic'
+            ? 'حدث خطأ في الحصول على الموقع.'
+            : 'An error occurred while getting location.';
+          break;
+      }
+      
+      setGeoError(errorMessage);
+      alert(errorMessage);
+    }
+  };
+
+  // Sort properties by proximity to user
+  const sortPropertiesByProximity = (properties) => {
+    if (!userLocation || !sortByProximity) {
+      return properties;
+    }
+
+    return [...properties].sort((a, b) => {
+      const areaA = extractAreaFromProperty(a);
+      const areaB = extractAreaFromProperty(b);
+      
+      const coordsA = areaA ? EGYPTIAN_AREAS_COORDINATES[areaA] : null;
+      const coordsB = areaB ? EGYPTIAN_AREAS_COORDINATES[areaB] : null;
+      
+      // If we can't find coordinates for both properties, maintain original order
+      if (!coordsA && !coordsB) return 0;
+      if (!coordsA) return 1; // Put properties without coordinates at the end
+      if (!coordsB) return -1;
+      
+      const distanceA = calculateDistance(
+        userLocation.lat, userLocation.lng,
+        coordsA.lat, coordsA.lng
+      );
+      
+      const distanceB = calculateDistance(
+        userLocation.lat, userLocation.lng,
+        coordsB.lat, coordsB.lng
+      );
+      
+      return distanceA - distanceB;
+    });
+  };
+
+  // Calculate distance for display
+  const getDistanceToProperty = (property) => {
+    if (!userLocation) return null;
+    
+    const area = extractAreaFromProperty(property);
+    const coords = area ? EGYPTIAN_AREAS_COORDINATES[area] : null;
+    
+    if (!coords) return null;
+    
+    const distance = calculateDistance(
+      userLocation.lat, userLocation.lng,
+      coords.lat, coords.lng
+    );
+    
+    return distance < 1 ? `${Math.round(distance * 1000)}م` : `${distance.toFixed(1)}كم`;
+  };
 
   const loadInitialData = async () => {
     if (loading) return; // Prevent multiple simultaneous calls
@@ -233,15 +452,17 @@ const HomePage = () => {
   // Update displayed messages when messages or itemsToShow changes
   useEffect(() => {
     if (messages && messages.length > 0) {
-      const messagesToShow = messages.slice(0, itemsToShow);
+      // Sort by proximity if geolocation is enabled
+      const sortedMessages = sortPropertiesByProximity(messages);
+      const messagesToShow = sortedMessages.slice(0, itemsToShow);
       setDisplayedMessages(messagesToShow);
       setHasMore(messagesToShow.length < messages.length);
-      console.log(`📊 Displaying ${messagesToShow.length} of ${messages.length} messages`);
+      console.log(`📊 Displaying ${messagesToShow.length} of ${messages.length} messages ${sortByProximity ? '(sorted by proximity)' : ''}`);
     } else {
       setDisplayedMessages([]);
       setHasMore(false);
     }
-  }, [messages, itemsToShow]);
+  }, [messages, itemsToShow, userLocation, sortByProximity]);
 
   // Infinite scroll handler
   const handleScroll = () => {
