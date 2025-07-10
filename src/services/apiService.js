@@ -1,8 +1,8 @@
 // Real API service for backend communication
 // This replaces the mock database with actual HTTP calls to the Neon database
 
-// Check if we're in development mode and if local backend is available
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://contaboo.com/api';
+// Use localhost:3001 for development - production deployment needs to be updated
+const API_BASE_URL = 'http://localhost:3001/api';
 
 // Helper function to handle API calls
 const apiCall = async (endpoint, options = {}) => {
