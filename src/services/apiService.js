@@ -1,10 +1,8 @@
 // Real API service for backend communication
-// This replaces the mock database with actual HTTP calls to the SQLite backend
+// This replaces the mock database with actual HTTP calls to the Neon database
 
-// For production, always use /api. For development, use localhost
-const API_BASE_URL = import.meta.env.PROD 
-  ? '/api' 
-  : (import.meta.env.VITE_API_URL || 'http://localhost:3001/api');
+// Check if we're in development mode and if local backend is available
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://contaboo.com/api';
 
 // Helper function to handle API calls
 const apiCall = async (endpoint, options = {}) => {
@@ -200,6 +198,31 @@ export const searchMessages = async (searchTerm = '', propertyType = 'all', limi
 // Get all messages
 export const getAllMessages = async (propertyType = 'all', limit = 10000) => {
   return searchMessages('', propertyType, limit);
+};
+
+// Get all properties
+export const getAllProperties = async (limit = 1000) => {
+  try {
+    const params = new URLSearchParams();
+    params.append('limit', limit.toString());
+    
+    const response = await apiCall(`/properties?${params.toString()}`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching all properties:', error);
+    throw error;
+  }
+};
+
+// Get property by ID
+export const getPropertyById = async (id) => {
+  try {
+    const response = await apiCall(`/property?id=${id}`);
+    return response;
+  } catch (error) {
+    console.error('Error fetching property by ID:', error);
+    throw error;
+  }
 };
 
 // Get property type statistics
@@ -430,6 +453,8 @@ export default {
   deleteMessage,
   searchMessages,
   getAllMessages,
+  getAllProperties,
+  getPropertyById,
   getPropertyTypeStats,
   importChatMessages,
   getMessageById,

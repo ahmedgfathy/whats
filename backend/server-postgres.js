@@ -112,7 +112,7 @@ initializeTables();
 // Get all properties
 app.get('/api/properties', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM properties ORDER BY created_at DESC');
+    const result = await pool.query('SELECT * FROM properties ORDER BY imported_at DESC LIMIT 1000');
     res.json(result.rows);
   } catch (error) {
     console.error('Error fetching properties:', error);
