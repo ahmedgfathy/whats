@@ -164,6 +164,8 @@ const extractAreaFromProperty = (property) => {
 };
 
 const HomePage = () => {
+  console.log('HomePage component starting...');
+  
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -176,12 +178,15 @@ const HomePage = () => {
   const [itemsToShow, setItemsToShow] = useState(10); // Initial load: 10 properties (2 rows of 5)
   const [language, setLanguage] = useState('arabic');
   const [isInitialized, setIsInitialized] = useState(false); // Prevent multiple initializations
+  const [currentPage, setCurrentPage] = useState(1); // Add missing currentPage state
   
   // Geolocation states
   const [userLocation, setUserLocation] = useState(null);
   const [locationPermission, setLocationPermission] = useState('prompt'); // 'granted', 'denied', 'prompt'
   const [sortByProximity, setSortByProximity] = useState(false);
   const [geoError, setGeoError] = useState(null);
+
+  console.log('HomePage state initialized successfully');
 
   const propertyFilters = [
     { id: 'all', label: 'جميع العقارات', labelEn: 'All Properties', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -191,6 +196,49 @@ const HomePage = () => {
     { id: 'office', label: 'مكاتب', labelEn: 'Offices', icon: BuildingStorefrontIcon, color: 'from-indigo-500 to-purple-500' },
     { id: 'warehouse', label: 'مخازن', labelEn: 'Warehouses', icon: BuildingLibraryIcon, color: 'from-pink-500 to-rose-500' }
   ];
+
+  // Load initial data function - moved here to be available for useEffect
+  const loadInitialData = async () => {
+    if (loading) return; // Prevent multiple simultaneous calls
+    
+    setLoading(true);
+    try {
+      console.log('🔄 Starting to load initial data...');
+      
+      // Load property stats first
+      const propertyStats = await getPropertyTypeStats();
+      console.log('✅ Property stats received:', propertyStats);
+      if (propertyStats && propertyStats.length > 0) {
+        console.log('✅ Stats array length:', propertyStats.length);
+        console.log('✅ First stat item:', propertyStats[0]);
+        propertyStats.forEach(stat => {
+          console.log(`✅ Property type: ${stat.property_type}, Count: ${stat.count}`);
+        });
+        setStats(propertyStats);
+      } else {
+        console.warn('⚠️ No property stats received');
+        setStats([]);
+      }
+      
+      // Load properties
+      const allProperties = await getAllProperties(10000);
+      console.log('✅ Loaded properties:', allProperties?.length || 0);
+      if (allProperties && allProperties.length > 0) {
+        setMessages(allProperties);
+        console.log('✅ Properties set successfully');
+      } else {
+        console.warn('⚠️ No properties received');
+        setMessages([]);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading data:', error);
+      setStats([]); // Set empty array on error
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!isInitialized) {
@@ -323,48 +371,6 @@ const HomePage = () => {
     return distance < 1 ? `${Math.round(distance * 1000)}م` : `${distance.toFixed(1)}كم`;
   };
 
-  const loadInitialData = async () => {
-    if (loading) return; // Prevent multiple simultaneous calls
-    
-    setLoading(true);
-    try {
-      console.log('🔄 Starting to load initial data...');
-      
-      // Load property stats first
-      const propertyStats = await getPropertyTypeStats();
-      console.log('✅ Property stats received:', propertyStats);
-      if (propertyStats && propertyStats.length > 0) {
-        console.log('✅ Stats array length:', propertyStats.length);
-        console.log('✅ First stat item:', propertyStats[0]);
-        propertyStats.forEach(stat => {
-          console.log(`✅ Property type: ${stat.property_type}, Count: ${stat.count}`);
-        });
-        setStats(propertyStats);
-      } else {
-        console.warn('⚠️ No property stats received');
-        setStats([]);
-      }
-      
-      // Load properties
-      const allProperties = await getAllProperties(10000);
-      console.log('✅ Loaded properties:', allProperties?.length || 0);
-      if (allProperties && allProperties.length > 0) {
-        setMessages(allProperties);
-        console.log('✅ Properties set successfully');
-      } else {
-        console.warn('⚠️ No properties received');
-        setMessages([]);
-      }
-      
-    } catch (error) {
-      console.error('❌ Error loading data:', error);
-      setStats([]); // Set empty array on error
-      setMessages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       loadInitialData();
@@ -386,6 +392,19 @@ const HomePage = () => {
     setLoading(false);
   };
 
+  // New function to load data by filter - moved here to be available for handleStatClick
+  const loadFilteredData = async (filterType = 'all') => {
+    setLoading(true);
+    try {
+      const filterParam = filterType === 'all' ? null : filterType;
+      const filteredMessages = await searchProperties('', filterParam, 10000);
+      setMessages(filteredMessages);
+    } catch (error) {
+      console.error('Error loading filtered data:', error);
+    }
+    setLoading(false);
+  };
+
   const handleStatClick = (filterType) => {
     handleFilterChange(filterType);
     
@@ -397,21 +416,6 @@ const HomePage = () => {
       loadFilteredData(filterType);
     }
   };
-
-  // New function to load data by filter
-  const loadFilteredData = async (filterType = 'all') => {
-    setLoading(true);
-    try {
-      const filterParam = filterType === 'all' ? null : filterType;
-      const filteredMessages = await searchMessages('', filterParam, 10000);
-      setMessages(filteredMessages);
-    } catch (error) {
-      console.error('Error loading filtered data:', error);
-      }
-    setLoading(false);
-  };
-
-
 
   const handleLanguageSwitch = () => {
     const newLanguage = language === 'arabic' ? 'english' : 'arabic';

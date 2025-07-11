@@ -112,10 +112,10 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
     const fetchFeaturedProperties = async () => {
       try {
         setLoading(true);
-        console.log('Fetching properties for slider...');
+        console.log('PropertyHeroSlider: Fetching properties...');
         
         const response = await getAllProperties(1, 6); // Get first 6 properties for slider
-        console.log('Slider API response:', response);
+        console.log('PropertyHeroSlider: API response:', response);
         
         if (response && response.success && response.data && response.data.length > 0) {
           // Transform real data for slider format
@@ -131,14 +131,15 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
             message: property.message
           }));
           
-          console.log('Transformed properties for slider:', transformedProperties);
+          console.log('PropertyHeroSlider: Transformed properties:', transformedProperties);
           setFeaturedProperties(transformedProperties);
         } else {
-          console.log('No properties found, using default');
+          console.log('PropertyHeroSlider: No properties found, using default');
           setFeaturedProperties(defaultProperties);
         }
       } catch (error) {
-        console.error('Error fetching featured properties:', error);
+        console.error('PropertyHeroSlider: Error fetching featured properties:', error);
+        // Always set default properties on error to prevent blank slider
         setFeaturedProperties(defaultProperties);
       } finally {
         setLoading(false);
@@ -151,9 +152,32 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
   // Set default properties if still empty after loading
   useEffect(() => {
     if (!loading && featuredProperties.length === 0) {
+      console.log('PropertyHeroSlider: Setting default properties as fallback');
       setFeaturedProperties(defaultProperties);
     }
   }, [loading, featuredProperties.length]);
+
+  // If no properties available, show loading or error state
+  if (loading) {
+    return (
+      <div className="w-full h-96 md:h-[500px] flex items-center justify-center bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl">
+        <div className="text-center text-white">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-white mx-auto mb-4"></div>
+          <p>{language === 'arabic' ? 'جاري التحميل...' : 'Loading...'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (featuredProperties.length === 0) {
+    return (
+      <div className="w-full h-96 md:h-[500px] flex items-center justify-center bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl">
+        <div className="text-center text-white">
+          <p>{language === 'arabic' ? 'لا توجد عقارات متاحة' : 'No properties available'}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Auto-play functionality
   useEffect(() => {
