@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Debug</title>
+</head>
+<body>
+    <h1>Frontend Debug Test</h1>
+    <div id="debug-info"></div>
+    
+    <script>
+        // Test if we can access the API
+        fetch('/api/health')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('debug-info').innerHTML = 
+                    '<h2>API Test Result:</h2>' + 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(error => {
+                document.getElementById('debug-info').innerHTML = 
+                    '<h2>API Error:</h2>' + 
+                    '<pre style="color: red;">' + error.toString() + '</pre>';
+            });
+    </script>
+</body>
+</html>
+</script>
+</body>
+</html>

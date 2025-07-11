@@ -1,13 +1,90 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeftIcon, ChevronRightIcon, MapPinIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline';
+import { getAllProperties } from '../services/apiService';
 
 const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Featured properties with light, bright images and pricing info
-  const featuredProperties = [
+  // Virtual property image generator
+  const getVirtualPropertyImage = (propertyType, messageId) => {
+    const imageCategories = {
+      apartment: [
+        'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
+        'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
+        'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
+        'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
+        'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8'
+      ],
+      villa: [
+        'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
+        'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
+        'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.4&contrast=0.6',
+        'https://images.unsplash.com/photo-1571939228382-b2f2b585ce15?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
+        'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7'
+      ],
+      land: [
+        'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
+        'https://images.unsplash.com/photo-1566467712871-f3d5aba3f6c7?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
+        'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.4&contrast=0.6',
+        'https://images.unsplash.com/photo-1494280686715-9fd497f4c1a5?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
+        'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8'
+      ]
+    };
+    
+    const typeKey = propertyType?.toLowerCase().includes('villa') ? 'villa' :
+                   propertyType?.toLowerCase().includes('apartment') || 
+                   propertyType?.toLowerCase().includes('duplex') || 
+                   propertyType?.toLowerCase().includes('roof') ? 'apartment' :
+                   propertyType?.toLowerCase().includes('land') ? 'land' : 'apartment';
+    
+    const images = imageCategories[typeKey] || imageCategories.apartment;
+    const imageIndex = (messageId || 1) % images.length;
+    return images[imageIndex];
+  };
+
+  // Property type mapping for display
+  const getPropertyTypeLabel = (propertyType) => {
+    if (!propertyType) return language === 'arabic' ? 'عقار' : 'Property';
+    
+    const mappings = {
+      'apartment': language === 'arabic' ? 'شقة' : 'Apartment',
+      'villa': language === 'arabic' ? 'فيلا' : 'Villa', 
+      'land': language === 'arabic' ? 'أرض' : 'Land',
+      'office': language === 'arabic' ? 'مكتب' : 'Office',
+      'warehouse': language === 'arabic' ? 'مخزن' : 'Warehouse'
+    };
+    
+    // Check for direct matches first
+    const lowerType = propertyType.toLowerCase();
+    for (const [key, value] of Object.entries(mappings)) {
+      if (lowerType.includes(key)) return value;
+    }
+    
+    // Specific mappings for database categories
+    if (lowerType.includes('compound') || lowerType.includes('local apartments') || 
+        lowerType.includes('duplex') || lowerType.includes('roof')) {
+      return mappings.apartment;
+    }
+    if (lowerType.includes('villa') || lowerType.includes('townhouse') || 
+        lowerType.includes('twin house')) {
+      return mappings.villa;
+    }
+    if (lowerType.includes('land')) {
+      return mappings.land;
+    }
+    if (lowerType.includes('commercial') || lowerType.includes('administrative')) {
+      return mappings.office;
+    }
+    
+    return propertyType;
+  };
+
+  // Default featured properties (fallback)
+  const defaultProperties = [
     {
       id: 1,
       image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
@@ -27,48 +104,56 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
       priceValue: '2.8M',
       type: 'apartment',
       area: '180م²'
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.2&contrast=0.8',
-      title: language === 'arabic' ? 'قصر فخم في الزمالك' : 'Luxury Palace in Zamalek',
-      location: language === 'arabic' ? 'الزمالك، القاهرة' : 'Zamalek, Cairo',
-      price: language === 'arabic' ? 'تبدأ من 12 مليون جنيه' : 'Starting from 12M EGP',
-      priceValue: '12M',
-      type: 'villa',
-      area: '600م²'
-    },
-    {
-      id: 4,
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
-      title: language === 'arabic' ? 'بنتهاوس في مدينة نصر' : 'Penthouse in Nasr City',
-      location: language === 'arabic' ? 'مدينة نصر، القاهرة' : 'Nasr City, Cairo',
-      price: language === 'arabic' ? 'تبدأ من 6.2 مليون جنيه' : 'Starting from 6.2M EGP',
-      priceValue: '6.2M',
-      type: 'apartment',
-      area: '250م²'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.4&contrast=0.6',
-      title: language === 'arabic' ? 'فيلا على البحر في الساحل' : 'Beachfront Villa in North Coast',
-      location: language === 'arabic' ? 'الساحل الشمالي' : 'North Coast',
-      price: language === 'arabic' ? 'تبدأ من 8.5 مليون جنيه' : 'Starting from 8.5M EGP',
-      priceValue: '8.5M',
-      type: 'villa',
-      area: '400م²'
-    },
-    {
-      id: 6,
-      image: 'https://images.unsplash.com/photo-1480074568708-e7b720bb3f09?w=1200&h=600&fit=crop&auto=format&q=80&brightness=1.3&contrast=0.7',
-      title: language === 'arabic' ? 'دوبلكس في المعادي' : 'Duplex in Maadi',
-      location: language === 'arabic' ? 'المعادي، القاهرة' : 'Maadi, Cairo',
-      price: language === 'arabic' ? 'تبدأ من 5.1 مليون جنيه' : 'Starting from 5.1M EGP',
-      priceValue: '5.1M',
-      type: 'apartment',
-      area: '280م²'
     }
   ];
+
+  // Fetch real properties from database
+  useEffect(() => {
+    const fetchFeaturedProperties = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching properties for slider...');
+        
+        const response = await getAllProperties(1, 6); // Get first 6 properties for slider
+        console.log('Slider API response:', response);
+        
+        if (response && response.success && response.data && response.data.length > 0) {
+          // Transform real data for slider format
+          const transformedProperties = response.data.map((property, index) => ({
+            id: property.id,
+            image: getVirtualPropertyImage(property.property_type, property.id),
+            title: `${getPropertyTypeLabel(property.property_type)} ${property.location ? (language === 'arabic' ? `في ${property.location}` : `in ${property.location}`) : ''}`,
+            location: property.location || (language === 'arabic' ? 'الموقع غير محدد' : 'Location not specified'),
+            price: property.price || (language === 'arabic' ? 'السعر عند الاتصال' : 'Price on inquiry'),
+            priceValue: property.price || 'N/A',
+            type: property.property_type,
+            area: property.area || (language === 'arabic' ? 'المساحة غير محددة' : 'Area not specified'),
+            message: property.message
+          }));
+          
+          console.log('Transformed properties for slider:', transformedProperties);
+          setFeaturedProperties(transformedProperties);
+        } else {
+          console.log('No properties found, using default');
+          setFeaturedProperties(defaultProperties);
+        }
+      } catch (error) {
+        console.error('Error fetching featured properties:', error);
+        setFeaturedProperties(defaultProperties);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProperties();
+  }, [language]);
+
+  // Set default properties if still empty after loading
+  useEffect(() => {
+    if (!loading && featuredProperties.length === 0) {
+      setFeaturedProperties(defaultProperties);
+    }
+  }, [loading, featuredProperties.length]);
 
   // Auto-play functionality
   useEffect(() => {
@@ -107,16 +192,6 @@ const PropertyHeroSlider = ({ language = 'arabic', isBackground = false }) => {
       office: 'from-indigo-500 to-purple-500'
     };
     return colors[type] || 'from-gray-500 to-slate-500';
-  };
-
-  const getPropertyTypeLabel = (type) => {
-    const labels = {
-      apartment: language === 'arabic' ? 'شقة' : 'Apartment',
-      villa: language === 'arabic' ? 'فيلا' : 'Villa',
-      land: language === 'arabic' ? 'أرض' : 'Land',
-      office: language === 'arabic' ? 'مكتب' : 'Office'
-    };
-    return labels[type] || (language === 'arabic' ? 'عقار' : 'Property');
   };
 
   return (
