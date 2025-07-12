@@ -164,8 +164,6 @@ const extractAreaFromProperty = (property) => {
 };
 
 const HomePage = () => {
-  console.log('HomePage component starting...');
-  
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -178,15 +176,12 @@ const HomePage = () => {
   const [itemsToShow, setItemsToShow] = useState(10); // Initial load: 10 properties (2 rows of 5)
   const [language, setLanguage] = useState('arabic');
   const [isInitialized, setIsInitialized] = useState(false); // Prevent multiple initializations
-  const [currentPage, setCurrentPage] = useState(1); // Add missing currentPage state
   
   // Geolocation states
   const [userLocation, setUserLocation] = useState(null);
   const [locationPermission, setLocationPermission] = useState('prompt'); // 'granted', 'denied', 'prompt'
   const [sortByProximity, setSortByProximity] = useState(false);
   const [geoError, setGeoError] = useState(null);
-
-  console.log('HomePage state initialized successfully');
 
   const propertyFilters = [
     { id: 'all', label: 'جميع العقارات', labelEn: 'All Properties', icon: BuildingOffice2Icon, color: 'from-purple-500 to-pink-500' },
@@ -196,49 +191,6 @@ const HomePage = () => {
     { id: 'office', label: 'مكاتب', labelEn: 'Offices', icon: BuildingStorefrontIcon, color: 'from-indigo-500 to-purple-500' },
     { id: 'warehouse', label: 'مخازن', labelEn: 'Warehouses', icon: BuildingLibraryIcon, color: 'from-pink-500 to-rose-500' }
   ];
-
-  // Load initial data function - moved here to be available for useEffect
-  const loadInitialData = async () => {
-    if (loading) return; // Prevent multiple simultaneous calls
-    
-    setLoading(true);
-    try {
-      console.log('🔄 Starting to load initial data...');
-      
-      // Load property stats first
-      const propertyStats = await getPropertyTypeStats();
-      console.log('✅ Property stats received:', propertyStats);
-      if (propertyStats && propertyStats.length > 0) {
-        console.log('✅ Stats array length:', propertyStats.length);
-        console.log('✅ First stat item:', propertyStats[0]);
-        propertyStats.forEach(stat => {
-          console.log(`✅ Property type: ${stat.property_type}, Count: ${stat.count}`);
-        });
-        setStats(propertyStats);
-      } else {
-        console.warn('⚠️ No property stats received');
-        setStats([]);
-      }
-      
-      // Load properties
-      const allProperties = await getAllProperties(10000);
-      console.log('✅ Loaded properties:', allProperties?.length || 0);
-      if (allProperties && allProperties.length > 0) {
-        setMessages(allProperties);
-        console.log('✅ Properties set successfully');
-      } else {
-        console.warn('⚠️ No properties received');
-        setMessages([]);
-      }
-      
-    } catch (error) {
-      console.error('❌ Error loading data:', error);
-      setStats([]); // Set empty array on error
-      setMessages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (!isInitialized) {
@@ -371,6 +323,48 @@ const HomePage = () => {
     return distance < 1 ? `${Math.round(distance * 1000)}م` : `${distance.toFixed(1)}كم`;
   };
 
+  const loadInitialData = async () => {
+    if (loading) return; // Prevent multiple simultaneous calls
+    
+    setLoading(true);
+    try {
+      console.log('🔄 Starting to load initial data...');
+      
+      // Load property stats first
+      const propertyStats = await getPropertyTypeStats();
+      console.log('✅ Property stats received:', propertyStats);
+      if (propertyStats && propertyStats.length > 0) {
+        console.log('✅ Stats array length:', propertyStats.length);
+        console.log('✅ First stat item:', propertyStats[0]);
+        propertyStats.forEach(stat => {
+          console.log(`✅ Property type: ${stat.property_type}, Count: ${stat.count}`);
+        });
+        setStats(propertyStats);
+      } else {
+        console.warn('⚠️ No property stats received');
+        setStats([]);
+      }
+      
+      // Load properties
+      const allProperties = await getAllProperties(10000);
+      console.log('✅ Loaded properties:', allProperties?.length || 0);
+      if (allProperties && allProperties.length > 0) {
+        setMessages(allProperties);
+        console.log('✅ Properties set successfully');
+      } else {
+        console.warn('⚠️ No properties received');
+        setMessages([]);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading data:', error);
+      setStats([]); // Set empty array on error
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
       loadInitialData();
@@ -392,19 +386,6 @@ const HomePage = () => {
     setLoading(false);
   };
 
-  // New function to load data by filter - moved here to be available for handleStatClick
-  const loadFilteredData = async (filterType = 'all') => {
-    setLoading(true);
-    try {
-      const filterParam = filterType === 'all' ? null : filterType;
-      const filteredMessages = await searchProperties('', filterParam, 10000);
-      setMessages(filteredMessages);
-    } catch (error) {
-      console.error('Error loading filtered data:', error);
-    }
-    setLoading(false);
-  };
-
   const handleStatClick = (filterType) => {
     handleFilterChange(filterType);
     
@@ -416,6 +397,21 @@ const HomePage = () => {
       loadFilteredData(filterType);
     }
   };
+
+  // New function to load data by filter
+  const loadFilteredData = async (filterType = 'all') => {
+    setLoading(true);
+    try {
+      const filterParam = filterType === 'all' ? null : filterType;
+      const filteredMessages = await searchMessages('', filterParam, 10000);
+      setMessages(filteredMessages);
+    } catch (error) {
+      console.error('Error loading filtered data:', error);
+      }
+    setLoading(false);
+  };
+
+
 
   const handleLanguageSwitch = () => {
     const newLanguage = language === 'arabic' ? 'english' : 'arabic';
@@ -1498,44 +1494,7 @@ const HomePage = () => {
                   <BuildingOffice2Icon className="h-5 w-5" />
                   {/* Show total from stats if available, otherwise from messages */}
                   {stats.length > 0 ? stats.reduce((sum, stat) => sum + parseInt(stat.count || 0), 0) : messages.length} {texts.totalProperties} • {language === 'arabic' ? 'عرض' : 'Showing'} {displayedMessages.length}
-                  {userLocation && sortByProximity && (
-                    <span className="text-green-400 text-xs">
-                      • {language === 'arabic' ? 'مرتب حسب القرب' : 'Sorted by proximity'}
-                    </span>
-                  )}
                 </p>
-              </div>
-              
-              {/* Geolocation and Filter Controls */}
-              <div className="flex flex-col sm:flex-row gap-3 items-center">
-                {/* Geolocation Toggle Button */}
-                <motion.button
-                  onClick={requestGeolocation}
-                  disabled={locationPermission === 'granted'}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 text-sm font-medium ${
-                    locationPermission === 'granted'
-                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                      : 'bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  {locationPermission === 'granted' 
-                    ? (language === 'arabic' ? 'تم تفعيل الموقع' : 'Location Enabled')
-                    : (language === 'arabic' ? 'ترتيب حسب الموقع' : 'Sort by Location')
-                  }
-                </motion.button>
-                
-                {/* Show location error if any */}
-                {geoError && (
-                  <div className="text-red-400 text-xs max-w-xs">
-                    {geoError}
-                  </div>
-                )}
               </div>
               
               {/* Filter Reset Button */}
@@ -1563,112 +1522,77 @@ const HomePage = () => {
             </div>
           ) : (
             <>
-              {/* Properties Grid - Redesigned for better appearance */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 lg:gap-10 mb-8">
+              {/* Properties Grid - 5 per row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 mb-8">
                 {displayedMessages.map((message, index) => (
                   <motion.div 
                     key={message.id} 
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
-                    whileHover={{ scale: 1.03, y: -8 }}
+                    whileHover={{ scale: 1.02, y: -5 }}
                     onClick={() => navigate(`/property/${message.id}`)}
-                    className="group bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer border border-gray-100/50 shadow-lg hover:shadow-purple-500/20"
+                    className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl overflow-hidden hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-xl border border-gray-600 cursor-pointer min-h-[400px]"
                   >
-                    {/* Property Image with enhanced overlay */}
-                    <div className="relative h-52 overflow-hidden">
+                    {/* Property Image */}
+                    <div className="relative h-56 overflow-hidden">
                       <img 
                         src={getVirtualPropertyImage(message.property_type, message.id)}
                         alt={getPropertyTypeLabel(message.property_type)}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                         onError={(e) => {
                           e.target.src = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&h=250&fit=crop&auto=format';
                         }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent group-hover:from-black/50 transition-all duration-300"></div>
-                      
-                      {/* Property Type Badge */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                       <motion.span 
                         whileHover={{ scale: 1.05 }}
-                        className={`absolute top-4 left-4 px-3 py-1.5 rounded-xl text-xs font-semibold text-white shadow-lg backdrop-blur-md border border-white/20 ${getPropertyTypeColorClass(message.property_type)}`}
+                        className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium border backdrop-blur-sm ${getPropertyTypeColorClass(message.property_type)}`}
                       >
                         {getPropertyTypeLabel(message.property_type)}
                       </motion.span>
-                      
-                      {/* Top Right Info */}
-                      <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
-                        {/* Timestamp */}
-                        <div className="flex items-center gap-1 text-xs text-white bg-black/30 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-white/20">
-                          <ClockIcon className="h-3 w-3" />
-                          {message.timestamp}
-                        </div>
-                        
-                        {/* Distance if available */}
-                        {userLocation && sortByProximity && getDistanceToProperty(message) && (
-                          <div className="flex items-center gap-1 text-xs text-green-300 bg-green-500/20 backdrop-blur-sm px-2.5 py-1 rounded-lg border border-green-400/30">
-                            <MapPinIcon className="w-3 h-3" />
-                            {getDistanceToProperty(message)}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Quick action overlay on hover */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-purple-900/0 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          whileHover={{ scale: 1, opacity: 1 }}
-                          className="bg-white/20 backdrop-blur-md rounded-full p-3 border border-white/30"
-                        >
-                          <EyeIcon className="h-6 w-6 text-white" />
-                        </motion.div>
+                      <div className="absolute top-3 right-3 flex items-center gap-1 text-xs text-white bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
+                        <ClockIcon className="h-3 w-3" />
+                        {message.timestamp}
                       </div>
                     </div>
 
-                    {/* Property Content - More spacious layout */}
-                    <div className="p-6 space-y-4">
-                      {/* Title and Location */}
-                      <div className="space-y-2">
-                        <h4 className="font-bold text-gray-800 text-lg leading-tight flex items-start gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                          <span className="line-clamp-2">
-                            {getPropertyTypeLabel(message.property_type)} - {message.location || texts.notSpecified}
-                          </span>
-                        </h4>
-                        
-                        {/* Location with icon */}
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <MapPinIcon className="h-4 w-4 text-purple-500 flex-shrink-0" />
-                          <span className="text-sm truncate">{message.location || texts.notSpecified}</span>
-                        </div>
-                      </div>
+                    {/* Property Content */}
+                    <div className="p-7">
+                      <h4 className="font-semibold text-white mb-3 flex items-center gap-2 text-lg">
+                        <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        {getPropertyTypeLabel(message.property_type)} - {message.location || texts.notSpecified}
+                      </h4>
                       
-                      {/* Message preview - cleaner */}
-                      <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
+                      <p className="text-gray-300 text-sm line-clamp-3 mb-4 leading-relaxed min-h-[60px]">
                         {message.message}
                       </p>
                       
-                      {/* Property details in a clean grid */}
-                      <div className="space-y-3 pt-2">
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-400">{texts.location}:</span>
+                          <span className="text-gray-300">{message.location || texts.notSpecified}</span>
+                        </div>
                         {message.price && (
-                          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
-                            <span className="text-gray-600 text-sm font-medium">{texts.price}:</span>
-                            <span className="text-green-600 font-bold text-sm">{message.price}</span>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-400">{texts.price}:</span>
+                            <span className="text-green-400 font-semibold">{message.price}</span>
                           </div>
                         )}
-                        
-                        {/* Action button */}
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/property/${message.id}`);
-                          }}
-                          className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
-                        >
-                          <EyeIcon className="h-4 w-4" />
-                          {texts.viewDetails}
-                        </motion.button>
+                        <div className="mt-3 pt-3 border-t border-gray-600">
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/property/${message.id}`);
+                            }}
+                            className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300 font-medium flex items-center justify-center gap-2"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                            {texts.viewDetails}
+                          </motion.button>
+                        </div>
                       </div>
                     </div>
                   </motion.div>
